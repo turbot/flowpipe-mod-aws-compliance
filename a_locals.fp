@@ -36,5 +36,6 @@ locals {
 
 // Pipeline References
 locals {
-  pipeline_optional_message                 = detect_correct.pipeline.optional_message
+  pipeline_optional_message                                            = detect_correct.pipeline.optional_message
+  aws_pipeline_modify_apigateway_rest_api_stage          = aws.pipeline.modify_apigateway_rest_api_stage
 }

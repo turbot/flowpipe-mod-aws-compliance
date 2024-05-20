@@ -4,3 +4,5 @@ notifier           = "default"
 notification_level = "info"
 approvers          = []
 max_concurrency    = 1
+
+apigateway_rest_api_stage_if_xray_tracing_disabled_default_action = "enable_xray_tracing"
