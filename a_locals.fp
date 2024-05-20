@@ -36,7 +36,7 @@ locals {
 
 // Pipeline References
 locals {
+  pipeline_optional_message                 = detect_correct.pipeline.optional_message
   aws_pipeline_delete_ebs_snapshot          = aws.pipeline.delete_ebs_snapshot  
   aws_pipeline_modify_ebs_snapshot          = aws.pipeline.modify_ebs_snapshot
-  pipeline_optional_message                 = detect_correct.pipeline.optional_message
 }
