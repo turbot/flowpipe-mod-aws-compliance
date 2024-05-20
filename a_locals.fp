@@ -36,5 +36,7 @@ locals {
 
 // Pipeline References
 locals {
-  pipeline_optional_message                 = detect_correct.pipeline.optional_message
+  pipeline_optional_message               = detect_correct.pipeline.optional_message
+  aws_pipeline_update_dynamodb_table      = aws.pipeline.update_dynamodb_table
+  aws_pipeline_update_dynamodb_continuous_backup      = aws.pipeline.update_dynamodb_continuous_backup
 }
