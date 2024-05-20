@@ -36,8 +36,9 @@ locals {
 
 // Pipeline References
 locals {
-  pipeline_optional_message                 = detect_correct.pipeline.optional_message
-  aws_pipeline_delete_ebs_snapshot          = aws.pipeline.delete_ebs_snapshot  
-  aws_pipeline_modify_ebs_snapshot          = aws.pipeline.modify_ebs_snapshot
-  aws_pipeline_modify_elb_attributes        = aws.pipeline.modify_elb_attributes
+  pipeline_optional_message                         = detect_correct.pipeline.optional_message
+  aws_pipeline_delete_ebs_snapshot                  = aws.pipeline.delete_ebs_snapshot  
+  aws_pipeline_modify_ebs_snapshot                  = aws.pipeline.modify_ebs_snapshot
+  aws_pipeline_modify_elb_attributes                = aws.pipeline.modify_elb_attributes
+  aws_pipeline_modify_ec2_instance_metadata_options = aws.pipeline.modify_ec2_instance_metadata_options
 }
