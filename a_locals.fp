@@ -41,4 +41,5 @@ locals {
   aws_pipeline_modify_ebs_snapshot                  = aws.pipeline.modify_ebs_snapshot
   aws_pipeline_modify_elb_attributes                = aws.pipeline.modify_elb_attributes
   aws_pipeline_modify_ec2_instance_metadata_options = aws.pipeline.modify_ec2_instance_metadata_options
+  aws_pipeline_terminate_ec2_instances              = aws.pipeline.terminate_ec2_instances
 }
