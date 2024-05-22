@@ -4,3 +4,39 @@ notifier           = "default"
 notification_level = "info"
 approvers          = []
 max_concurrency    = 1
+
+# RDS DB instance deletion protection
+rds_db_instance_if_deletion_protection_disabled_trigger_enabled  = false
+rds_db_instance_if_deletion_protection_disabled_trigger_schedule = "15m"
+rds_db_instance_if_deletion_protection_disabled_default_action   = "update_db_instance"
+rds_db_instance_if_deletion_protection_disabled_actions  = ["skip", "update_db_instance"]
+
+# RDS DB instance auto version upgrade
+rds_db_instance_if_auto_minor_version_upgrade_disabled_trigger_enabled  = false
+rds_db_instance_if_auto_minor_version_upgrade_disabled_trigger_schedule = "15m"
+rds_db_instance_if_auto_minor_version_upgrade_disabled_default_action   = "update_db_instance"
+rds_db_instance_if_auto_minor_version_upgrade_disabled_actions  = ["skip", "update_db_instance"]
+
+# RDS DB instance IAM authentication upgrade
+rds_db_instance_if_iam_authentication_disabled_trigger_enabled  = false
+rds_db_instance_if_iam_authentication_disabled_trigger_schedule = "15m"
+rds_db_instance_if_iam_authentication_disabled_default_action   = "update_db_instance"
+rds_db_instance_if_iam_authentication_disabled_actions  = ["skip", "update_db_instance"]
+
+# RDS DB cluster deletion protection
+rds_db_cluster_if_deletion_protection_disabled_trigger_enabled  = false
+rds_db_cluster_if_deletion_protection_disabled_trigger_schedule = "15m"
+rds_db_cluster_if_deletion_protection_disabled_default_action   = "update_db_instance"
+rds_db_cluster_if_deletion_protection_disabled_actions  = ["skip", "update_db_instance"]
+
+# RDS DB cluster auto version upgrade
+rds_db_cluster_if_auto_minor_version_upgrade_disabled_trigger_enabled  = false
+rds_db_cluster_if_auto_minor_version_upgrade_disabled_trigger_schedule = "15m"
+rds_db_cluster_if_auto_minor_version_upgrade_disabled_default_action   = "update_db_instance"
+rds_db_cluster_if_auto_minor_version_upgrade_disabled_actions  = ["skip", "update_db_instance"]
+
+# RDS DB cluster IAM authentication upgrade
+rds_db_cluster_if_iam_authentication_disabled_trigger_enabled  = false
+rds_db_cluster_if_iam_authentication_disabled_trigger_schedule = "15m"
+rds_db_cluster_if_iam_authentication_disabled_default_action   = "update_db_instance"
+rds_db_cluster_if_iam_authentication_disabled_actions  = ["skip", "update_db_instance"]
