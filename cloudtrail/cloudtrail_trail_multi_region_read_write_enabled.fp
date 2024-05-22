@@ -27,8 +27,8 @@ locals {
     aws_account as a
     left join event_selectors_trail_details as d on d.account_id = a.account_id
     left join advanced_event_selectors_trail_details as ad on ad.account_id = a.account_id
- -- where
-  --  d.account_id is null;
+  where
+    d.account_id is null;
   EOQ
 }
 
