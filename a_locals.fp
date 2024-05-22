@@ -42,10 +42,11 @@ locals {
   aws_pipeline_modify_rds_db_cluster                = aws.pipeline.modify_rds_db_cluster
   aws_pipeline_update_dynamodb_table                = aws.pipeline.update_dynamodb_table
   aws_pipeline_update_dynamodb_continuous_backup    = aws.pipeline.update_dynamodb_continuous_backup
-  aws_pipeline_delete_ebs_snapshot                  = aws.pipeline.delete_ebs_snapshot  
+  aws_pipeline_delete_ebs_snapshot                  = aws.pipeline.delete_ebs_snapshot
   aws_pipeline_modify_ebs_snapshot                  = aws.pipeline.modify_ebs_snapshot
   aws_pipeline_modify_elb_attributes                = aws.pipeline.modify_elb_attributes
   aws_pipeline_modify_ec2_instance_metadata_options = aws.pipeline.modify_ec2_instance_metadata_options
   aws_pipeline_terminate_ec2_instances              = aws.pipeline.terminate_ec2_instances
   aws_pipeline_detach_network_interface             = aws.pipeline.detach_network_interface
+  aws_pipeline_put_s3_bucket_encryption             = aws.pipeline.put_s3_bucket_encryption
 }
