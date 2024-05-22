@@ -46,4 +46,5 @@ locals {
   aws_pipeline_terminate_ec2_instances              = aws.pipeline.terminate_ec2_instances
   aws_pipeline_detach_network_interface             = aws.pipeline.detach_network_interface
   aws_pipeline_enable_cloudtrail_validation         = aws.pipeline.enable_cloudtrail_tail_log_file_validation
+  aws_pipeline_put_s3_bucket_public_access_block = aws.pipeline.put_s3_bucket_public_access_block
 }
