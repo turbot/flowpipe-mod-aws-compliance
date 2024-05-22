@@ -5,6 +5,9 @@ notification_level = "info"
 approvers          = []
 max_concurrency    = 1
 
+# API Gateway X-RAY Tracing Disabled 
+apigateway_rest_api_stage_if_xray_tracing_disabled_default_action = "enable_xray_tracing"
+
 # RDS DB instance deletion protection
 rds_db_instance_if_deletion_protection_disabled_trigger_enabled  = false
 rds_db_instance_if_deletion_protection_disabled_trigger_schedule = "15m"
