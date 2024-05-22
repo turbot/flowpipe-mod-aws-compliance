@@ -37,6 +37,8 @@ locals {
 // Pipeline References
 locals {
   pipeline_optional_message                         = detect_correct.pipeline.optional_message
+  aws_pipeline_update_dynamodb_table                = aws.pipeline.update_dynamodb_table
+  aws_pipeline_update_dynamodb_continuous_backup    = aws.pipeline.update_dynamodb_continuous_backup
   aws_pipeline_delete_ebs_snapshot                  = aws.pipeline.delete_ebs_snapshot  
   aws_pipeline_modify_ebs_snapshot                  = aws.pipeline.modify_ebs_snapshot
   aws_pipeline_modify_elb_attributes                = aws.pipeline.modify_elb_attributes
