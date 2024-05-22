@@ -257,3 +257,9 @@
 //   default     = ["enable_logging"]
 //   description = "The list of enabled actions to provide for selection."
 // }
+
+// variable "ec2_client_vpn_endpoints_without_logging_enabled_actions" {
+//   type        = list(string)
+//   default     = ["enable_logging"]
+//   description = "The list of enabled actions to provide for selection."
+// }
