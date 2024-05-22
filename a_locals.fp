@@ -19,6 +19,7 @@ locals {
 
 // Common Texts
 locals {
+  description_resource         = "The name of the resource"
   description_database         = "Database connection string."
   description_approvers        = "List of notifiers to be used for obtaining action/approval decisions."
   description_credential       = "Name of the credential to be used for any authenticated actions."
@@ -36,15 +37,19 @@ locals {
 
 // Pipeline References
 locals {
-  pipeline_optional_message                         = detect_correct.pipeline.optional_message
-  aws_pipeline_update_dynamodb_table                = aws.pipeline.update_dynamodb_table
-  aws_pipeline_update_dynamodb_continuous_backup    = aws.pipeline.update_dynamodb_continuous_backup
-  aws_pipeline_delete_ebs_snapshot                  = aws.pipeline.delete_ebs_snapshot
-  aws_pipeline_modify_ebs_snapshot                  = aws.pipeline.modify_ebs_snapshot
-  aws_pipeline_modify_elb_attributes                = aws.pipeline.modify_elb_attributes
-  aws_pipeline_modify_ec2_instance_metadata_options = aws.pipeline.modify_ec2_instance_metadata_options
-  aws_pipeline_terminate_ec2_instances              = aws.pipeline.terminate_ec2_instances
-  aws_pipeline_detach_network_interface             = aws.pipeline.detach_network_interface
-  aws_pipeline_enable_cloudtrail_validation         = aws.pipeline.enable_cloudtrail_tail_log_file_validation
-  aws_pipeline_put_s3_bucket_public_access_block = aws.pipeline.put_s3_bucket_public_access_block
+  pipeline_optional_message                          = detect_correct.pipeline.optional_message
+  aws_pipeline_update_dynamodb_table                 = aws.pipeline.update_dynamodb_table
+  aws_pipeline_update_dynamodb_continuous_backup     = aws.pipeline.update_dynamodb_continuous_backup
+  aws_pipeline_delete_ebs_snapshot                   = aws.pipeline.delete_ebs_snapshot
+  aws_pipeline_modify_ebs_snapshot                   = aws.pipeline.modify_ebs_snapshot
+  aws_pipeline_modify_elb_attributes                 = aws.pipeline.modify_elb_attributes
+  aws_pipeline_modify_ec2_instance_metadata_options  = aws.pipeline.modify_ec2_instance_metadata_options
+  aws_pipeline_terminate_ec2_instances               = aws.pipeline.terminate_ec2_instances
+  aws_pipeline_detach_network_interface              = aws.pipeline.detach_network_interface
+  aws_pipeline_enable_cloudtrail_validation          = aws.pipeline.enable_cloudtrail_tail_log_file_validation
+  aws_pipeline_put_s3_bucket_public_access_block     = aws.pipeline.put_s3_bucket_public_access_block
+  aws_pipeline_put_s3_bucket_policy                  = aws.pipeline.put_s3_bucket_policy
+  aws_pipeline_create_s3_bucket                      = aws.pipeline.create_s3_bucket
+  aws_pipeline_create_cloudtrail_trail               = aws.pipeline.create_cloudtrail_trail
+  aws_pipeline_put_event_selectors_to_read_write_all = aws.pipeline.put_cloudtrail_trail_event_selectors_to_read_write_all
 }
