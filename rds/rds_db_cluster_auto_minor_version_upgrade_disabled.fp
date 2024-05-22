@@ -13,9 +13,9 @@ locals {
 }
 
 trigger "query" "detect_and_correct_rds_db_cluster_if_auto_minor_version_upgrade_disabled" {
-  title         = "Detect & correct RDS DB cluster if auto minor version upgrade disabled"
-  description   = "Detects RDS DB clusters if auto minor version upgrade is disabled and runs your chosen action."
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  title       = "Detect & correct RDS DB cluster if auto minor version upgrade disabled"
+  description = "Detects RDS DB clusters if auto minor version upgrade is disabled and runs your chosen action."
+  tags        = merge(local.rds_common_tags, { class = "unused" })
 
   enabled  = var.rds_db_cluster_if_auto_minor_version_upgrade_disabled_trigger_enabled
   schedule = var.rds_db_cluster_if_auto_minor_version_upgrade_disabled_trigger_schedule
@@ -31,9 +31,9 @@ trigger "query" "detect_and_correct_rds_db_cluster_if_auto_minor_version_upgrade
 }
 
 pipeline "detect_and_correct_rds_db_cluster_if_auto_minor_version_upgrade_disabled" {
-  title         = "Detect & correct RDS DB clusters if auto minor version upgrade disabled"
-  description   = "Detects RDS DB clusters if auto minor version upgrade is disabled and runs your chosen action."
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "featured" })
+  title       = "Detect & correct RDS DB clusters if auto minor version upgrade disabled"
+  description = "Detects RDS DB clusters if auto minor version upgrade is disabled and runs your chosen action."
+  tags        = merge(local.rds_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -91,17 +91,17 @@ pipeline "detect_and_correct_rds_db_cluster_if_auto_minor_version_upgrade_disabl
 
 
 pipeline "correct_rds_db_cluster_if_auto_minor_version_upgrade_disabled" {
-  title         = "Correct RDS DB cluster if auto minor version upgrade disabled"
-  description   = "Runs corrective action on a collection of RDS DB clusters if auto minor version upgrade is disabled."
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  title       = "Correct RDS DB cluster if auto minor version upgrade disabled"
+  description = "Runs corrective action on a collection of RDS DB clusters if auto minor version upgrade is disabled."
+  tags        = merge(local.rds_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
-      title                  = string
-      db_cluster_identifier = string
+      title                      = string
+      db_cluster_identifier      = string
       auto_minor_version_upgrade = bool
-      region                 = string
-      cred                   = string
+      region                     = string
+      cred                       = string
     }))
     description = local.description_items
   }
@@ -151,24 +151,24 @@ pipeline "correct_rds_db_cluster_if_auto_minor_version_upgrade_disabled" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_rds_db_cluster_if_auto_minor_version_upgrade_disabled
     args = {
-      title                  = each.value.title
-      db_cluster_identifier = each.value.db_cluster_identifier
+      title                      = each.value.title
+      db_cluster_identifier      = each.value.db_cluster_identifier
       auto_minor_version_upgrade = true
-      region                 = each.value.region
-      cred                   = each.value.cred
-      notifier               = param.notifier
-      notification_level     = param.notification_level
-      approvers              = param.approvers
-      default_action         = param.default_action
-      enabled_actions        = param.enabled_actions
+      region                     = each.value.region
+      cred                       = each.value.cred
+      notifier                   = param.notifier
+      notification_level         = param.notification_level
+      approvers                  = param.approvers
+      default_action             = param.default_action
+      enabled_actions            = param.enabled_actions
     }
   }
 }
 
 pipeline "correct_one_rds_db_cluster_if_auto_minor_version_upgrade_disabled" {
-  title         = "Correct one RDS DB cluster if auto minor version upgrade disabled"
-  description   = "Runs corrective action on an RDS DB cluster if auto minor version upgrade is disabled."
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  title       = "Correct one RDS DB cluster if auto minor version upgrade disabled"
+  description = "Runs corrective action on an RDS DB cluster if auto minor version upgrade is disabled."
+  tags        = merge(local.rds_common_tags, { class = "unused" })
 
   param "title" {
     type        = string
@@ -254,7 +254,7 @@ pipeline "correct_one_rds_db_cluster_if_auto_minor_version_upgrade_disabled" {
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_modify_rds_db_cluster
           pipeline_args = {
-            db_cluster_identifier     = param.db_cluster_identifier
+            db_cluster_identifier      = param.db_cluster_identifier
             auto_minor_version_upgrade = true
             region                     = param.region
             cred                       = param.cred
