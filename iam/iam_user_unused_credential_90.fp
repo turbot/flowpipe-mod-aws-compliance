@@ -157,7 +157,7 @@ pipeline "deactivate_iam_user_unused_credentials_90" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_user_unused_credential
+    pipeline        = pipeline.correct_one_iam_user_unused_credential_90
     args = {
       title              = each.value.title
       user_name          = each.value.user_name
@@ -174,7 +174,7 @@ pipeline "deactivate_iam_user_unused_credentials_90" {
 }
 
 
-pipeline "correct_one_iam_user_unused_credential" {
+pipeline "correct_one_iam_user_unused_credential_90" {
   title         = "Correct One IAM User Unused Credential"
   description   = "Runs corrective action to deactivate one IAM user credential that has been unused for 90 days."
   tags          = merge(local.iam_common_tags, { class = "security" })
@@ -302,53 +302,53 @@ variable "iam_user_unused_credentials_90_enabled_actions" {
 }
 
 
-pipeline "deactivate_access_key_and_disable_console_access" {
-  title       = "Deactivate Access Key and Disable Console Access"
-  description = "Deactivates the IAM user's access key and disables console access by deleting the login profile."
+// pipeline "deactivate_access_key_and_disable_console_access" {
+//   title       = "Deactivate Access Key and Disable Console Access"
+//   description = "Deactivates the IAM user's access key and disables console access by deleting the login profile."
 
-  param "cred" {
-    type        = string
-    description = "The credentials to use for AWS CLI commands."
-    default     = "default"
-  }
+//   param "cred" {
+//     type        = string
+//     description = "The credentials to use for AWS CLI commands."
+//     default     = "default"
+//   }
 
-  param "user_name" {
-    type        = string
-    description = "The name of the IAM user."
-  }
+//   param "user_name" {
+//     type        = string
+//     description = "The name of the IAM user."
+//   }
 
-  param "password_disable" {
-    type        = bool
-    description = "The name of the IAM user."
-  }
+//   param "password_disable" {
+//     type        = bool
+//     description = "The name of the IAM user."
+//   }
 
-  param "access_key_id" {
-    type        = string
-    description = "The access key ID of the IAM user."
-  }
+//   param "access_key_id" {
+//     type        = string
+//     description = "The access key ID of the IAM user."
+//   }
 
-  step "container" "deactivate_access_key" {
-    image = "public.ecr.aws/aws-cli/aws-cli"
-    cmd = [
-      "iam", "update-access-key",
-      "--access-key-id", param.access_key_id,
-      "--status", "Inactive",
-      "--user-name", param.user_name
-    ]
+//   step "container" "deactivate_access_key" {
+//     image = "public.ecr.aws/aws-cli/aws-cli"
+//     cmd = [
+//       "iam", "update-access-key",
+//       "--access-key-id", param.access_key_id,
+//       "--status", "Inactive",
+//       "--user-name", param.user_name
+//     ]
 
-    env = credential.aws[param.cred].env
-  }
+//     env = credential.aws[param.cred].env
+//   }
 
-  step "container" "delete_login_profile" {
-    if = param.password_disable
-    image = "public.ecr.aws/aws-cli/aws-cli"
-    cmd = [
-      "iam", "delete-login-profile",
-      "--user-name", param.user_name
-    ]
+//   step "container" "delete_login_profile" {
+//     if = param.password_disable
+//     image = "public.ecr.aws/aws-cli/aws-cli"
+//     cmd = [
+//       "iam", "delete-login-profile",
+//       "--user-name", param.user_name
+//     ]
 
-    env = credential.aws[param.cred].env
-  }
+//     env = credential.aws[param.cred].env
+//   }
 
-}
+// }
 
