@@ -49,4 +49,5 @@ locals {
   aws_pipeline_terminate_ec2_instances              = aws.pipeline.terminate_ec2_instances
   aws_pipeline_detach_network_interface             = aws.pipeline.detach_network_interface
   aws_pipeline_put_s3_bucket_encryption             = aws.pipeline.put_s3_bucket_encryption
+  aws_pipeline_put_s3_bucket_policy                 = aws.pipeline.put_s3_bucket_policy
 }
