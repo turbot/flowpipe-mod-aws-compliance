@@ -48,4 +48,5 @@ locals {
   aws_pipeline_modify_ec2_instance_metadata_options = aws.pipeline.modify_ec2_instance_metadata_options
   aws_pipeline_terminate_ec2_instances              = aws.pipeline.terminate_ec2_instances
   aws_pipeline_detach_network_interface             = aws.pipeline.detach_network_interface
+  aws_pipeline_s3_bucket_block_public_access                 = aws.pipeline.put_s3_bucket_public_access_block
 }
