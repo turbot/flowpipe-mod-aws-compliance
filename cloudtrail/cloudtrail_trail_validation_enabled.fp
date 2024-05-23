@@ -251,9 +251,10 @@ pipeline "correct_one_cloudtrail_trail_validation_enabled" {
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_enable_cloudtrail_validation
           pipeline_args = {
-            trail_name = param.name
-            region     = param.region
-            cred       = param.cred
+            trail_name                 = param.name
+            enable_log_file_validation = true
+            region                     = param.region
+            cred                       = param.cred
           }
           success_msg = "Enabled log file validation for CloudTrail trail ${param.title}."
           error_msg   = "Error enabling log file validation for CloudTrail trail ${param.title}."
