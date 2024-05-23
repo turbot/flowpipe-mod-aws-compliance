@@ -47,9 +47,13 @@ locals {
   aws_pipeline_terminate_ec2_instances               = aws.pipeline.terminate_ec2_instances
   aws_pipeline_detach_network_interface              = aws.pipeline.detach_network_interface
   aws_pipeline_enable_cloudtrail_validation          = aws.pipeline.update_cloudtrail_trail
+  aws_pipeline_modify_rds_db_instance               = aws.pipeline.modify_rds_db_instance
+  aws_pipeline_modify_rds_db_cluster                = aws.pipeline.modify_rds_db_cluster
+  aws_pipeline_modify_apigateway_rest_api_stage     = aws.pipeline.modify_apigateway_rest_api_stage
   aws_pipeline_put_s3_bucket_public_access_block     = aws.pipeline.put_s3_bucket_public_access_block
   aws_pipeline_put_s3_bucket_policy                  = aws.pipeline.put_s3_bucket_policy
   aws_pipeline_create_s3_bucket                      = aws.pipeline.create_s3_bucket
+  aws_pipeline_put_s3_bucket_logging                      = aws.pipeline.put_s3_bucket_logging
   aws_pipeline_create_cloudtrail_trail               = aws.pipeline.create_cloudtrail_trail
   aws_pipeline_put_event_selectors_to_read_write_all = aws.pipeline.put_cloudtrail_trail_event_selectors_to_read_write_all
   aws_pipeline_create_iam_role_with_policy           = aws.pipeline.create_iam_role
@@ -57,4 +61,6 @@ locals {
   aws_pipeline_attach_log_group_to_cloudtrail_trail  = aws.pipeline.update_cloudtrail_trail
   aws_pipeline_create_iam_policy                     = aws.pipeline.create_iam_policy
   aws_pipeline_attach_polict_to_role                 = aws.pipeline.attach_iam_role_policy
+  aws_pipeline_update_cloudtrail_trail = aws.pipeline.update_cloudtrail_trail
+  aws_pipeline_start_cloudtrail_trail_logging = aws.pipeline.start_cloudtrail_trail_logging
 }
