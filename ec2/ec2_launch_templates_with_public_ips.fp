@@ -17,6 +17,7 @@
 //     )
 //     select
 //       concat(t.launch_template_id, ' [', t.region, '/', t.account_id, ']') as title,
+//       t.launch_template_id,
 //       t.region,
 //       t._ctx ->> 'connection_name' as cred
 //     from
@@ -115,13 +116,49 @@
 
 //   param "items" {
 //     type = list(object({
-//       title               = string,
-//       launch_template_id  = string,
-//       region              = string,
-//       cred                = string,
+//       title                 = string,
+//       launch_template_id    = string,
+//       region                = string,
+//       cred                  = string,
 //       public_ip_association = string
 //     }))
 //     description = local.description_items
+//   }
+
+//   param "notifier" {
+//     type        = string
+//     description = local.description_notifier
+//     default     = var.notifier
+//   }
+
+//   param "notification_level" {
+//     type        = string
+//     description = local.description_notifier_level
+//     default     = var.notification_level
+//   }
+
+//   param "approvers" {
+//     type        = list(string)
+//     description = local.description_approvers
+//     default     = var.approvers
+//   }
+
+//   param "default_action" {
+//     type        = string
+//     description = local.description_default_action
+//     default     = var.ec2_launch_templates_with_public_ips_default_action
+//   }
+
+//   param "enabled_actions" {
+//     type        = list(string)
+//     description = local.description_enabled_actions
+//     default     = var.ec2_launch_templates_with_public_ips_enabled_actions
+//   }
+
+//   step "message" "notify_detection_count" {
+//     if       = var.notification_level == local.level_verbose
+//     notifier = notifier[param.notifier]
+//     text     = "Detected ${length(param.items)} EC2 launch templates with public IPs."
 //   }
 
 //   step "transform" "items_by_id" {
@@ -203,10 +240,10 @@
 //   }
 
 //   step "pipeline" "disable_public_ip" {
-//     pipeline = aws_pipeline_modify_launch_template_network_settings
+//     pipeline = aws_pipeline_modify_launch_template
 //     args = {
 //       launch_template_id    = param.launch_template_id,
-//       public_ip_association = "false", // Set to 'false' to disable automatic public IP assignment
+//       associate_public_ip   = "false", // Set to 'false' to disable automatic public IP assignment
 //       region                = param.region,
 //       cred                  = param.cred
 //     }
