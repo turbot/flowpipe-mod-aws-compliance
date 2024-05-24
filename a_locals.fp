@@ -42,12 +42,15 @@ locals {
   aws_pipeline_modify_rds_db_cluster                = aws.pipeline.modify_rds_db_cluster
   aws_pipeline_update_dynamodb_table                = aws.pipeline.update_dynamodb_table
   aws_pipeline_update_dynamodb_continuous_backup    = aws.pipeline.update_dynamodb_continuous_backup
-  aws_pipeline_delete_ebs_snapshot                  = aws.pipeline.delete_ebs_snapshot  
+  aws_pipeline_delete_ebs_snapshot                  = aws.pipeline.delete_ebs_snapshot
   aws_pipeline_modify_ebs_snapshot                  = aws.pipeline.modify_ebs_snapshot
   aws_pipeline_modify_elb_attributes                = aws.pipeline.modify_elb_attributes
   aws_pipeline_modify_ec2_instance_metadata_options = aws.pipeline.modify_ec2_instance_metadata_options
   aws_pipeline_terminate_ec2_instances              = aws.pipeline.terminate_ec2_instances
   aws_pipeline_detach_network_interface             = aws.pipeline.detach_network_interface
+  aws_pipeline_delete_iam_access_key                = aws.pipeline.delete_iam_access_key
+  aws_pipeline_update_iam_account_password_policy   = aws.pipeline.update_iam_account_password_policy
+  aws_pipeline_create_iam_access_analyzer  =        aws.pipeline.create_iam_access_analyzer
   // aws_pipeline_modify_launch_template            = aws.pipeline.modify_launch_template
   aws_pipeline_delete_network_acl_entry             = aws.pipeline.delete_network_acl_entry
   aws_pipeline_revoke_vpc_security_group_ingress    = aws.pipeline.revoke_vpc_security_group_ingress
