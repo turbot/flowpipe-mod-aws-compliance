@@ -383,7 +383,7 @@ variable "cloudtrail_trail_s3_object_write_events_audit_enabled_trigger_schedule
 variable "cloudtrail_trail_s3_object_write_events_audit_enabled_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "enable_s3_object_write_events"
+  default     = "notify"
 }
 
 variable "cloudtrail_trail_home_region_for_write_event" {
