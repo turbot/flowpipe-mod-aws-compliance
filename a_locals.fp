@@ -52,4 +52,5 @@ locals {
   // // aws_pipeline_create_flow_log                      = aws.create_flow_log
   aws_pipeline_delete_network_acl_entry             = aws.pipeline.delete_network_acl_entry
   aws_pipeline_revoke_vpc_security_group_ingress    = aws.pipeline.revoke_vpc_security_group_ingress
+  aws_pipeline_create_vpc_flow_logs                 = aws.pipeline.create_vpc_flow_logs
 }
