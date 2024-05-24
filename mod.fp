@@ -17,7 +17,7 @@ mod "aws_compliance" {
       version = "*"
     }
     mod "github.com/turbot/flowpipe-mod-aws" {
-      version = "v0.4.0-rc.14"
+      version = "v0.4.0-rc.21"
     }
   }
 }
