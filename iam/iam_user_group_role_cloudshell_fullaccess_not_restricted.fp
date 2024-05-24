@@ -1,94 +1,65 @@
 locals {
-  iam_entities_with_policy_star_star_query = <<-EOQ
-    with full_access_policy as (select
-    arn,
-    is_aws_managed,
-    count(*) as num_bad_statements
-  from
-    aws_iam_policy,
-    jsonb_array_elements(policy_std -> 'Statement') as s,
-    jsonb_array_elements_text(s -> 'Resource') as resource,
-    jsonb_array_elements_text(s -> 'Action') as action
-  where
-    s ->> 'Effect' = 'Allow'
-    and resource = '*'
-    and (
-      (action = '*'
-      or action = '*:*'
-      )
-    )
-    and is_attached
-    and not is_aws_managed
-    and arn = 'arn:aws:iam::533793682495:policy/test-delete'
-  group by
-    arn,
-    is_aws_managed
-)  select
+  iam_entities_with_cloudshell_fullaccess_policy_query = <<-EOQ
+    select
       concat(name, ' [', account_id, ']') as title,
-      a as policy_arn,
       name as entity_name,
       'user' as entity_type,
       account_id,
       _ctx ->> 'connection_name' as cred
     from
-      aws_iam_user,
-      jsonb_array_elements_text(attached_policy_arns) as a
+      aws_iam_user
     where
-      a in (select arn from full_access_policy)
+      attached_policy_arns @> '["arn:aws:iam::aws:policy/AWSCloudShellFullAccess"]'
 
     union
 
     select
       concat(name, ' [', account_id, ']') as title,
-      jsonb_array_elements_text(attached_policy_arns) as policy_arn,
       name as entity_name,
       'role' as entity_type,
       account_id,
       _ctx ->> 'connection_name' as cred
     from
-      aws_iam_role,
-      jsonb_array_elements_text(attached_policy_arns) as a
-    where
-      a in (select arn from full_access_policy)
+      aws_iam_role
+		where
+				attached_policy_arns @> '["arn:aws:iam::aws:policy/AWSCloudShellFullAccess"]'
 
     union
 
     select
       concat(name, ' [', account_id, ']') as title,
-      jsonb_array_elements_text(attached_policy_arns) as policy_arn,
       name as entity_name,
       'group' as entity_type,
       account_id,
       _ctx ->> 'connection_name' as cred
     from
-      aws_iam_group,
-      jsonb_array_elements_text(attached_policy_arns) as a
-    where
-      a in (select arn from full_access_policy)
+      aws_iam_group
+		where
+			attached_policy_arns @> '["arn:aws:iam::aws:policy/AWSCloudShellFullAccess"]'
   EOQ
 }
 
-trigger "query" "detect_and_detach_iam_entities_with_policy_star_star" {
-  title         = "Detect & Detach IAM Entities with Policy Star Star"
-  description   = "Detects IAM entities (users, roles, groups) with the `iam_policy_star_star` attached and detaches that policy."
+trigger "query" "detect_and_detach_iam_entities_with_cloudshell_fullaccess_policy" {
+  title         = "Detect & Detach IAM Entities with CloudShellFullAccess Policy"
+  description   = "Detects IAM entities (users, roles, groups) with the CloudShellFullAccess policy attached and detaches that policy."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
-  enabled  = var.iam_entities_with_policy_star_star_trigger_enabled
-  schedule = var.iam_entities_with_policy_star_star_trigger_schedule
+  enabled  = var.iam_entities_with_cloudshell_fullaccess_policy_trigger_enabled
+  schedule = var.iam_entities_with_cloudshell_fullaccess_policy_trigger_schedule
   database = var.database
-  sql      = local.iam_entities_with_policy_star_star_query
+  sql      = local.iam_entities_with_cloudshell_fullaccess_policy_query
 
   capture "insert" {
-    pipeline = pipeline.detach_iam_entities_with_policy_star_star
+    pipeline = pipeline.detach_iam_entities_with_cloudshell_fullaccess_policy
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_detach_iam_entities_with_policy_star_star" {
-  title         = "Detect & Detach IAM Entities with Policy Star Star"
-  description   = "Detects IAM entities (users, roles, groups) with the `iam_policy_star_star` attached and detaches that policy."
+pipeline "detect_and_detach_iam_entities_with_cloudshell_fullaccess_policy" {
+  title         = "Detect & Detach IAM Entities with CloudShellFullAccess Policy"
+  description   = "Detects IAM entities (users, roles, groups) with the CloudShellFullAccess policy attached and detaches that policy."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 
   param "database" {
@@ -118,22 +89,22 @@ pipeline "detect_and_detach_iam_entities_with_policy_star_star" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_entities_with_policy_star_star_default_action
+    default     = var.iam_entities_with_cloudshell_fullaccess_policy_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_entities_with_policy_star_star_enabled_actions
+    default     = var.iam_entities_with_cloudshell_fullaccess_policy_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_entities_with_policy_star_star_query
+    sql      = local.iam_entities_with_cloudshell_fullaccess_policy_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.detach_iam_entities_with_policy_star_star
+    pipeline = pipeline.detach_iam_entities_with_cloudshell_fullaccess_policy
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -145,9 +116,9 @@ pipeline "detect_and_detach_iam_entities_with_policy_star_star" {
   }
 }
 
-pipeline "detach_iam_entities_with_policy_star_star" {
-  title         = "Detach IAM Entities with Policy Star Star"
-  description   = "Runs corrective action to detach the `iam_policy_star_star` policy from IAM entities (users, roles, groups)."
+pipeline "detach_iam_entities_with_cloudshell_fullaccess_policy" {
+  title         = "Detach IAM Entities with CloudShellFullAccess Policy"
+  description   = "Runs corrective action to detach the CloudShellFullAccess policy from IAM entities (users, roles, groups)."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "items" {
@@ -155,7 +126,6 @@ pipeline "detach_iam_entities_with_policy_star_star" {
       title          = string
       entity_name    = string
       entity_type    = string
-      policy_arn     = string
       account_id     = string
       cred           = string
     }))
@@ -183,34 +153,33 @@ pipeline "detach_iam_entities_with_policy_star_star" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_entities_with_policy_star_star_default_action
+    default     = var.iam_entities_with_cloudshell_fullaccess_policy_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_entities_with_policy_star_star_enabled_actions
+    default     = var.iam_entities_with_cloudshell_fullaccess_policy_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM entities with the `iam_policy_star_star` policy attached."
+    text     = "Detected ${length(param.items)} IAM entities with the CloudShellFullAccess policy attached."
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.policy_arn => row }
+    value = { for row in param.items : row.title => row }
   }
 
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.detach_policy_from_one_iam_entity
+    pipeline        = pipeline.detach_cloudshell_fullaccess_policy_from_one_iam_entity
     args = {
       title              = each.value.title
       entity_name        = each.value.entity_name
       entity_type        = each.value.entity_type
-      policy_arn         = each.value.policy_arn
       account_id         = each.value.account_id
       cred               = each.value.cred
       notifier           = param.notifier
@@ -222,7 +191,7 @@ pipeline "detach_iam_entities_with_policy_star_star" {
   }
 }
 
-pipeline "detach_policy_from_one_iam_entity" {
+pipeline "detach_cloudshell_fullaccess_policy_from_one_iam_entity" {
   title         = "Detach Policy from One IAM Entity"
   description   = "Runs corrective action to detach the `iam_policy_star_star` policy from one IAM entity (user, role, or group)."
   tags          = merge(local.iam_common_tags, { class = "security" })
@@ -240,11 +209,6 @@ pipeline "detach_policy_from_one_iam_entity" {
   param "entity_type" {
     type        = string
     description = "The type of IAM entity (user, role, or group)."
-  }
-
-  param "policy_arn" {
-    type        = string
-    description = "The ARN of the policy to be detached."
   }
 
   param "account_id" {
@@ -318,7 +282,7 @@ pipeline "detach_policy_from_one_iam_entity" {
           pipeline_args = {
             entity_name  = param.entity_name
             entity_type  = param.entity_type
-            policy_arn   = param.policy_arn
+            policy_arn   = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
             cred         = param.cred
           }
           success_msg = "Detached policy from IAM entity ${param.title}."
@@ -329,88 +293,27 @@ pipeline "detach_policy_from_one_iam_entity" {
   }
 }
 
-variable "iam_entities_with_policy_star_star_trigger_enabled" {
+
+variable "iam_entities_with_cloudshell_fullaccess_policy_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "iam_entities_with_policy_star_star_trigger_schedule" {
+variable "iam_entities_with_cloudshell_fullaccess_policy_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "iam_entities_with_policy_star_star_default_action" {
+variable "iam_entities_with_cloudshell_fullaccess_policy_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "detach_policy"
 }
 
-variable "iam_entities_with_policy_star_star_enabled_actions" {
+variable "iam_entities_with_cloudshell_fullaccess_policy_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "detach_policy"]
-}
-
-pipeline "detach_iam_policy" {
-  title       = "Detach IAM Policy"
-  description = "Detaches the specified managed policy from the specified IAM user, role, or group."
-
-  param "cred" {
-    type        = string
-    description = "The credentials to use for AWS CLI commands."
-    default     = "default"
-  }
-
-  param "entity_name" {
-    type        = string
-    description = "The name of the IAM entity (user, role, or group) from which the policy will be detached."
-  }
-
-  param "entity_type" {
-    type        = string
-    description = "The type of IAM entity (user, role, or group)."
-  }
-
-  param "policy_arn" {
-    type        = string
-    description = "The Amazon Resource Name (ARN) of the IAM policy to detach."
-  }
-
-  step "container" "detach_user_policy" {
-		if = param.entity_type == "user"
-    image = "public.ecr.aws/aws-cli/aws-cli"
-    cmd = [
-      "iam", "detach-user-policy",
-      "--user-name", param.entity_name,
-      "--policy-arn", param.policy_arn,
-    ]
-
-    env = credential.aws[param.cred].env
-  }
-
-  step "container" "detach_role_policy" {
-		if = param.entity_type == "role"
-    image = "public.ecr.aws/aws-cli/aws-cli"
-    cmd = [
-      "iam", "detach-role-policy",
-      "--role-name", param.entity_name,
-      "--policy-arn", param.policy_arn,
-    ]
-
-    env = credential.aws[param.cred].env
-  }
-
-	step "container" "detach_group_policy" {
-		if = param.entity_type == "group"
-    image = "public.ecr.aws/aws-cli/aws-cli"
-    cmd = [
-      "iam", "detach-group-policy",
-      "--group-name", param.entity_name,
-      "--policy-arn", param.policy_arn,
-    ]
-
-    env = credential.aws[param.cred].env
-  }
 }
