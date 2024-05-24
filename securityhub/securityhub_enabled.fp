@@ -34,8 +34,8 @@ trigger "query" "detect_and_correct_regions_with_security_hub_disabled" {
 }
 
 pipeline "detect_and_correct_regions_with_security_hub_disabled" {
-  title         = "Detect & correct regions with Security Hub disabled"
-  description   = "Detects regions with Security Hub disabled and runs your chosen action."
+  title       = "Detect & correct regions with Security Hub disabled"
+  description = "Detects regions with Security Hub disabled and runs your chosen action."
   // documentation = file("./securityhub/docs/detect_and_correct_regions_with_security_hub_disabled.md")
   // tags          = merge(local.securityhub_common_tags, { class = "unused", type = "featured" })
 
@@ -94,8 +94,8 @@ pipeline "detect_and_correct_regions_with_security_hub_disabled" {
 }
 
 pipeline "correct_regions_with_security_hub_disabled" {
-  title         = "Correct regions with Security Hub disabled"
-  description   = "Executes corrective actions on regions with Security Hub disabled."
+  title       = "Correct regions with Security Hub disabled"
+  description = "Executes corrective actions on regions with Security Hub disabled."
   // documentation = file("./securityhub/docs/correct_regions_with_security_hub_disabled_.md")
   // tags          = merge(local.securityhub_common_tags, { class = "unused" })
 
@@ -239,10 +239,11 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           label        = "Enable with Default Standards"
           value        = "enable_with_default_standards"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_enable_security_hub_with_default_standards
+          pipeline_ref = local.aws_pipeline_enable_security_hub
           pipeline_args = {
-            region = param.region
-            cred   = param.cred
+            region                   = param.region
+            enable_default_standards = true
+            cred                     = param.cred
           }
           success_msg = "Enabled SecurityHub with default standards in region ${param.title}."
           error_msg   = "Error enabling SecurityHub with default standards in region ${param.title}."
@@ -251,10 +252,11 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           label        = "Enable without Default Standards"
           value        = "enable_without_default_standards"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_enable_security_hub_without_default_standards
+          pipeline_ref = local.aws_pipeline_enable_security_hub
           pipeline_args = {
-            region = param.region
-            cred   = param.cred
+            region                   = param.region
+            enable_default_standards = false
+            cred                     = param.cred
           }
           success_msg = "Enabled SecurityHub without default standards in region ${param.title}."
           error_msg   = "Error enabling SecurityHub without default standards in region ${param.title}."
