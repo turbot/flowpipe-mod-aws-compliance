@@ -1,7 +1,7 @@
 # Core options
 database           = "postgres:#steampipe@localhost:9193/steampipe"
 notifier           = "default"
-notification_level = "info"
+notification_level = "verbose"
 approvers          = []
 max_concurrency    = 1
 
