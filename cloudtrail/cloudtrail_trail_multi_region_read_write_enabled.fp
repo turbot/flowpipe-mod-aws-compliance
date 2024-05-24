@@ -325,7 +325,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
 
   step "pipeline" "put_s3_bucket_policy" {
     depends_on = [step.pipeline.create_s3_bucket]
-    pipeline = local.aws_pipeline_put_s3_bucket_policy
+    pipeline   = local.aws_pipeline_put_s3_bucket_policy
     args = {
       region = "us-east-1"
       cred   = param.cred
@@ -350,11 +350,12 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
 
   step "pipeline" "set_event_selectors" {
     depends_on = [step.pipeline.create_cloudtrail_trail]
-    pipeline   = local.aws_pipeline_put_event_selectors_to_read_write_all
+    pipeline   = local.aws_pipeline_put_cloudtrail_trail_event_selectors
     args = {
-      region     = "us-east-1"
-      trail_name = param.trail_name
-      cred       = param.cred
+      region          = "us-east-1"
+      trail_name      = param.trail_name
+      event_selectors = "[{\"ReadWriteType\": \"All\",\"IncludeManagementEvents\": true}]"
+      cred            = param.cred
     }
   }
 }

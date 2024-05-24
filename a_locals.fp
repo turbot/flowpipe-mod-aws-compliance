@@ -55,7 +55,7 @@ locals {
   aws_pipeline_create_s3_bucket                      = aws.pipeline.create_s3_bucket
   aws_pipeline_put_s3_bucket_logging                      = aws.pipeline.put_s3_bucket_logging
   aws_pipeline_create_cloudtrail_trail               = aws.pipeline.create_cloudtrail_trail
-  aws_pipeline_put_event_selectors_to_read_write_all = aws.pipeline.put_cloudtrail_trail_event_selectors_to_read_write_all
+  aws_pipeline_put_cloudtrail_trail_event_selectors = aws.pipeline.put_cloudtrail_trail_event_selector
   aws_pipeline_create_iam_role_with_policy           = aws.pipeline.create_iam_role
   aws_pipeline_create_cloudwatch_log_group           = aws.pipeline.create_cloudwatch_log_group
   aws_pipeline_attach_log_group_to_cloudtrail_trail  = aws.pipeline.update_cloudtrail_trail
