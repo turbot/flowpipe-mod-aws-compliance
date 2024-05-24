@@ -49,6 +49,7 @@ locals {
   aws_pipeline_modify_ec2_instance_metadata_options = aws.pipeline.modify_ec2_instance_metadata_options
   aws_pipeline_terminate_ec2_instances              = aws.pipeline.terminate_ec2_instances
   aws_pipeline_detach_network_interface             = aws.pipeline.detach_network_interface
+  aws_pipeline_s3_bucket_block_public_access        = aws.pipeline.put_s3_bucket_public_access_block
   aws_pipeline_update_cloudtrail_trail              = aws.pipeline.update_cloudtrail_trail
   aws_pipeline_put_kms_key_policy                   = aws.pipeline.put_kms_key_policy
   aws_pipeline_enable_security_hub                  = aws.pipeline.enable_security_hub
@@ -56,7 +57,6 @@ locals {
   aws_pipeline_put_s3_bucket_encryption             = aws.pipeline.put_s3_bucket_encryption
   aws_pipeline_put_s3_bucket_policy                 = aws.pipeline.put_s3_bucket_policy
   aws_pipeline_enable_ebs_volume_encryption         = aws.pipeline.enable_ebs_encryption_by_default
-  aws_pipeline_put_s3_bucket_public_access_block    = aws.pipeline.put_s3_bucket_public_access_block
   aws_pipeline_create_s3_bucket                     = aws.pipeline.create_s3_bucket
   aws_pipeline_put_s3_bucket_logging                = aws.pipeline.put_s3_bucket_logging
   aws_pipeline_create_cloudtrail_trail              = aws.pipeline.create_cloudtrail_trail
@@ -75,4 +75,3 @@ locals {
   aws_pipeline_revoke_vpc_security_group_ingress    = aws.pipeline.revoke_vpc_security_group_ingress
   aws_pipeline_create_vpc_flow_logs                 = aws.pipeline.create_vpc_flow_logs
 }
-
