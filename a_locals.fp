@@ -48,8 +48,7 @@ locals {
   aws_pipeline_modify_ec2_instance_metadata_options = aws.pipeline.modify_ec2_instance_metadata_options
   aws_pipeline_terminate_ec2_instances              = aws.pipeline.terminate_ec2_instances
   aws_pipeline_detach_network_interface             = aws.pipeline.detach_network_interface
-  // aws_pipeline_modify_launch_template               = aws.pipeline.modify_launch_template
-  // // aws_pipeline_create_flow_log                      = aws.create_flow_log
+  // aws_pipeline_modify_launch_template            = aws.pipeline.modify_launch_template
   aws_pipeline_delete_network_acl_entry             = aws.pipeline.delete_network_acl_entry
   aws_pipeline_revoke_vpc_security_group_ingress    = aws.pipeline.revoke_vpc_security_group_ingress
   aws_pipeline_create_vpc_flow_logs                 = aws.pipeline.create_vpc_flow_logs
