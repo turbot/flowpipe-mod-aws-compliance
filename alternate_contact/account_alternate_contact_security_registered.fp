@@ -315,19 +315,23 @@ variable "account_alternate_contact_security_registered_enabled_actions" {
 variable "alternate_contact_type" {
   type        = string
   description = "The alternate contact type."
+  default     = "" // TODO: fix this
 }
 
 variable "email_address" {
   type        = string
   description = "The email address of the alternate contact."
+  default     = "" // TODO: fix this
 }
 
 variable "phone_number" {
   type        = string
   description = "The phone number of the alternate contact."
+  default     = "" // TODO: fix this
 }
 
 variable "title" {
   type        = string
   description = "The title of the alternate contact."
+  default     = "" // TODO: fix this
 }

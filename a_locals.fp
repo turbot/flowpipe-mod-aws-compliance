@@ -74,4 +74,6 @@ locals {
   aws_pipeline_delete_network_acl_entry             = aws.pipeline.delete_network_acl_entry
   aws_pipeline_revoke_vpc_security_group_ingress    = aws.pipeline.revoke_vpc_security_group_ingress
   aws_pipeline_create_vpc_flow_logs                 = aws.pipeline.create_vpc_flow_logs
+  aws_pipeline_put_s3_bucket_public_access_block    = aws.pipeline.put_s3_bucket_public_access_block
+  aws_pipeline_enable_cloudtrail_validation         = aws.pipeline.update_cloudtrail_trail
 }
