@@ -54,14 +54,6 @@ pipeline "cis_v300" {
     } 
   }
 
-  // children = [
-  //   benchmark.cis_v300_1,
-  //   benchmark.cis_v300_2,
-  //   benchmark.cis_v300_3,
-  //   benchmark.cis_v300_4,
-  //   benchmark.cis_v300_5
-  // ]
-
   // tags = merge(local.cis_v300_common_tags, {
   //   type = "Benchmark"
   // })

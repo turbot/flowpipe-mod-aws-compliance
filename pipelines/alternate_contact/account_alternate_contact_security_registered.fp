@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_account_alternate_contact_security_registered" {
-  title       = "Detect & correct account alternate contact security registered"
+  title       = "Detect & Correct account alternate contact security registered"
   description = "Detects account alternate contact security registered and runs your chosen action."
   // // documentation = file("./account/docs/detect_and_correct_account_alternate_contact_security_registered_trigger.md")
   // tags          = merge(local.account_common_tags, { class = "unused" })
@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_account_alternate_contact_security_registere
 }
 
 pipeline "detect_and_correct_account_alternate_contact_security_registered" {
-  title       = "Detect & correct account alternate contact security registered"
+  title       = "Detect & Correct account alternate contact security registered"
   description = "Detects account alternate contact security registered and runs your chosen action."
   // // documentation = file("./account/docs/detect_and_correct_account_alternate_contact_security_registered.md")
   // tags          = merge(local.account_common_tags, { class = "unused", type = "featured" })

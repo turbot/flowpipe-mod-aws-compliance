@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress" {
-  title         = "Detect & correct default VPC Security groups allowing ingress egress"
+  title         = "Detect & Correct default VPC Security groups allowing ingress egress"
   description   = "Detects default Security group rules that allow both incoming and outgoing internet traffic."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_default_security_groups_allowing_ingress_egress_trigger.md")
   tags          = merge(local.vpc_common_tags, { class = "security" })
@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_vpc_default_security_groups_allowing_ingress
 }
 
 pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress" {
-  title         = "Detect & correct default VPC Security groups allowing ingress egress"
+  title         = "Detect & Correct default VPC Security groups allowing ingress egress"
   description   = "Detects default Security groups that allow both incoming and outgoing internet traffic and suggests corrective actions."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_default_security_groups_allowing_ingress_egress.md")
   tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })

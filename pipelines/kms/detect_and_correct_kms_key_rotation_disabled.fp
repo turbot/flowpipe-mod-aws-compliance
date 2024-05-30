@@ -16,7 +16,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_kms_key_rotation_disabled" {
-  title       = "Detect & correct KMS Key Rotation Disabled"
+  title       = "Detect & Correct KMS Key Rotation Disabled"
   description = "Detects KMS Key Rotation Disabled and runs your chosen action."
   // // documentation = file("./kms/docs/detect_and_correct_kms_key_rotation_disabled_trigger.md")
   tags          = merge(local.kms_common_tags, { class = "unused" })
@@ -35,7 +35,7 @@ trigger "query" "detect_and_correct_kms_key_rotation_disabled" {
 }
 
 pipeline "detect_and_correct_kms_key_rotation_disabled" {
-  title       = "Detect & correct KMS Key Rotation Disabled"
+  title       = "Detect & Correct KMS Key Rotation Disabled"
   description = "Detects KMS Key Rotation Disabled and runs your chosen action."
   // // documentation = file("./kms/docs/detect_and_correct_kms_key_rotation_disabled.md")
   // tags          = merge(local.kms_common_tags, { class = "unused", type = "featured" })

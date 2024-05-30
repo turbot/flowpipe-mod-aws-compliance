@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_delete_iam_root_access_keys" {
-  title         = "Detect & Delete IAM Root User Access Keys"
+  title         = "Detect & Correct IAM Root User Access Keys"
   description   = "Detects IAM root user access keys and deletes them."
   // // documentation = file("./iam/docs/detect_and_delete_iam_root_access_keys_trigger.md")
   tags          = merge(local.iam_common_tags, { class = "security" })
@@ -33,7 +33,7 @@ trigger "query" "detect_and_delete_iam_root_access_keys" {
 }
 
 pipeline "detect_and_delete_iam_root_access_keys" {
-  title         = "Detect & Delete IAM Root User Access Keys"
+  title         = "Detect & Correct IAM Root User Access Keys"
   description   = "Detects IAM root user access keys and deletes them."
   // // documentation = file("./iam/docs/detect_and_delete_iam_root_access_keys.md")
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })

@@ -33,7 +33,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trail_multi_region_read_write_enabled" {
-  title         = "Detect & correct CloudTrail trails without multi-region read/write enabled"
+  title         = "Detect & Correct CloudTrail trails without multi-region read/write enabled"
   description   = "Detects CloudTrail trails that do not have multi-region read/write enabled and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_multi_region_read_write_enabled_trigger.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
@@ -52,7 +52,7 @@ trigger "query" "detect_and_correct_cloudtrail_trail_multi_region_read_write_ena
 }
 
 pipeline "detect_and_correct_cloudtrail_trail_multi_region_read_write_enabled" {
-  title         = "Detect & correct CloudTrail trails without multi-region read/write enabled"
+  title         = "Detect & Correct CloudTrail trails without multi-region read/write enabled"
   description   = "Detects CloudTrail trails that do not have multi-region read/write enabled and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_multi_region_read_write_enabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })

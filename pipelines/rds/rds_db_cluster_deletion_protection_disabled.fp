@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_rds_db_cluster_if_deletion_protection_disabled" {
-  title         = "Detect & correct RDS DB cluster if deletion protection disabled"
+  title         = "Detect & Correct RDS DB cluster if deletion protection disabled"
   description   = "Detects RDS DB clusters if deletion protection disabled and runs your chosen action."
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
@@ -31,7 +31,7 @@ trigger "query" "detect_and_correct_rds_db_cluster_if_deletion_protection_disabl
 }
 
 pipeline "detect_and_correct_rds_db_cluster_if_deletion_protection_disabled" {
-  title         = "Detect & correct RDS DB clusters if deletion protection disabled"
+  title         = "Detect & Correct RDS DB clusters if deletion protection disabled"
   description   = "Detects RDS DB clusters if deletion protection disabled and runs your chosen action."
   tags          = merge(local.rds_common_tags, { class = "unused", type = "featured" })
 

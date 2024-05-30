@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_dynamodb_table_if_deletion_protection_disabled" {
-  title         = "Detect & correct DynamoDB table if deletion protection disabled"
+  title         = "Detect & Correct DynamoDB table if deletion protection disabled"
   description   = "Detects DynamoDB tables if deletion protection disabled and runs your chosen action."
   // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_table_if_deletion_protection_disabled_trigger.md")
   tags          = merge(local.dynamodb_common_tags, { class = "unused" })
@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_dynamodb_table_if_deletion_protection_disabl
 }
 
 pipeline "detect_and_correct_dynamodb_table_if_deletion_protection_disabled" {
-  title         = "Detect & correct DynamoDB tables if deletion protection disabled"
+  title         = "Detect & Correct DynamoDB tables if deletion protection disabled"
   description   = "Detects DynamoDB tables if deletion protection disabled and runs your chosen action."
   // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_table_if_deletion_protection_disabled.md")
   tags          = merge(local.dynamodb_common_tags, { class = "unused", type = "featured" })

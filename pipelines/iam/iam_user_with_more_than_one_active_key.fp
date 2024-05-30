@@ -42,7 +42,7 @@ locals {
 }
 
 trigger "query" "detect_and_delete_extra_iam_user_active_keys" {
-  title         = "Detect & Delete Extra IAM User Active Keys"
+  title         = "Detect & Correct Extra IAM User Active Keys"
   description   = "Detects IAM users with more than one active key and deletes the extra keys."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -60,7 +60,7 @@ trigger "query" "detect_and_delete_extra_iam_user_active_keys" {
 }
 
 pipeline "detect_and_delete_extra_iam_user_active_keys" {
-  title         = "Detect & Delete Extra IAM User Active Keys"
+  title         = "Detect & Correct Extra IAM User Active Keys"
   description   = "Detects IAM users with more than one active key and deletes the extra keys."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

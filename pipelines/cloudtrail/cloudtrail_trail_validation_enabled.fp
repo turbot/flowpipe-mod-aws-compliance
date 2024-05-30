@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trail_validation_enabled" {
-  title         = "Detect & correct CloudTrail trails without log file validation enabled"
+  title         = "Detect & Correct CloudTrail trails without log file validation enabled"
   description   = "Detects CloudTrail trails without log file validation enabled and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_validation_enabled_trigger.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_cloudtrail_trail_validation_enabled" {
 }
 
 pipeline "detect_and_correct_cloudtrail_trail_validation_enabled" {
-  title         = "Detect & correct CloudTrail trails without log file validation enabled"
+  title         = "Detect & Correct CloudTrail trails without log file validation enabled"
   description   = "Detects CloudTrail trails without log file validation enabled and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_validation_enabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })

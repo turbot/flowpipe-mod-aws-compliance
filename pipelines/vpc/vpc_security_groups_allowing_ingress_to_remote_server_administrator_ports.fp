@@ -51,7 +51,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports" {
-  title         = "Detect & correct VPC Security groups allowing ingress to remote server administration ports"
+  title         = "Detect & Correct VPC Security groups allowing ingress to remote server administration ports"
   description   = "Detects Security group rules that allow ingress from 0.0.0.0/0 to remote server administration ports."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_trigger.md")
   tags          = merge(local.vpc_common_tags, { class = "security" })
@@ -70,7 +70,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remo
 }
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports" {
-  title         = "Detect & correct VPC Security groups allowing ingress to remote server administration ports"
+  title         = "Detect & Correct VPC Security groups allowing ingress to remote server administration ports"
   description   = "Detects Security groups that allow risky ingress rules and suggests corrective actions."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports.md")
   tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })

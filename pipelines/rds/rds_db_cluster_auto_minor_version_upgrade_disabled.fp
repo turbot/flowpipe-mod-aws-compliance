@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_rds_db_cluster_if_auto_minor_version_upgrade_disabled" {
-  title       = "Detect & correct RDS DB cluster if auto minor version upgrade disabled"
+  title       = "Detect & Correct RDS DB cluster if auto minor version upgrade disabled"
   description = "Detects RDS DB clusters if auto minor version upgrade is disabled and runs your chosen action."
   tags        = merge(local.rds_common_tags, { class = "unused" })
 
@@ -31,7 +31,7 @@ trigger "query" "detect_and_correct_rds_db_cluster_if_auto_minor_version_upgrade
 }
 
 pipeline "detect_and_correct_rds_db_cluster_if_auto_minor_version_upgrade_disabled" {
-  title       = "Detect & correct RDS DB clusters if auto minor version upgrade disabled"
+  title       = "Detect & Correct RDS DB clusters if auto minor version upgrade disabled"
   description = "Detects RDS DB clusters if auto minor version upgrade is disabled and runs your chosen action."
   tags        = merge(local.rds_common_tags, { class = "unused", type = "featured" })
 

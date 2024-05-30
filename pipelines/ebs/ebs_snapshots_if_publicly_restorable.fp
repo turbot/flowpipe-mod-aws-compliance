@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_ebs_snapshots_if_publicly_restorable" {
-  title         = "Detect & correct EBS snapshots if publicly restorable"
+  title         = "Detect & Correct EBS snapshots if publicly restorable"
   description   = "Detects EBS snapshots that are publicly restorable and runs your chosen action."
   // documentation = file("./ebs/docs/detect_and_correct_ebs_snapshots_if_publicly_restorable_trigger.md")
   tags          = merge(local.ebs_common_tags, { class = "unused" })
@@ -32,7 +32,7 @@ trigger "query" "detect_and_correct_ebs_snapshots_if_publicly_restorable" {
 }
 
 pipeline "detect_and_correct_ebs_snapshots_if_publicly_restorable" {
-  title         = "Detect & correct EBS snapshots if publicly restorable"
+  title         = "Detect & Correct EBS snapshots if publicly restorable"
   description   = "Detects EBS snapshots that are publicly restorable and runs your chosen action."
   // documentation = file("./ebs/docs/detect_and_correct_ebs_snapshots_if_publicly_restorable.md")
   tags          = merge(local.ebs_common_tags, { class = "unused", type = "featured" })

@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_delete_iam_user_inline_policies" {
-  title         = "Detect & Delete IAM User Inline Policies"
+  title         = "Detect & Correct IAM User Inline Policies"
   description   = "Detects IAM user inline policies and deletes them."
   // // documentation = file("./iam/docs/detect_and_delete_iam_user_inline_policies_trigger.md")
   tags          = merge(local.iam_common_tags, { class = "security" })
@@ -33,7 +33,7 @@ trigger "query" "detect_and_delete_iam_user_inline_policies" {
 }
 
 pipeline "detect_and_delete_iam_user_inline_policies" {
-  title         = "Detect & Delete IAM User Inline Policies"
+  title         = "Detect & Correct IAM User Inline Policies"
   description   = "Detects IAM user inline policies and deletes them."
   // // documentation = file("./iam/docs/detect_and_delete_iam_user_inline_policies.md")
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })

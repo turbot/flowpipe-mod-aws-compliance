@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_ec2_instances_if_publicly_accessible" {
-  title         = "Detect & correct EC2 instances if publicly accessible"
+  title         = "Detect & Correct EC2 instances if publicly accessible"
   description   = "Detects EC2 instances with public IP addresses and executes the chosen action."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_if_publicly_accessible_trigger.md")
   tags          = merge(local.ec2_common_tags, { class = "security" })
@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_ec2_instances_if_publicly_accessible" {
 }
 
 pipeline "detect_and_correct_ec2_instances_if_publicly_accessible" {
-  title         = "Detect & correct EC2 instances if publicly accessible"
+  title         = "Detect & Correct EC2 instances if publicly accessible"
   description   = "Detects EC2 instances with public IP addresses and performs the chosen action."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_if_publicly_accessible.md")
   tags          = merge(local.ec2_common_tags, { class = "security", type = "featured" })

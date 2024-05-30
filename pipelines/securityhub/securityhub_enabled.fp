@@ -15,7 +15,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_regions_with_security_hub_disabled" {
-  title       = "Detect & correct regions with Security Hub disabled"
+  title       = "Detect & Correct regions with Security Hub disabled"
   description = "Detects regions with Security Hub disabled and runs your chosen action."
   // // documentation = file("./securityhub/docs/detect_and_correct_regions_with_security_hub_disabled_trigger.md")
   // tags          = merge(local.securityhub_common_tags, { class = "unused" })
@@ -34,7 +34,7 @@ trigger "query" "detect_and_correct_regions_with_security_hub_disabled" {
 }
 
 pipeline "detect_and_correct_regions_with_security_hub_disabled" {
-  title       = "Detect & correct regions with Security Hub disabled"
+  title       = "Detect & Correct regions with Security Hub disabled"
   description = "Detects regions with Security Hub disabled and runs your chosen action."
   // // documentation = file("./securityhub/docs/detect_and_correct_regions_with_security_hub_disabled.md")
   // tags          = merge(local.securityhub_common_tags, { class = "unused", type = "featured" })

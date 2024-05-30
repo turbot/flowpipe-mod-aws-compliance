@@ -30,7 +30,7 @@
 // }
 
 // trigger "query" "detect_and_correct_ec2_launch_templates_with_public_ips" {
-//   title         = "Detect & correct EC2 Launch Templates with public IPs"
+//   title         = "Detect & Correct EC2 Launch Templates with public IPs"
 //   description   = "Detects EC2 Launch Templates that automatically assign public IPs to network interfaces and executes the chosen action."
 //   // documentation = file("./ec2/docs/detect_and_correct_ec2_launch_templates_with_public_ips_trigger.md")
 //   tags          = merge(local.ec2_common_tags, { class = "configuration" })
@@ -49,7 +49,7 @@
 // }
 
 // pipeline "detect_and_correct_ec2_launch_templates_with_public_ips" {
-//   title         = "Detect & correct EC2 Launch Templates with public IPs"
+//   title         = "Detect & Correct EC2 Launch Templates with public IPs"
 //   description   = "Detects EC2 Launch Templates that automatically assign public IPs and performs the chosen action."
 //   // documentation = file("./ec2/docs/detect_and_correct_ec2_launch_templates_with_public_ips.md")
 //   tags          = merge(local.ec2_common_tags, { class = "configuration", type = "featured" })

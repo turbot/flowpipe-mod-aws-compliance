@@ -17,7 +17,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trail_s3_logging_enabled" {
-  title         = "Detect & correct CloudTrail trails without S3 logging enabled"
+  title         = "Detect & Correct CloudTrail trails without S3 logging enabled"
   description   = "Detects CloudTrail trails without S3 logging enabled and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_s3_logging_enabled_trigger.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
@@ -36,7 +36,7 @@ trigger "query" "detect_and_correct_cloudtrail_trail_s3_logging_enabled" {
 }
 
 pipeline "detect_and_correct_cloudtrail_trail_s3_logging_enabled" {
-  title         = "Detect & correct CloudTrail trails without S3 logging enabled"
+  title         = "Detect & Correct CloudTrail trails without S3 logging enabled"
   description   = "Detects CloudTrail trails without S3 logging enabled and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_s3_logging_enabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })

@@ -37,7 +37,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trail_s3_object_write_events_audit_enabled" {
-  title         = "Detect & correct CloudTrail trails without multi-region Object-level logging for write events is enabled for S3 bucket"
+  title         = "Detect & Correct CloudTrail trails without multi-region Object-level logging for write events is enabled for S3 bucket"
   description   = "Detects CloudTrail trails that do not have multi-region Object-level logging for write events is enabled for S3 bucket and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_s3_object_write_events_audit_enabled_trigger.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
@@ -56,7 +56,7 @@ trigger "query" "detect_and_correct_cloudtrail_trail_s3_object_write_events_audi
 }
 
 pipeline "detect_and_correct_cloudtrail_trail_s3_object_write_events_audit_enabled" {
-  title         = "Detect & correct CloudTrail trails without multi-region Object-level logging for write events is enabled for S3 bucket"
+  title         = "Detect & Correct CloudTrail trails without multi-region Object-level logging for write events is enabled for S3 bucket"
   description   = "Detects CloudTrail trails that do not have multi-region Object-level logging for write events is enabled for S3 bucket and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_s3_object_write_events_audit_enabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })

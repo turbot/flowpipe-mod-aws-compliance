@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_ec2_classic_load_balancers_without_connection_draining_enabled" {
-  title       = "Detect & correct EC2 classic load balancers without connection draining enabled"
+  title       = "Detect & Correct EC2 classic load balancers without connection draining enabled"
   description = "Detects EC2 classic load balancers without connection draining enabled and runs your chosen action."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_classic_load_balancers_without_connection_draining_enabled_trigger.md")
   tags          = merge(local.ec2_common_tags, { class = "unused" })
@@ -32,7 +32,7 @@ trigger "query" "detect_and_correct_ec2_classic_load_balancers_without_connectio
 }
 
 pipeline "detect_and_correct_ec2_classic_load_balancers_without_connection_draining_enabled" {
-  title         = "Detect & correct EC2 classic load balancers without connection draining enabled"
+  title         = "Detect & Correct EC2 classic load balancers without connection draining enabled"
   description   = "Detects EC2 classic load balancers without connection draining enabled and runs your chosen action."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_classic_load_balancers_without_connection_draining_enabled.md")
   tags          = merge(local.ec2_common_tags, { class = "unused", type = "featured" })
