@@ -15,8 +15,7 @@ locals {
 				join aws_iam_access_key as k on u.name = k.user_name
 				join aws_iam_credential_report as r on r.user_name = u.name
 			where
-				access_key_last_used_date < (current_date - interval '45' day)
-				and u.name = 'madhushree'
+				access_key_last_used_date < (current_date - interval '45' day);
   EOQ
 }
 

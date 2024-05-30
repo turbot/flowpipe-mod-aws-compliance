@@ -15,13 +15,12 @@ locals {
 				join aws_iam_access_key as k on u.name = k.user_name
 				join aws_iam_credential_report as r on r.user_name = u.name
 			where
-				access_key_last_used_date < (current_date - interval '90' day)
-				and u.name = 'madhushree'
+				access_key_last_used_date < (current_date - interval '90' day);
   EOQ
 }
 
 trigger "query" "detect_and_deactivate_iam_user_unused_credentials_90" {
-  title         = "Detect & Correct IAM User Unused Credentials 90 Days"
+  title         = "Detect & Correct IAM User Unused Access Keys 90 Days"
   description   = "Detects IAM user credentials that have been unused for 90 days and deactivates them."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -39,7 +38,7 @@ trigger "query" "detect_and_deactivate_iam_user_unused_credentials_90" {
 }
 
 pipeline "detect_and_deactivate_iam_user_unused_credentials_90" {
-  title         = "Detect & Correct IAM User Unused Credentials 90 Days"
+  title         = "Detect & Correct IAM User Unused Access Keys 90 Days"
   description   = "Detects IAM user credentials that have been unused for 90 days and deactivates them."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 
@@ -98,7 +97,7 @@ pipeline "detect_and_deactivate_iam_user_unused_credentials_90" {
 }
 
 pipeline "deactivate_iam_user_unused_credentials_90" {
-  title         = "Deactivate IAM User Unused Credentials 90 Days"
+  title         = "Deactivate IAM User Unused Access Keys 90 Days"
   description   = "Runs corrective action to deactivate IAM user credentials that have been unused for 90 days."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -252,7 +251,7 @@ pipeline "correct_one_iam_user_unused_credential_90" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM user credential ${param.title} that has been unused for 90 days."
+            text     = "Skipped IAM user access keys ${param.title} that has been unused for 90 days."
           }
           success_msg = ""
           error_msg   = ""
@@ -268,8 +267,8 @@ pipeline "correct_one_iam_user_unused_credential_90" {
             access_key_id = param.access_key_id
             cred          = param.cred
           }
-          success_msg = "Deactivated IAM user credential ${param.title}."
-          error_msg   = "Error deactivating IAM user credential ${param.title}."
+          success_msg = "Deactivated IAM user access keys ${param.title}."
+          error_msg   = "Error deactivating IAM user access keys ${param.title}."
         }
       }
     }
