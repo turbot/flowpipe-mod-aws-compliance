@@ -6,7 +6,7 @@ locals {
 
 pipeline "cis_v300_1" {
   title         = "1 Identity and Access Management"
-  // documentation = file("./cis_v300/docs/cis_v300_1.md")
+  documentation = file("./cis_v300/docs/cis_v300_1.md")
 
   param "database" {
     type        = string
@@ -147,35 +147,9 @@ pipeline "cis_v300_1" {
     } 
   }
 
-
-  // children = [
-  //   control.cis_v300_1_1,
-  //   control.cis_v300_1_2,
-  //   control.cis_v300_1_3,
-  //   control.cis_v300_1_4,
-  //   control.cis_v300_1_5,
-  //   control.cis_v300_1_6,
-  //   control.cis_v300_1_7,
-  //   control.cis_v300_1_8,
-  //   control.cis_v300_1_9,
-  //   control.cis_v300_1_10,
-  //   control.cis_v300_1_11,
-  //   control.cis_v300_1_12,
-  //   control.cis_v300_1_13,
-  //   control.cis_v300_1_14,
-  //   control.cis_v300_1_15,
-  //   control.cis_v300_1_16,
-  //   control.cis_v300_1_17,
-  //   control.cis_v300_1_18,
-  //   control.cis_v300_1_19,
-  //   control.cis_v300_1_20,
-  //   control.cis_v300_1_21,
-  //   control.cis_v300_1_22
-  // ]
-
-  // tags = merge(local.cis_v300_1_common_tags, {
-  //   type = "Benchmark"
-  // })
+  tags = merge(local.cis_v300_1_common_tags, {
+    cis_level   = "1"
+  })
 }
 
 // pipeline "cis_v300_1_1" {

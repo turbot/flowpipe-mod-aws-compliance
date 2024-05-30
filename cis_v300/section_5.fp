@@ -6,7 +6,7 @@ locals {
 
 pipeline "cis_v300_5" {
   title         = "5 Networking"
-  // documentation = file("./cis_v300/docs/cis_v300_5.md")
+  documentation = file("./cis_v300/docs/cis_v300_5.md")
 
   param "database" {
     type        = string
@@ -39,7 +39,7 @@ pipeline "cis_v300_5" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-    } 
+    }
   }
 
   step "pipeline" "cis_v300_5_4" {
@@ -62,19 +62,10 @@ pipeline "cis_v300_5" {
     } 
   }
 
-  // children = [
-  //   control.cis_v300_5_1,
-  //   control.cis_v300_5_2,
-  //   control.cis_v300_5_3,
-  //   control.cis_v300_5_4,
-  //   control.cis_v300_5_5,
-  //   control.cis_v300_5_6
-  // ]
 
-  // tags = merge(local.cis_v300_5_common_tags, {
-  //   service = "AWS/VPC"
-  //   type    = "Benchmark" 
-  // })
+  tags = merge(local.cis_v300_5_common_tags, {
+    service = "AWS/VPC"
+  })
 }
 
 // control "cis_v300_5_1" {

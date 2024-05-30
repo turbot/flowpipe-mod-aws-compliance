@@ -86,7 +86,14 @@ pipeline "detect_and_correct_vpc_networks_allowing_ingress_to_remote_server_admi
   title         = "Detect & Correct VPC Network ACLs allowing ingress to remote server administration ports"
   description   = "Detects Network ACLs that allow risky ingress rules and suggests corrective actions."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_networks_allowing_ingress_to_remote_server_administration_ports.md")
-  tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })
+  // tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })
+
+  tags = merge(local.cis_v300_5_common_tags, {
+    cis_item_id = "5.2"
+    cis_level   = "1"
+    cis_type    = "automated"
+    service     = "AWS/VPC"
+  })
 
   param "database" {
     type        = string
