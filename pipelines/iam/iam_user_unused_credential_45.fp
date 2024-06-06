@@ -150,7 +150,7 @@ pipeline "deactivate_iam_user_unused_credentials_45" {
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.title => row }
+    value = { for row in param.items : row.access_key_id => row }
   }
 
   step "pipeline" "correct_item" {

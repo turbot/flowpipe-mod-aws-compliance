@@ -234,7 +234,7 @@ pipeline "correct_one_iam_account_password_policy_no_min_length_14" {
           error_msg   = ""
         },
         "update_password_policy_min_length" = {
-          label        = "Update Password Policy Min Length"
+          label        = "Update Password Policy"
           value        = "update_password_policy_min_length"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_update_iam_account_password_policy

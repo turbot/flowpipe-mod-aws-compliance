@@ -291,7 +291,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
           error_msg   = ""
         },
         "delete_defective_security_group_rule" = {
-          label        = "Delete Defective Security Group Rule"
+          label        = "Delete Security Group Rule"
           value        = "delete_defective_security_group_rule"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_revoke_vpc_security_group_ingress

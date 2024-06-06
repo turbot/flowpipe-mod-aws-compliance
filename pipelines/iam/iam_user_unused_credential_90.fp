@@ -150,7 +150,7 @@ pipeline "deactivate_iam_user_unused_credentials_90" {
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.title => row }
+    value = { for row in param.items : row.access_key_id => row }
   }
 
   step "pipeline" "correct_item" {
@@ -161,7 +161,7 @@ pipeline "deactivate_iam_user_unused_credentials_90" {
       title              = each.value.title
       user_name          = each.value.user_name
       access_key_id      = each.value.access_key_id
-			password_disable = each.value.password_disable
+			password_disable   = each.value.password_disable
       cred               = each.value.cred
       notifier           = param.notifier
       notification_level = param.notification_level

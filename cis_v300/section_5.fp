@@ -43,6 +43,7 @@ pipeline "cis_v300_5" {
   }
 
   step "pipeline" "cis_v300_5_4" {
+    depends_on       = [step.pipeline.cis_v300_5_2]
     pipeline         = pipeline.detect_and_correct_vpc_default_security_groups_allowing_ingress_egress
     args             = {
       database           = param.database
@@ -53,6 +54,7 @@ pipeline "cis_v300_5" {
   }
 
   step "pipeline" "cis_v300_5_6" {
+    depends_on       = [step.pipeline.cis_v300_5_4]
     pipeline         = pipeline.detect_and_correct_ec2_instances_not_using_imdsv2
     args             = {
       database           = param.database

@@ -37,17 +37,18 @@ pipeline "cis_v300_1" {
 
   // }
 
-  step "pipeline" "cis_v300_1_2" {
-    pipeline         = pipeline.detect_and_correct_account_alternate_contact_security_registered
-    args             = {
-      database           = param.database
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-    } 
-  }
+  // step "pipeline" "cis_v300_1_2" {
+  //   pipeline         = pipeline.detect_and_correct_account_alternate_contact_security_registered
+  //   args             = {
+  //     database           = param.database
+  //     notifier           = param.notifier
+  //     notification_level = param.notification_level
+  //     approvers          = param.approvers
+  //   } 
+  // }
 
   step "pipeline" "cis_v300_1_4" {
+    // depends_on       = [step.pipeline.cis_v300_1_2]
     pipeline         = pipeline.detect_and_delete_iam_root_access_keys
     args             = {
       database           = param.database
@@ -58,6 +59,7 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1_8" {
+    depends_on       = [step.pipeline.cis_v300_1_4]
     pipeline         = pipeline.detect_and_correct_iam_account_password_policy_no_min_length_14
     args             = {
       database           = param.database
@@ -68,6 +70,7 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1_9" {
+    depends_on       = [step.pipeline.cis_v300_1_8]
     pipeline         = pipeline.detect_and_correct_iam_account_password_policy_no_policy_reuse_24
     args             = {
       database           = param.database
@@ -78,6 +81,7 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1_12" {
+    depends_on       = [step.pipeline.cis_v300_1_9]
     pipeline         = pipeline.detect_and_deactivate_iam_user_unused_credentials_45
     args             = {
       database           = param.database
@@ -88,6 +92,7 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1_13" {
+    depends_on       = [step.pipeline.cis_v300_1_12]
     pipeline         = pipeline.detect_and_delete_extra_iam_user_active_keys
     args             = {
       database           = param.database
@@ -98,6 +103,7 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1_14" {
+    depends_on       = [step.pipeline.cis_v300_1_13]
     pipeline         = pipeline.detect_and_deactivate_iam_user_unused_credentials_90
     args             = {
       database           = param.database
@@ -108,6 +114,7 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1_15" {
+    depends_on       = [step.pipeline.cis_v300_1_14]
     pipeline         = pipeline.detect_and_delete_iam_user_inline_policies
     args             = {
       database           = param.database
@@ -118,6 +125,7 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1_16" {
+    depends_on       = [step.pipeline.cis_v300_1_15]
     pipeline         = pipeline.detect_and_detach_iam_entities_with_policy_star_star
     args             = {
       database           = param.database
@@ -128,6 +136,7 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1_20" {
+    depends_on       = [step.pipeline.cis_v300_1_16]
     pipeline         = pipeline.detect_and_enable_iam_accessanalyzer_analyzer_disabled
     args             = {
       database           = param.database
@@ -138,6 +147,7 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1_22" {
+    depends_on       = [step.pipeline.cis_v300_1_20]
     pipeline         = pipeline.detect_and_detach_iam_entities_with_cloudshell_fullaccess_policy
     args             = {
       database           = param.database

@@ -234,7 +234,7 @@ pipeline "correct_one_iam_account_password_policy_no_max_password_age" {
           error_msg   = ""
         },
         "update_password_policy_max_age" = {
-          label        = "Update Password Policy Max Age"
+          label        = "Update Password Policy"
           value        = "update_password_policy_max_age"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_update_iam_account_password_policy

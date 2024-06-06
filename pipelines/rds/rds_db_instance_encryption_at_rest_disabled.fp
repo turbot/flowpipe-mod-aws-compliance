@@ -329,18 +329,19 @@ pipeline "update_rds_encryption" {
   param "snapshot_identifier" {
     type        = string
     description = "The identifier for the DB snapshot."
+    default     = "rds-database-identifir-123"
   }
 
   param "encrypted_snapshot_identifier" {
     type        = string
     description = "The identifier for the encrypted DB snapshot."
-		default = "snapshot-encrypted-database-1"
+		default = "snapshot-encrypted-database-123"
   }
 
   param "new_db_instance_identifier" {
     type        = string
     description = "The identifier for the new DB instance."
-		default = "new-encrypted-database-1"
+		default = "new-encrypted-database-123"
   }
 
   param "aws_managed_kms_key_arn" {

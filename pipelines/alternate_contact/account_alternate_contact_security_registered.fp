@@ -141,7 +141,7 @@ pipeline "correct_account_alternate_contact_security_registered" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == "verbose"
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} unused EC2 classic load balancers."
+    text     = "Detected ${length(param.items)} accounts with alternate contact security enabled."
   }
 
   step "pipeline" "correct_item" {
@@ -260,7 +260,7 @@ pipeline "correct_one_account_alternate_contact_security_registered" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == "verbose"
-            text     = "Skipped EC2 classic load balancer ${param.title}."
+            text     = "Skipped adding alternate contact ${param.title} security."
           }
           success_msg = "Skipped adding alternate contact ${param.title} security."
           error_msg   = "Error skipping account alternate contact security."
@@ -280,8 +280,8 @@ pipeline "correct_one_account_alternate_contact_security_registered" {
             phone_number           = param.phone_number
             title                  = param.title
           }
-          success_msg = "Add alternate contact for ${param.title}."
-          error_msg   = "Error deleting EC2 classic load balancer ${param.title}."
+          success_msg = "Added alternate contact for ${param.title}."
+          error_msg   = "Error adding alternate contact ${param.title} security."
         }
       }
     }

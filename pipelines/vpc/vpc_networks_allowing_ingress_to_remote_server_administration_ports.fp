@@ -310,7 +310,7 @@ pipeline "correct_one_vpc_network_allowing_ingress_to_remote_server_administrati
           error_msg   = ""
         },
         "delete_defective_network_acl_entry" = {
-          label        = "Delete Defective Network ACL Entry"
+          label        = "Delete Network ACL Entry"
           value        = "delete_defective_network_acl_entry"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_delete_network_acl_entry
