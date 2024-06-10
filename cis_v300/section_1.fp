@@ -80,16 +80,17 @@ pipeline "cis_v300_1" {
   }
 
   step "pipeline" "cis_v300_1" {
-    max_concurrency = 1
+    loop {
+      until = loop.index >= (length(var.cis_v300_1_enabled_controls)-1)
+    }
 
-    for_each = var.cis_v300_1_enabled_controls
-    pipeline = local.cis_v300_1_control_mapping[each.value].pipeline
+    pipeline = local.cis_v300_1_control_mapping[var.cis_v300_1_enabled_controls[loop.index]].pipeline
     args     = merge({
       database           = param.database
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-    },local.cis_v300_1_control_mapping[each.value].additional_args)
+    },local.cis_v300_1_control_mapping[var.cis_v300_1_enabled_controls[loop.index]].additional_args)
   }
 
   // TODO: It's a manual control

@@ -50,10 +50,11 @@ pipeline "cis_v300" {
   }
   
   step "pipeline" "cis_v300" {
-    max_concurrency = 1
+    loop {
+      until = loop.index >= (length(var.cis_v300_enabled_controls)-1)
+    }
 
-    for_each = var.cis_v300_enabled_controls
-    pipeline = local.cis_v300_control_mapping[each.value].pipeline
+    pipeline = local.cis_v300_control_mapping[var.cis_v300_enabled_controls[loop.index]].pipeline
     args     = {
       database           = param.database
       notifier           = param.notifier
