@@ -65,9 +65,9 @@ pipeline "cis_v300_5" {
   }
 
 
-  tags = merge(local.cis_v300_5_common_tags, {
-    service = "AWS/VPC"
-  })
+  // tags = merge(local.cis_v300_5_common_tags, {
+  //   service = "AWS/VPC"
+  // })
 }
 
 // control "cis_v300_5_1" {

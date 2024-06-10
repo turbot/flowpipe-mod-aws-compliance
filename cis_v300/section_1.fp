@@ -1,7 +1,7 @@
 locals {
-  cis_v300_1_common_tags = merge(local.cis_v300_common_tags, {
-    cis_section_id = "1"
-  })
+  // cis_v300_1_common_tags = merge(local.cis_v300_common_tags, {
+  //   cis_section_id = "1"
+  // })
   cis_v300_1_control_mapping = {
     cis_v300_1_1  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.1 is a manual control."}}
     cis_v300_1_2  = {pipeline = pipeline.detect_and_correct_account_alternate_contact_security_registered, additional_args = {}}
