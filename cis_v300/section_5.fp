@@ -1,7 +1,29 @@
 locals {
-  cis_v300_5_common_tags = merge(local.cis_v300_common_tags, {
-    cis_section_id = "5"
-  })
+  // cis_v300_5_common_tags = merge(local.cis_v300_common_tags, {
+  //   cis_section_id = "5"
+  // })
+
+  cis_v300_5_control_mapping = {
+    cis_v300_5_1  = {pipeline = pipeline.detect_and_correct_vpc_networks_allowing_ingress_to_remote_server_administration_ports, additional_args = {}}
+    cis_v300_5_2  = {pipeline = pipeline.detect_and_correct_vpc_networks_allowing_ingress_to_remote_server_administration_ports, additional_args = {}}
+    cis_v300_5_3  = {pipeline = pipeline.detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6, additional_args = {}}
+    cis_v300_5_4  = {pipeline = pipeline.detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4, additional_args = {}}
+    cis_v300_5_5  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 5.5 is a manual control."}}
+    cis_v300_5_6  = {pipeline = pipeline.detect_and_correct_ec2_instances_not_using_imdsv2, additional_args = {}}
+  }
+}
+
+variable "cis_v300_5_enabled_controls" {
+  type        = list(string)
+  description = "List of CIS v3.0.0 section 5 controls to enable"
+  default     = [
+    "cis_v300_5_1", 
+    "cis_v300_5_2",
+    "cis_v300_5_3",
+    "cis_v300_5_4",
+    "cis_v300_5_5",
+    "cis_v300_5_6"
+  ]
 }
 
 pipeline "cis_v300_5" {
@@ -32,124 +54,26 @@ pipeline "cis_v300_5" {
     default     = var.approvers
   }
 
-  step "pipeline" "cis_v300_5_2" {
-    pipeline         = pipeline.detect_and_correct_vpc_networks_allowing_ingress_to_remote_server_administration_ports
-    args             = {
-      database           = param.database
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
+  step "message" "cis_v300_5" {
+    notifier = notifier[param.notifier]
+    text     = "Running CIS v3.0.0 Section 5: Networking"
+  }
+
+  step "pipeline" "cis_v300_5" {
+    loop {
+      until = loop.index >= (length(var.cis_v300_5_enabled_controls)-1)
     }
-  }
 
-  step "pipeline" "cis_v300_5_4" {
-    depends_on       = [step.pipeline.cis_v300_5_2]
-    pipeline         = pipeline.detect_and_correct_vpc_default_security_groups_allowing_ingress_egress
-    args             = {
+    pipeline = local.cis_v300_5_control_mapping[var.cis_v300_5_enabled_controls[loop.index]].pipeline
+    args     = merge({
       database           = param.database
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-    } 
+    },local.cis_v300_5_control_mapping[var.cis_v300_5_enabled_controls[loop.index]].additional_args)
   }
-
-  step "pipeline" "cis_v300_5_6" {
-    depends_on       = [step.pipeline.cis_v300_5_4]
-    pipeline         = pipeline.detect_and_correct_ec2_instances_not_using_imdsv2
-    args             = {
-      database           = param.database
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-    } 
-  }
-
 
   // tags = merge(local.cis_v300_5_common_tags, {
   //   service = "AWS/VPC"
   // })
 }
-
-// control "cis_v300_5_1" {
-//   title         = "5.1 Ensure no Network ACLs allow ingress from 0.0.0.0/0 to remote server administration ports"
-//   description   = "The Network Access Control List (NACL) function provide stateless filtering of ingress and egress network traffic to AWS resources. It is recommended that no NACL allows unrestricted ingress access to remote server administration ports, such as SSH to port 22 and RDP to port 3389, using either the TCP (6), UDP (17) or ALL (-1) protocols."
-//   query         = query.vpc_network_acl_remote_administration
-//   documentation = file("./cis_v300/docs/cis_v300_5_1.md")
-
-//   tags = merge(local.cis_v300_5_common_tags, {
-//     cis_item_id = "5.1"
-//     cis_level   = "1"
-//     cis_type    = "automated"
-//     service     = "AWS/VPC"
-//   })
-// }
-
-// control "cis_v300_5_2" {
-//   title         = "5.2 Ensure no security groups allow ingress from 0.0.0.0/0 to remote server administration ports"
-//   description   = "Security groups provide stateful filtering of ingress and egress network traffic to AWS resources. It is recommended that no security group allows unrestricted ingress access to remote server administration ports, such as SSH to port 22 and RDP to port 3389, using either the TCP (6), UDP (17) or ALL (-1) protocols."
-//   query         = query.vpc_security_group_remote_administration_ipv4
-//   documentation = file("./cis_v300/docs/cis_v300_5_2.md")
-
-//   tags = merge(local.cis_v300_5_common_tags, {
-//     cis_item_id = "5.2"
-//     cis_level   = "1"
-//     cis_type    = "automated"
-//     service     = "AWS/VPC"
-//   })
-// }
-
-// control "cis_v300_5_3" {
-//   title         = "5.3 Ensure no security groups allow ingress from ::/0 to remote server administration ports"
-//   description   = "Security groups provide stateful filtering of ingress and egress network traffic to AWS resources. It is recommended that no security group allows unrestricted ingress access to remote server administration ports, such as SSH to port 22 and RDP to port 3389."
-//   query         = query.vpc_security_group_remote_administration_ipv6
-//   documentation = file("./cis_v300/docs/cis_v300_5_3.md")
-
-//   tags = merge(local.cis_v300_5_common_tags, {
-//     cis_item_id = "5.3"
-//     cis_level   = "1"
-//     cis_type    = "automated"
-//     service     = "AWS/VPC"
-//   })
-// }
-
-// control "cis_v300_5_4" {
-//   title         = "5.4 Ensure the default security group of every VPC restricts all traffic"
-//   description   = "A VPC comes with a default security group whose initial settings deny all inbound traffic, allow all outbound traffic, and allow all traffic between instances assigned to the security group. If you don't specify a security group when you launch an instance, the instance is automatically assigned to this default security group. Security groups provide stateful filtering of ingress/egress network traffic to AWS resources. It is recommended that the default security group restrict all traffic."
-//   query         = query.vpc_default_security_group_restricts_all_traffic
-//   documentation = file("./cis_v300/docs/cis_v300_5_4.md")
-
-//   tags = merge(local.cis_v300_5_common_tags, {
-//     cis_item_id = "5.4"
-//     cis_level   = "2"
-//     cis_type    = "automated"
-//     service     = "AWS/VPC"
-//   })
-// }
-
-// control "cis_v300_5_5" {
-//   title         = "5.5 Ensure routing tables for VPC peering are \"least access\""
-//   description   = "Once a VPC peering connection is established, routing tables must be updated to establish any connections between the peered VPCs. These routes can be as specific as desired - even peering a VPC to only a single host on the other side of the connection."
-//   query         = query.manual_control
-//   documentation = file("./cis_v300/docs/cis_v300_5_5.md")
-
-//   tags = merge(local.cis_v300_5_common_tags, {
-//     cis_item_id = "5.5"
-//     cis_level   = "2"
-//     cis_type    = "manual"
-//     service     = "AWS/VPC"
-//   })
-// }
-
-// control "cis_v300_5_6" {
-//   title         = "5.6 Ensure that EC2 Metadata Service only allows IMDSv2"
-//   description   = "When enabling the Metadata Service on AWS EC2 instances, users have the option of using either Instance Metadata Service Version 1 (IMDSv1; a request/response method) or Instance Metadata Service Version 2 (IMDSv2; a session-oriented method)."
-//   query         = query.ec2_instance_uses_imdsv2
-//   documentation = file("./cis_v300/docs/cis_v300_5_6.md")
-
-//   tags = merge(local.cis_v300_5_common_tags, {
-//     cis_item_id = "5.6"
-//     cis_level   = "1"
-//     cis_type    = "automated"
-//     service     = "AWS/EC2"
-//   })
-// }
