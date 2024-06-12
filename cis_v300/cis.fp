@@ -44,12 +44,7 @@ pipeline "cis_v300" {
     default     = var.approvers
   }
 
-  step "message" "cis_v300" {
-    notifier = notifier[param.notifier]
-    text     = "Running CIS v3.0.0 Benchmark Controls: ${join(", ", var.cis_v300_enabled_controls)}"
-  }
-  
-  step "pipeline" "cis_v300" {
+    step "pipeline" "cis_v300" {
     loop {
       until = loop.index >= (length(var.cis_v300_enabled_controls)-1)
     }
