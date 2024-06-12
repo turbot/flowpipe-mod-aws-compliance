@@ -3,19 +3,16 @@ locals {
     cis         = "true"
     cis_version = "v3.0.0"
   })
+  cis_v300_control_mapping = {
+    cis_v300_1 = { pipeline = pipeline.cis_v300_1 }
+    cis_v300_5 = { pipeline = pipeline.cis_v300_5 }
+  }
 }
 
 variable "cis_v300_enabled_controls" {
   type        = list(string)
   description = "List of CIS v3.0.0 controls to enable"
   default     = ["cis_v300_1", "cis_v300_5"]
-}
-
-locals {
-  cis_v300_control_mapping = {
-    cis_v300_1 = { pipeline = pipeline.cis_v300_1 }
-    cis_v300_5 = { pipeline = pipeline.cis_v300_5 }
-  }
 }
 
 pipeline "cis_v300" {
@@ -53,9 +50,11 @@ pipeline "cis_v300" {
   }
   
   step "pipeline" "cis_v300" {
-    for_each = {for c in var.cis_v300_enabled_controls : c => local.cis_v300_control_mapping[c]}
-    max_concurrency = 1
-    pipeline = each.value.pipeline
+    loop {
+      until = loop.index >= (length(var.cis_v300_enabled_controls)-1)
+    }
+
+    pipeline = local.cis_v300_control_mapping[var.cis_v300_enabled_controls[loop.index]].pipeline
     args     = {
       database           = param.database
       notifier           = param.notifier
@@ -63,30 +62,45 @@ pipeline "cis_v300" {
       approvers          = param.approvers
     } 
   }
+}
 
-  // step "pipeline" "cis_v300_1" {
-  //   depends_on       = [step.message.cis_v300_1]
-  //   pipeline         = pipeline.cis_v300_1
-  //   args             = {
-  //     database           = param.database
-  //     notifier           = param.notifier
-  //     notification_level = param.notification_level
-  //     approvers          = param.approvers
-  //   } 
-  // }
+// TODO: Move this somewhere else
+pipeline "manual_control" {
+  title         = "Manual Control"
+  description   = "This is a manual control that requires human intervention."
+  documentation =  "" // TODO: Add documentation
 
-  // step "pipeline" "cis_v300_5" {
-  //   depends_on       = [step.pipeline.cis_v300_1]
-  //   pipeline         = pipeline.cis_v300_5
-  //   args             = {
-  //     database           = param.database
-  //     notifier           = param.notifier
-  //     notification_level = param.notification_level
-  //     approvers          = param.approvers
-  //   } 
-  // }
+   param "database" {
+    type        = string
+    description = local.description_database
+    default     = var.database
+  }
 
-  // tags = merge(local.cis_v300_common_tags, {
-  //   type = "Benchmark"
-  // })
+  param "notifier" {
+    type        = string
+    description = local.description_notifier
+    default     = var.notifier
+  }
+
+  param "notification_level" {
+    type        = string
+    description = local.description_notifier_level
+    default     = var.notification_level
+  }
+
+  param "approvers" {
+    type        = list(string)
+    description = local.description_approvers
+    default     = var.approvers
+  }
+
+  param "message" {
+    type        = string
+    description = "Message to display."
+  }
+
+  step "message" "manual_control" {
+    notifier = notifier[param.notifier]
+    text     = param.message
+  }
 }
