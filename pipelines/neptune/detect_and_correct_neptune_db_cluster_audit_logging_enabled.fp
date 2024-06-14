@@ -8,14 +8,14 @@ locals {
   from
     aws_neptune_db_cluster
   where
-    not enabled_cloudwatch_logs_exports @> '["audit"]';
+    not enabled_cloudwatch_logs_exports @> '["audit"]' or enabled_cloudwatch_logs_exports is null;
   EOQ
 }
 
 trigger "query" "detect_and_correct_neptune_db_cluster_if_audit_logs_disabled" {
   title       = "Detect & Correct Neptune DB Cluster if Audit Logs Disabled"
   description = "Detects Neptune DB clusters if audit logs are disabled and runs your chosen action."
-  tags        = merge(local.neptune_common_tags, { class = "unused" })
+  // tags        = merge(local.neptune_common_tags, { class = "unused" })
 
   enabled  = var.neptune_db_cluster_if_audit_logs_disabled_trigger_enabled
   schedule = var.neptune_db_cluster_if_audit_logs_disabled_trigger_schedule
@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_neptune_db_cluster_if_audit_logs_disabled" {
 pipeline "detect_and_correct_neptune_db_cluster_if_audit_logs_disabled" {
   title       = "Detect & Correct Neptune DB Clusters if Audit Logs Disabled"
   description = "Detects Neptune DB clusters if audit logs are disabled and runs your chosen action."
-  tags        = merge(local.neptune_common_tags, { class = "unused", type = "featured" })
+  // tags        = merge(local.neptune_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -92,7 +92,7 @@ pipeline "detect_and_correct_neptune_db_cluster_if_audit_logs_disabled" {
 pipeline "correct_neptune_db_cluster_if_audit_logs_disabled" {
   title       = "Correct Neptune DB Cluster if Audit Logs Disabled"
   description = "Runs corrective action on a collection of Neptune DB clusters if audit logs are disabled."
-  tags        = merge(local.neptune_common_tags, { class = "unused" })
+  // tags        = merge(local.neptune_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -164,7 +164,7 @@ pipeline "correct_neptune_db_cluster_if_audit_logs_disabled" {
 pipeline "correct_one_neptune_db_cluster_if_audit_logs_disabled" {
   title       = "Correct One Neptune DB Cluster if Audit Logs Disabled"
   description = "Runs corrective action on a Neptune DB cluster if audit logs are disabled."
-  tags        = merge(local.neptune_common_tags, { class = "unused" })
+  // tags        = merge(local.neptune_common_tags, { class = "unused" })
 
   param "db_cluster_identifier" {
     type        = string
@@ -268,7 +268,7 @@ variable "neptune_db_cluster_if_audit_logs_disabled_trigger_schedule" {
 variable "neptune_db_cluster_if_audit_logs_disabled_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
+  default     = "enable_audit_logs"
 }
 
 variable "neptune_db_cluster_if_audit_logs_disabled_enabled_actions" {
