@@ -40,7 +40,7 @@ locals {
 }
 
 trigger "query" "detect_and_detach_iam_entities_with_cloudshell_fullaccess_policy" {
-  title         = "Detect & Correct IAM Entities with CloudShellFullAccess Policy"
+  title         = "Detect & correct IAM Entities with CloudShellFullAccess Policy"
   description   = "Detects IAM entities (users, roles, groups) with the CloudShellFullAccess policy attached and detaches that policy."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -58,7 +58,7 @@ trigger "query" "detect_and_detach_iam_entities_with_cloudshell_fullaccess_polic
 }
 
 pipeline "detect_and_detach_iam_entities_with_cloudshell_fullaccess_policy" {
-  title         = "Detect & Correct IAM Entities with CloudShellFullAccess Policy"
+  title         = "Detect & correct IAM Entities with CloudShellFullAccess Policy"
   description   = "Detects IAM entities (users, roles, groups) with the CloudShellFullAccess policy attached and detaches that policy."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

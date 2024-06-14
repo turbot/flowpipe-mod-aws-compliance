@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_dynamodb_table_if_point_in_time_recovery_disabled" {
-  title         = "Detect & Correct DynamoDB table if point-in-time recovery disabled"
+  title         = "Detect & correct DynamoDB table if point-in-time recovery disabled"
   description   = "Detects DynamoDB tables if point-in-time recovery disabled and runs your chosen action."
   // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_table_if_point_in_time_recovery_disabled_trigger.md")
   tags          = merge(local.dynamodb_common_tags, { class = "unused" })
@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_dynamodb_table_if_point_in_time_recovery_dis
 }
 
 pipeline "detect_and_correct_dynamodb_table_if_point_in_time_recovery_disabled" {
-  title         = "Detect & Correct DynamoDB tables if point-in-time recovery disabled"
+  title         = "Detect & correct DynamoDB tables if point-in-time recovery disabled"
   description   = "Detects DynamoDB tables if point-in-time recovery disabled and runs your chosen action."
   // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_table_if_point_in_time_recovery_disabled.md")
   tags          = merge(local.dynamodb_common_tags, { class = "unused", type = "featured" })

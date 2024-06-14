@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policy_no_min_length_14" {
-  title         = "Detect & Correct IAM Account Password Policy No Minimum Length of 14"
+  title         = "Detect & correct IAM Account Password Policy No Minimum Length of 14"
   description   = "Detects IAM account password policies that do not have a minimum length of 14 characters and updates them."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -31,7 +31,7 @@ trigger "query" "detect_and_correct_iam_account_password_policy_no_min_length_14
 }
 
 pipeline "detect_and_correct_iam_account_password_policy_no_min_length_14" {
-  title         = "Detect & Correct IAM Account Password Policy No Minimum Length of 14"
+  title         = "Detect & correct IAM Account Password Policy No Minimum Length of 14"
   description   = "Detects IAM account password policies that do not have a minimum length of 14 characters and updates them."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

@@ -45,7 +45,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_bucket_not_public" {
-  title         = "Detect & Correct CloudTrail trails with public S3 buckets"
+  title         = "Detect & correct CloudTrail trails with public S3 buckets"
   description   = "Detects CloudTrail trails with public S3 buckets and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_bucket_not_public_trigger.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
@@ -64,7 +64,7 @@ trigger "query" "detect_and_correct_cloudtrail_bucket_not_public" {
 }
 
 pipeline "detect_and_correct_cloudtrail_bucket_not_public" {
-  title         = "Detect & Correct CloudTrail trails with public S3 buckets"
+  title         = "Detect & correct CloudTrail trails with public S3 buckets"
   description   = "Detects CloudTrail trails with public S3 buckets and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_bucket_not_public.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })

@@ -15,7 +15,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_ec2_instances_with_multiple_enis" {
-  title         = "Detect & Correct EC2 instances with multiple ENIs"
+  title         = "Detect & correct EC2 instances with multiple ENIs"
   description   = "Detects EC2 instances with multiple Elastic Network Interfaces and executes the chosen action."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_multiple_enis_trigger.md")
   tags          = merge(local.ec2_common_tags, { class = "configuration" })
@@ -34,7 +34,7 @@ trigger "query" "detect_and_correct_ec2_instances_with_multiple_enis" {
 }
 
 pipeline "detect_and_correct_ec2_instances_with_multiple_enis" {
-  title         = "Detect & Correct EC2 instances with multiple ENIs"
+  title         = "Detect & correct EC2 instances with multiple ENIs"
   description   = "Detects EC2 instances with multiple Elastic Network Interfaces and performs the chosen action."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_multiple_enis.md")
   tags          = merge(local.ec2_common_tags, { class = "configuration", type = "featured" })

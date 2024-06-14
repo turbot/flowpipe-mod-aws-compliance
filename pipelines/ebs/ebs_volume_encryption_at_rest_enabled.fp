@@ -12,7 +12,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_ebs_volume_encryption_at_rest_enabled" {
-  title         = "Detect & Correct EBS Volumes Without Encryption At Rest"
+  title         = "Detect & correct EBS Volumes Without Encryption At Rest"
   description   = "Detects EBS volumes without encryption at rest and runs your chosen action."
   // // documentation = file("./ebs/docs/detect_and_correct_ebs_volume_encryption_at_rest_enabled_trigger.md")
   tags          = merge(local.ebs_common_tags, { class = "security" })
@@ -31,7 +31,7 @@ trigger "query" "detect_and_correct_ebs_volume_encryption_at_rest_enabled" {
 }
 
 pipeline "detect_and_correct_ebs_volume_encryption_at_rest_enabled" {
-  title         = "Detect & Correct EBS Volumes Without Encryption At Rest"
+  title         = "Detect & correct EBS Volumes Without Encryption At Rest"
   description   = "Detects EBS volumes without encryption at rest and runs your chosen action."
   // // documentation = file("./ebs/docs/detect_and_correct_ebs_volume_encryption_at_rest_enabled.md")
   tags          = merge(local.ebs_common_tags, { class = "security", type = "featured" })

@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_disabled" {
-  title         = "Detect & Correct API Gateway REST API stage if X-Ray tracing disabled"
+  title         = "Detect & correct API Gateway REST API stage if X-Ray tracing disabled"
   description   = "Detects unattached EIPs (Elastic IP addresses) and runs your chosen action."
   // documentation = file("./apigateway/docs/detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_disabled_trigger.md")
   tags          = merge(local.apigateway_common_tags, { class = "unused" })
@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_di
 }
 
 pipeline "detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_disabled" {
-  title         = "Detect & Correct VPC EIPs if unattached"
+  title         = "Detect & correct VPC EIPs if unattached"
   description   = "Detects unattached EIPs (Elastic IP addresses) and runs your chosen action."
   // documentation = file("./apigateway/docs/detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_disabled.md")
   tags          = merge(local.apigateway_common_tags, { class = "unused", type = "featured" })

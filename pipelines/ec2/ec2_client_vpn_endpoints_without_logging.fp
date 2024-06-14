@@ -14,7 +14,7 @@
 // }
 
 // trigger "query" "detect_and_correct_ec2_client_vpn_endpoints_without_logging" {
-//   title         = "Detect & Correct EC2 Client VPN endpoints without client connection logging"
+//   title         = "Detect & correct EC2 Client VPN endpoints without client connection logging"
 //   description   = "Detects EC2 Client VPN endpoints without connection logging enabled and executes the chosen action."
 //   // documentation = file("./ec2/docs/detect_and_correct_ec2_client_vpn_endpoints_without_logging_trigger.md")
 //   tags          = merge(local.vpn_common_tags, { class = "compliance" })
@@ -33,7 +33,7 @@
 // }
 
 // pipeline "detect_and_correct_ec2_client_vpn_endpoints_without_logging" {
-//   title         = "Detect & Correct EC2 Client VPN endpoints without client connection logging"
+//   title         = "Detect & correct EC2 Client VPN endpoints without client connection logging"
 //   description   = "Detects EC2 Client VPN endpoints without connection logging enabled and performs the chosen action."
 //   // documentation = file("./ec2/docs/detect_and_correct_ec2_client_vpn_endpoints_without_logging.md")
 //   tags          = merge(local.vpn_common_tags, { class = "compliance", type = "featured" })

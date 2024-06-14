@@ -20,7 +20,7 @@ locals {
 }
 
  trigger "query" "detect_and_correct_rds_db_instance_without_encryption" {
-  title         = "Detect & Correct RDS DB Instance without Encryption"
+  title         = "Detect & correct RDS DB Instance without Encryption"
   description   = "Detects RDS DB instances without encryption enabled and runs your chosen action."
   tags          = merge(local.rds_common_tags, { class = "security" })
 
@@ -38,7 +38,7 @@ locals {
 }
 
 pipeline "detect_and_correct_rds_db_instance_without_encryption" {
-  title         = "Detect & Correct RDS DB Instances without Encryption"
+  title         = "Detect & correct RDS DB Instances without Encryption"
   description   = "Detects RDS DB instances without encryption enabled and runs your chosen action."
   tags          = merge(local.rds_common_tags, { class = "security", type = "featured" })
 

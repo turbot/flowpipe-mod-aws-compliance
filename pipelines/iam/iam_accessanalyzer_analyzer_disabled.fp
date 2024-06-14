@@ -15,7 +15,7 @@ locals {
 }
 
 trigger "query" "detect_and_enable_iam_accessanalyzer_analyzer_disabled" {
-  title         = "Detect & Correct IAM Access Analyzer Disabled"
+  title         = "Detect & correct IAM Access Analyzer Disabled"
   description   = "Detects IAM Access Analyzers that are disabled and enables them."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -33,7 +33,7 @@ trigger "query" "detect_and_enable_iam_accessanalyzer_analyzer_disabled" {
 }
 
 pipeline "detect_and_enable_iam_accessanalyzer_analyzer_disabled" {
-  title         = "Detect & Correct IAM Access Analyzer Disabled"
+  title         = "Detect & correct IAM Access Analyzer Disabled"
   description   = "Detects IAM Access Analyzers that are disabled and enables them."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

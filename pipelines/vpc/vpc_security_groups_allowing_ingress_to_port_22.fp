@@ -45,7 +45,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
-  title         = "Detect & Correct VPC Security groups allowing ingress to port 22"
+  title         = "Detect & correct VPC Security groups allowing ingress to port 22"
   description   = "Detects Security group rules that allow ingress from 0.0.0.0/0 to port 22."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22_trigger.md")
   tags          = merge(local.vpc_common_tags, { class = "security" })
@@ -64,7 +64,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port
 }
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
-  title         = "Detect & Correct VPC Security groups allowing ingress to port 22"
+  title         = "Detect & correct VPC Security groups allowing ingress to port 22"
   description   = "Detects Security groups that allow risky ingress rules and suggests corrective actions."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22.md")
   tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })

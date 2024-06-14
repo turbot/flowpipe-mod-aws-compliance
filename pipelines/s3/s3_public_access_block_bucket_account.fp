@@ -18,7 +18,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_s3_bucket_public_access_enabled" {
-  title       = "Detect & Correct S3 bucket public access enabled"
+  title       = "Detect & correct S3 bucket public access enabled"
   description = "Detects S3 bucket public access enabled and runs your chosen action."
   // // documentation = file("./s3/docs/detect_and_correct_s3_bucket_public_access_enabled_trigger.md")
   // tags          = merge(local.s3_common_tags, { class = "unused" })
@@ -37,7 +37,7 @@ trigger "query" "detect_and_correct_s3_bucket_public_access_enabled" {
 }
 
 pipeline "detect_and_correct_s3_bucket_public_access_enabled" {
-  title       = "Detect & Correct S3 bucket public access enabled"
+  title       = "Detect & correct S3 bucket public access enabled"
   description = "Detects S3 bucket public access enabled and runs your chosen action."
   // // documentation = file("./s3/docs/detect_and_correct_s3_bucket_public_access_enabled.md")
   // tags          = merge(local.s3_common_tags, { class = "unused", type = "featured" })

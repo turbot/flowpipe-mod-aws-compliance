@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policy_no_policy_reuse_24" {
-  title         = "Detect & Correct IAM Account Password Policy No Policy Reuse 24"
+  title         = "Detect & correct IAM Account Password Policy No Policy Reuse 24"
   description   = "Detects IAM account password policies that do not enforce a password reuse prevention policy of 24 and updates them."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -31,7 +31,7 @@ trigger "query" "detect_and_correct_iam_account_password_policy_no_policy_reuse_
 }
 
 pipeline "detect_and_correct_iam_account_password_policy_no_policy_reuse_24" {
-  title         = "Detect & Correct IAM Account Password Policy No Policy Reuse 24"
+  title         = "Detect & correct IAM Account Password Policy No Policy Reuse 24"
   description   = "Detects IAM account password policies that do not enforce a password reuse prevention policy of 24 and updates them."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

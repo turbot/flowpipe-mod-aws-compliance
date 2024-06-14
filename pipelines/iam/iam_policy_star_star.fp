@@ -69,7 +69,7 @@ locals {
 }
 
 trigger "query" "detect_and_detach_iam_entities_with_policy_star_star" {
-  title         = "Detect & Correct IAM Entities with Policy Star Star"
+  title         = "Detect & correct IAM Entities with Policy Star Star"
   description   = "Detects IAM entities (users, roles, groups) with the `iam_policy_star_star` attached and detaches that policy."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -87,7 +87,7 @@ trigger "query" "detect_and_detach_iam_entities_with_policy_star_star" {
 }
 
 pipeline "detect_and_detach_iam_entities_with_policy_star_star" {
-  title         = "Detect & Correct IAM Entities with Policy Star Star"
+  title         = "Detect & correct IAM Entities with Policy Star Star"
   description   = "Detects IAM entities (users, roles, groups) with the `iam_policy_star_star` attached and detaches that policy."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

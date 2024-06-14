@@ -35,7 +35,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
-  title         = "Detect & Correct VPCs without flow logs"
+  title         = "Detect & correct VPCs without flow logs"
   description   = "Detects VPCs without flow logs and runs your chosen action."
   // documentation = file("./vpc/docs/detect_and_correct_vpcs_without_flow_logs_trigger.md")
   tags          = merge(local.vpc_common_tags, { class = "unused" })
@@ -54,7 +54,7 @@ trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
 }
 
 pipeline "detect_and_correct_vpcs_without_flow_logs" {
-  title         = "Detect & Correct VPCs without flow logs"
+  title         = "Detect & correct VPCs without flow logs"
   description   = "Detects VPCs without flow logs and runs your chosen action."
   // documentation = file("./vpc/docs/detect_and_correct_vpcs_without_flow_logs.md")
   tags          = merge(local.vpc_common_tags, { class = "unused", type = "featured" })

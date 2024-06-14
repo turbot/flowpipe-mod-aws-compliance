@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_detach_iam_user_policy" {
-  title         = "Detect & Correct IAM User Policy"
+  title         = "Detect & correct IAM User Policy"
   description   = "Detects IAM users with a specific policy attached and detaches that policy."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -32,7 +32,7 @@ trigger "query" "detect_and_detach_iam_user_policy" {
 }
 
 pipeline "detect_and_detach_iam_user_policy" {
-  title         = "Detect & Correct IAM User Policy"
+  title         = "Detect & correct IAM User Policy"
   description   = "Detects IAM users with a specific policy attached and detaches that policy."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

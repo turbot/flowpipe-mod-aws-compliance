@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policy_no_one_uppercase_letter" {
-  title         = "Detect & Correct IAM Account Password Policy No One Uppercase Letter"
+  title         = "Detect & correct IAM Account Password Policy No One Uppercase Letter"
   description   = "Detects IAM account password policies that do not require at least one uppercase letter and updates them."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -31,7 +31,7 @@ trigger "query" "detect_and_correct_iam_account_password_policy_no_one_uppercase
 }
 
 pipeline "detect_and_correct_iam_account_password_policy_no_one_uppercase_letter" {
-  title         = "Detect & Correct IAM Account Password Policy No One Uppercase Letter"
+  title         = "Detect & correct IAM Account Password Policy No One Uppercase Letter"
   description   = "Detects IAM account password policies that do not require at least one uppercase letter and updates them."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

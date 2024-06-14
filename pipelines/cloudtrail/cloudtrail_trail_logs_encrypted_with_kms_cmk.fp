@@ -15,7 +15,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trail_logs_encrypted_with_kms_cmk" {
-  title       = "Detect & Correct Cloud Trail logs not encrypted with cmk"
+  title       = "Detect & correct Cloud Trail logs not encrypted with cmk"
   description = "Detects Cloud Trail logs not encrypted with cmk and runs your chosen action."
   // // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_logs_encrypted_with_kms_cmk_trigger.md")
   // tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
@@ -34,7 +34,7 @@ trigger "query" "detect_and_correct_cloudtrail_trail_logs_encrypted_with_kms_cmk
 }
 
 pipeline "detect_and_correct_cloudtrail_trail_logs_encrypted_with_kms_cmk" {
-  title       = "Detect & Correct Cloud Trail logs not encrypted with cmk"
+  title       = "Detect & correct Cloud Trail logs not encrypted with cmk"
   description = "Detects Cloud Trail logs not encrypted with cmk and runs your chosen action."
   // // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_logs_encrypted_with_kms_cmk.md")
   // tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })

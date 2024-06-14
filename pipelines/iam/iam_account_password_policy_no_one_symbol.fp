@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policy_no_one_symbol" {
-  title         = "Detect & Correct IAM Account Password Policy No One Symbol"
+  title         = "Detect & correct IAM Account Password Policy No One Symbol"
   description   = "Detects IAM account password policies that do not require at least one symbol and updates them."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -31,7 +31,7 @@ trigger "query" "detect_and_correct_iam_account_password_policy_no_one_symbol" {
 }
 
 pipeline "detect_and_correct_iam_account_password_policy_no_one_symbol" {
-  title         = "Detect & Correct IAM Account Password Policy No One Symbol"
+  title         = "Detect & correct IAM Account Password Policy No One Symbol"
   description   = "Detects IAM account password policies that do not require at least one symbol and updates them."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

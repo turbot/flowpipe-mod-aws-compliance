@@ -64,7 +64,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_vpc_networks_allowing_ingress_to_remote_server_administration_ports" {
-  title         = "Detect & Correct VPC Network ACLs allowing ingress to remote server administration ports"
+  title         = "Detect & correct VPC Network ACLs allowing ingress to remote server administration ports"
   description   = "Detects Network ACL rules that allow ingress from 0.0.0.0/0 to remote server administration ports."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_networks_allowing_ingress_to_remote_server_administration_ports_trigger.md")
   tags          = merge(local.vpc_common_tags, { class = "security" })
@@ -83,7 +83,7 @@ trigger "query" "detect_and_correct_vpc_networks_allowing_ingress_to_remote_serv
 }
 
 pipeline "detect_and_correct_vpc_networks_allowing_ingress_to_remote_server_administration_ports" {
-  title         = "Detect & Correct VPC Network ACLs allowing ingress to remote server administration ports"
+  title         = "Detect & correct VPC Network ACLs allowing ingress to remote server administration ports"
   description   = "Detects Network ACLs that allow risky ingress rules and suggests corrective actions."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_networks_allowing_ingress_to_remote_server_administration_ports.md")
   // tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })

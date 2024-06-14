@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_ec2_instances_not_using_imdsv2" {
-  title         = "Detect & Correct EC2 instances not using IMDSv2"
+  title         = "Detect & correct EC2 instances not using IMDSv2"
   description   = "Detects EC2 instances not using IMDSv2 and executes the chosen action."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_not_using_imdsv2_trigger.md")
   tags          = merge(local.ec2_common_tags, { class = "security" })
@@ -32,7 +32,7 @@ trigger "query" "detect_and_correct_ec2_instances_not_using_imdsv2" {
 }
 
 pipeline "detect_and_correct_ec2_instances_not_using_imdsv2" {
-  title         = "Detect & Correct EC2 instances not using IMDSv2"
+  title         = "Detect & correct EC2 instances not using IMDSv2"
   description   = "Detects EC2 instances not using IMDSv2 and performs the chosen action."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_not_using_imdsv2.md")
   tags          = merge(local.ec2_common_tags, { class = "security", type = "featured" })

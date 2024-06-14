@@ -34,7 +34,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_s3_bucket_enforce_ssl" {
-  title       = "Detect & Correct S3 Buckets Without SSL Enforcement"
+  title       = "Detect & correct S3 Buckets Without SSL Enforcement"
   description = "Detects S3 buckets that do not enforce SSL and runs your chosen action."
   // // documentation = file("./s3/docs/detect_and_correct_s3_bucket_enforce_ssl_trigger.md")
   tags = merge(local.s3_common_tags, { class = "security" })
@@ -53,7 +53,7 @@ trigger "query" "detect_and_correct_s3_bucket_enforce_ssl" {
 }
 
 pipeline "detect_and_correct_s3_bucket_enforce_ssl" {
-  title       = "Detect & Correct S3 Buckets Without SSL Enforcement"
+  title       = "Detect & correct S3 Buckets Without SSL Enforcement"
   description = "Detects S3 buckets that do not enforce SSL and runs your chosen action."
   // // documentation = file("./s3/docs/detect_and_correct_s3_bucket_enforce_ssl.md")
   tags = merge(local.s3_common_tags, { class = "security", type = "featured" })

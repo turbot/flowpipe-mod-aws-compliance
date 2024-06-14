@@ -20,7 +20,7 @@ locals {
 }
 
 trigger "query" "detect_and_deactivate_iam_user_unused_credentials_90" {
-  title         = "Detect & Correct IAM User Unused Access Keys 90 Days"
+  title         = "Detect & correct IAM User Unused Access Keys 90 Days"
   description   = "Detects IAM user credentials that have been unused for 90 days and deactivates them."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -38,7 +38,7 @@ trigger "query" "detect_and_deactivate_iam_user_unused_credentials_90" {
 }
 
 pipeline "detect_and_deactivate_iam_user_unused_credentials_90" {
-  title         = "Detect & Correct IAM User Unused Access Keys 90 Days"
+  title         = "Detect & correct IAM User Unused Access Keys 90 Days"
   description   = "Detects IAM user credentials that have been unused for 90 days and deactivates them."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 

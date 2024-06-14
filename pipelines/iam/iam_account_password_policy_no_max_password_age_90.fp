@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policy_no_max_password_age" {
-  title         = "Detect & Correct IAM Account Password Policy No Maximum Password Age"
+  title         = "Detect & correct IAM Account Password Policy No Maximum Password Age"
   description   = "Detects IAM account password policies that do not enforce a maximum password age of 90 days and updates them."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -31,7 +31,7 @@ trigger "query" "detect_and_correct_iam_account_password_policy_no_max_password_
 }
 
 pipeline "detect_and_correct_iam_account_password_policy_no_max_password_age" {
-  title         = "Detect & Correct IAM Account Password Policy No Maximum Password Age"
+  title         = "Detect & correct IAM Account Password Policy No Maximum Password Age"
   description   = "Detects IAM account password policies that do not enforce a maximum password age of 90 days and updates them."
   tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 
