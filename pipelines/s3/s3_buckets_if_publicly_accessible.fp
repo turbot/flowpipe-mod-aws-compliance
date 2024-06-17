@@ -1,62 +1,46 @@
 locals {
-  s3_bucket_enforce_ssl_query = <<-EOQ
-    with ssl_ok as (
-      select
-        distinct name,
-        arn,
-        'ok' as status
-      from
-        aws_s3_bucket,
-        jsonb_array_elements(policy_std -> 'Statement') as s,
-        jsonb_array_elements_text(s -> 'Principal' -> 'AWS') as p,
-        jsonb_array_elements_text(s -> 'Action') as a,
-        jsonb_array_elements_text(s -> 'Resource') as r,
-        jsonb_array_elements_text(
-          s -> 'Condition' -> 'Bool' -> 'aws:securetransport'
-        ) as ssl
-      where
-        p = '*'
-        and s ->> 'Effect' = 'Deny'
-        and ssl :: bool = false
-    )
+  s3_buckets_if_publicly_accessible_query = <<-EOQ
     select
-      concat(b.name, ' [', b.region, '/', b.account_id, ']') as title,
-      b.name as bucket_name,
-      b._ctx ->> 'connection_name' as cred,
-      b.region
+      concat(bucket.name, ' [', bucket.region, '/', bucket.account_id, ']') as title,
+      bucket.region,
+      bucket._ctx ->> 'connection_name' as cred,
+      bucket.name as bucket_name
     from
-      aws_s3_bucket as b
-      left join ssl_ok as ok on ok.name = b.name
+      aws_s3_bucket as bucket,
+      aws_s3_account_settings as s3account
     where
-      ok.name is null
-      and b.name = 'aab-usea1-1icrs7ytnryux';
+      s3account.account_id = bucket.account_id
+      and not (bucket.block_public_acls or s3account.block_public_acls)
+      and not (bucket.block_public_policy or s3account.block_public_policy)
+      and not (bucket.ignore_public_acls or s3account.ignore_public_acls)
+      and not (bucket.restrict_public_buckets or s3account.restrict_public_buckets);
   EOQ
 }
 
-trigger "query" "detect_and_correct_s3_bucket_enforce_ssl" {
-  title       = "Detect & correct S3 Buckets Without SSL Enforcement"
-  description = "Detects S3 buckets that do not enforce SSL and runs your chosen action."
-  // // documentation = file("./s3/docs/detect_and_correct_s3_bucket_enforce_ssl_trigger.md")
-  tags = merge(local.s3_common_tags, { class = "security" })
+trigger "query" "detect_and_correct_s3_buckets_if_publicly_accessible" {
+  title       = "Detect & correct S3 buckets if publicly accessible"
+  description = "Detects S3 buckets if publicly accessible and runs your chosen action."
+  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_if_publicly_accessible_trigger.md")
+  // tags          = merge(local.s3_common_tags, { class = "unused" })
 
-  enabled  = var.s3_bucket_enforce_ssl_trigger_enabled
-  schedule = var.s3_bucket_enforce_ssl_trigger_schedule
+  enabled  = var.s3_bucket_public_access_enabled_trigger_enabled
+  schedule = var.s3_bucket_public_access_enabled_trigger_schedule
   database = var.database
-  sql      = local.s3_bucket_enforce_ssl_query
+  sql      = local.s3_buckets_if_publicly_accessible_query
 
   capture "insert" {
-    pipeline = pipeline.correct_s3_bucket_enforce_ssl
+    pipeline = pipeline.correct_s3_buckets_if_publicly_accessible
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_s3_bucket_enforce_ssl" {
-  title       = "Detect & correct S3 Buckets Without SSL Enforcement"
-  description = "Detects S3 buckets that do not enforce SSL and runs your chosen action."
-  // // documentation = file("./s3/docs/detect_and_correct_s3_bucket_enforce_ssl.md")
-  tags = merge(local.s3_common_tags, { class = "security", type = "featured" })
+pipeline "detect_and_correct_s3_buckets_if_publicly_accessible" {
+  title       = "Detect & correct S3 buckets if publicly accessible"
+  description = "Detects S3 buckets if publicly accessible and runs your chosen action."
+  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_if_publicly_accessible.md")
+  // tags          = merge(local.s3_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -85,22 +69,22 @@ pipeline "detect_and_correct_s3_bucket_enforce_ssl" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.s3_bucket_enforce_ssl_default_action
+    default     = var.s3_bucket_public_access_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.s3_bucket_enforce_ssl_enabled_actions
+    default     = var.s3_bucket_public_access_enabled_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.s3_bucket_enforce_ssl_query
+    sql      = local.s3_buckets_if_publicly_accessible_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_s3_bucket_enforce_ssl
+    pipeline = pipeline.correct_s3_buckets_if_publicly_accessible
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -112,11 +96,11 @@ pipeline "detect_and_correct_s3_bucket_enforce_ssl" {
   }
 }
 
-pipeline "correct_s3_bucket_enforce_ssl" {
-  title       = "Correct S3 Buckets Without SSL Enforcement"
-  description = "Executes corrective actions on S3 buckets that do not enforce SSL."
-  // // documentation = file("./s3/docs/correct_s3_bucket_enforce_ssl.md")
-  tags = merge(local.s3_common_tags, { class = "security" })
+pipeline "correct_s3_buckets_if_publicly_accessible" {
+  title       = "Correct S3 buckets if publicly accessible"
+  description = "Executes corrective actions on publicly accessible S3 buckets."
+  // // documentation = file("./s3/docs/correct_s3_buckets_if_publicly_accessible.md")
+  // tags          = merge(local.s3_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -125,7 +109,6 @@ pipeline "correct_s3_bucket_enforce_ssl" {
       region      = string
       cred        = string
     }))
-    description = local.description_items
   }
 
   param "notifier" {
@@ -149,25 +132,25 @@ pipeline "correct_s3_bucket_enforce_ssl" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.s3_bucket_enforce_ssl_default_action
+    default     = var.s3_bucket_public_access_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.s3_bucket_enforce_ssl_enabled_actions
+    default     = var.s3_bucket_public_access_enabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == "verbose"
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} S3 buckets without SSL enforcement."
+    text     = "Detected ${length(param.items)} S3 bucket(s) with public access."
   }
 
   step "pipeline" "correct_item" {
     for_each        = { for item in param.items : item.bucket_name => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_s3_bucket_enforce_ssl
+    pipeline        = pipeline.correct_one_s3_bucket_if_publicly_accessible
     args = {
       title              = each.value.title
       bucket_name        = each.value.bucket_name
@@ -182,11 +165,11 @@ pipeline "correct_s3_bucket_enforce_ssl" {
   }
 }
 
-pipeline "correct_one_s3_bucket_enforce_ssl" {
-  title       = "Correct One S3 Bucket Without SSL Enforcement"
-  description = "Enforces SSL on a single S3 bucket."
-  // // documentation = file("./s3/docs/correct_one_s3_bucket_enforce_ssl.md")
-  tags = merge(local.s3_common_tags, { class = "security" })
+pipeline "correct_one_s3_bucket_if_publicly_accessible" {
+  title       = "Correct one S3 bucket if publicly accessible"
+  description = "Runs corrective action on a single S3 bucket if publicly accessible."
+  // // documentation = file("./s3/docs/correct_one_s3_bucket_if_publicly_accessible.md")
+  // tags          = merge(local.s3_common_tags, { class = "unused" })
 
   param "title" {
     type        = string
@@ -229,13 +212,13 @@ pipeline "correct_one_s3_bucket_enforce_ssl" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.s3_bucket_enforce_ssl_default_action
+    default     = var.s3_bucket_public_access_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.s3_bucket_enforce_ssl_enabled_actions
+    default     = var.s3_bucket_public_access_enabled_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -244,7 +227,7 @@ pipeline "correct_one_s3_bucket_enforce_ssl" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected S3 bucket ${param.bucket_name} without SSL enforcement."
+      detect_msg         = "Detected S3 bucket ${param.title} if publicly accessible."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -256,50 +239,49 @@ pipeline "correct_one_s3_bucket_enforce_ssl" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == "verbose"
-            text     = "Skipped S3 bucket ${param.bucket_name} without SSL enforcement."
+            text     = "Skipped S3 bucket ${param.title} with public access."
           }
-          success_msg = "Skipped S3 bucket ${param.bucket_name} without SSL enforcement."
-          error_msg   = "Error skipping S3 bucket ${param.bucket_name} without SSL enforcement."
+          success_msg = "Skipped S3 bucket ${param.title} with public access."
+          error_msg   = "Error skipping S3 bucket ${param.title} with public access."
         },
-        "enforce_ssl" = {
-          label        = "Enforce SSL"
-          value        = "enforce_ssl"
+        "s3_bucket_block_public_access" = {
+          label        = "Block public access"
+          value        = "s3_bucket_block_public_access"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_put_s3_bucket_policy
+          pipeline_ref = local.aws_pipeline_s3_bucket_block_public_access
           pipeline_args = {
-            bucket_name = param.bucket_name
-            region      = param.region
-            cred        = param.cred
-            policy      = "{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Deny\", \"Principal\": \"*\", \"Action\": \"s3:*\", \"Resource\": [ \"arn:aws:s3:::${param.bucket_name}\", \"arn:aws:s3:::${param.bucket_name}/*\" ], \"Condition\": { \"Bool\": { \"aws:SecureTransport\": \"false\" } } } ] }"
+            bucket = param.bucket_name
+            region = param.region
+            cred   = param.cred
           }
-          success_msg = "Enforced SSL for S3 bucket ${param.bucket_name}."
-          error_msg   = "Failed to enforce SSL for S3 bucket ${param.bucket_name}."
+          success_msg = "Deleted S3 bucket ${param.title} with public access."
+          error_msg   = "Error deleting S3 bucket ${param.title} with public access."
         }
       }
     }
   }
 }
 
-variable "s3_bucket_enforce_ssl_trigger_enabled" {
+variable "s3_bucket_public_access_enabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "s3_bucket_enforce_ssl_trigger_schedule" {
+variable "s3_bucket_public_access_enabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "s3_bucket_enforce_ssl_default_action" {
+variable "s3_bucket_public_access_enabled_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "enforce_ssl"
+  default     = "notify"
 }
 
-variable "s3_bucket_enforce_ssl_enabled_actions" {
+variable "s3_bucket_public_access_enabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enforce_ssl"]
+  default     = ["skip", "s3_bucket_block_public_access"]
 }

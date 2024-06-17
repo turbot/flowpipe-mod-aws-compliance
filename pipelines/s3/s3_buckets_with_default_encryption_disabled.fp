@@ -1,5 +1,5 @@
 locals {
-  s3_bucket_default_encryption_disabled_query = <<-EOQ
+  s3_buckets_with_default_encryption_disabled_query = <<-EOQ
     select
       concat(name, ' [', region, '/', account_id, ']') as title,
       name as bucket_name,
@@ -12,29 +12,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_s3_bucket_default_encryption_disabled" {
-  title       = "Detect & correct S3 Buckets with Default Encryption Disabled"
+trigger "query" "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
+  title       = "Detect & correct S3 buckets with default encryption disabled"
   description = "Detects S3 buckets with default encryption disabled and runs your chosen action."
-  // documentation = file("./s3/docs/detect_and_correct_s3_bucket_default_encryption_disabled_trigger.md")
+  // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_default_encryption_disabled_trigger.md")
   tags = merge(local.s3_common_tags, { class = "security" })
 
   enabled  = var.s3_bucket_default_encryption_disabled_trigger_enabled
   schedule = var.s3_bucket_default_encryption_disabled_trigger_schedule
   database = var.database
-  sql      = local.s3_bucket_default_encryption_disabled_query
+  sql      = local.s3_buckets_with_default_encryption_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_s3_bucket_default_encryption_disabled
+    pipeline = pipeline.correct_s3_buckets_with_default_encryption_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_s3_bucket_default_encryption_disabled" {
-  title       = "Detect & correct S3 Buckets with Default Encryption Disabled"
+pipeline "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
+  title       = "Detect & correct S3 Buckets with default encryption disabled"
   description = "Detects S3 buckets with default encryption disabled and runs your chosen action."
-  // documentation = file("./s3/docs/detect_and_correct_s3_bucket_default_encryption_disabled.md")
+  // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_default_encryption_disabled.md")
   tags = merge(local.s3_common_tags, { class = "security", type = "featured" })
 
   param "database" {
@@ -75,11 +75,11 @@ pipeline "detect_and_correct_s3_bucket_default_encryption_disabled" {
 
   step "query" "detect" {
     database = param.database
-    sql      = local.s3_bucket_default_encryption_disabled_query
+    sql      = local.s3_buckets_with_default_encryption_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_s3_bucket_default_encryption_disabled
+    pipeline = pipeline.correct_s3_buckets_with_default_encryption_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -91,10 +91,10 @@ pipeline "detect_and_correct_s3_bucket_default_encryption_disabled" {
   }
 }
 
-pipeline "correct_s3_bucket_default_encryption_disabled" {
-  title       = "Correct S3 Buckets with Default Encryption Disabled"
+pipeline "correct_s3_buckets_with_default_encryption_disabled" {
+  title       = "Correct S3 buckets with default encryption disabled"
   description = "Executes corrective actions on S3 buckets with default encryption disabled."
-  // documentation = file("./s3/docs/correct_s3_bucket_default_encryption_disabled.md")
+  // documentation = file("./s3/docs/correct_s3_buckets_with_default_encryption_disabled.md")
   tags = merge(local.s3_common_tags, { class = "security" })
 
   param "items" {
@@ -164,7 +164,7 @@ pipeline "correct_s3_bucket_default_encryption_disabled" {
   step "pipeline" "correct_item" {
     for_each        = { for item in param.items : item.bucket_name => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_s3_bucket_default_encryption_disabled
+    pipeline        = pipeline.correct_one_s3_bucket_with_default_encryption_disabled
     args = {
       title              = each.value.title
       bucket_name        = each.value.bucket_name
@@ -182,10 +182,10 @@ pipeline "correct_s3_bucket_default_encryption_disabled" {
   }
 }
 
-pipeline "correct_one_s3_bucket_default_encryption_disabled" {
+pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
   title       = "Correct One S3 Bucket with Default Encryption Disabled"
   description = "Enables default encryption for a single S3 bucket."
-  // documentation = file("./s3/docs/correct_one_s3_bucket_default_encryption_disabled.md")
+  // documentation = file("./s3/docs/correct_one_s3_bucket_with_default_encryption_disabled.md")
   tags = merge(local.s3_common_tags, { class = "security" })
 
   param "title" {

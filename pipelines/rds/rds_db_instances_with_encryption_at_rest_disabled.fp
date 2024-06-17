@@ -1,5 +1,5 @@
 locals {
-  rds_db_instance_without_encryption_query = <<-EOQ
+  rds_db_instances_with_encryption_at_rest_disabled_query = <<-EOQ
     select
 			concat(r.db_instance_identifier, ' [', r.region, '/', r.account_id, ']') as title,
 			r.db_instance_identifier,
@@ -19,27 +19,27 @@ locals {
   EOQ
 }
 
- trigger "query" "detect_and_correct_rds_db_instance_without_encryption" {
-  title         = "Detect & correct RDS DB Instance without Encryption"
-  description   = "Detects RDS DB instances without encryption enabled and runs your chosen action."
+ trigger "query" "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
+  title         = "Detect & correct RDS DB instances with encryption at rest disabled"
+  description   = "Detects RDS DB instances with encryption at rest disabled and runs your chosen action."
   tags          = merge(local.rds_common_tags, { class = "security" })
 
   enabled  = var.rds_db_instance_without_encryption_trigger_enabled
   schedule = var.rds_db_instance_without_encryption_trigger_schedule
   database = var.database
-  sql      = local.rds_db_instance_without_encryption_query
+  sql      = local.rds_db_instances_with_encryption_at_rest_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_rds_db_instance_without_encryption
+    pipeline = pipeline.correct_rds_db_instances_with_encryption_at_rest_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_rds_db_instance_without_encryption" {
-  title         = "Detect & correct RDS DB Instances without Encryption"
-  description   = "Detects RDS DB instances without encryption enabled and runs your chosen action."
+pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
+  title         = "Detect & correct RDS DB instances with encryption at rest disabled"
+  description   = "Detects RDS DB instances with encryption at rest disabled and runs your chosen action."
   tags          = merge(local.rds_common_tags, { class = "security", type = "featured" })
 
   param "database" {
@@ -80,11 +80,11 @@ pipeline "detect_and_correct_rds_db_instance_without_encryption" {
 
   step "query" "detect" {
     database = param.database
-    sql      = local.rds_db_instance_without_encryption_query
+    sql      = local.rds_db_instances_with_encryption_at_rest_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_rds_db_instance_without_encryption
+    pipeline = pipeline.correct_rds_db_instances_with_encryption_at_rest_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -96,19 +96,19 @@ pipeline "detect_and_correct_rds_db_instance_without_encryption" {
   }
 }
 
-pipeline "correct_rds_db_instance_without_encryption" {
-  title         = "Correct RDS DB Instance without Encryption"
-  description   = "Runs corrective action on a collection of RDS DB instances without encryption enabled."
+pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
+  title         = "Correct RDS DB instances with encryption at rest disabled"
+  description   = "Runs corrective action on a collection of RDS DB instances with encryption at rest disabled."
   tags          = merge(local.rds_common_tags, { class = "security" })
 
   param "items" {
     type = list(object({
-      title                  = string
-      db_instance_identifier = string
-			snapshot_identifier    = string
+      title                   = string
+      db_instance_identifier  = string
+			snapshot_identifier     = string
       aws_managed_kms_key_arn = string
-      region                 = string
-      cred                   = string
+      region                  = string
+      cred                    = string
     }))
     description = local.description_items
   }
@@ -146,7 +146,7 @@ pipeline "correct_rds_db_instance_without_encryption" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} RDS DB instances without encryption enabled."
+    text     = "Detected ${length(param.items)} RDS DB instances with encryption at rest disabled."
   }
 
   step "transform" "items_by_id" {
@@ -156,7 +156,7 @@ pipeline "correct_rds_db_instance_without_encryption" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_rds_db_instance_without_encryption
+    pipeline        = pipeline.correct_one_rds_db_instance_with_encryption_at_rest_disabled
     args = {
       title                   = each.value.title
       db_instance_identifier  = each.value.db_instance_identifier
@@ -173,9 +173,9 @@ pipeline "correct_rds_db_instance_without_encryption" {
   }
 }
 
-pipeline "correct_one_rds_db_instance_without_encryption" {
-  title         = "Correct one RDS DB Instance without Encryption"
-  description   = "Runs corrective action on an RDS DB instance without encryption enabled."
+pipeline "correct_one_rds_db_instance_with_encryption_at_rest_disabled" {
+  title         = "Correct one RDS DB instance with encryption at rest disabled"
+  description   = "Runs corrective action on an RDS DB instances with encryption at rest disabled enabled."
   tags          = merge(local.rds_common_tags, { class = "security" })
 
   param "title" {
@@ -244,7 +244,7 @@ pipeline "correct_one_rds_db_instance_without_encryption" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected RDS DB instance without encryption enabled ${param.title}."
+      detect_msg         = "Detected RDS DB instance ${param.title} with encryption at rest disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -256,7 +256,7 @@ pipeline "correct_one_rds_db_instance_without_encryption" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped RDS DB instance ${param.title} without encryption enabled."
+            text     = "Skipped RDS DB instance ${param.title} with encryption at rest disabled."
           }
           success_msg = ""
           error_msg   = ""

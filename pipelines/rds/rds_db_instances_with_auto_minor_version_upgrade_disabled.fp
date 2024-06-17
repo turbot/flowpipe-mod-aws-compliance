@@ -1,5 +1,6 @@
 locals {
-  rds_db_instance_if_public_access_enabled_query = <<-EOQ
+
+  rds_db_instances_with_auto_minor_version_upgrade_disabled_query = <<-EOQ
     select
       concat(db_instance_identifier, ' [', region, '/', account_id, ']') as title,
       db_instance_identifier,
@@ -8,33 +9,33 @@ locals {
     from
       aws_rds_db_instance
     where
-      publicly_accessible;
+      not auto_minor_version_upgrade;
   EOQ
 }
 
-trigger "query" "detect_and_correct_rds_db_instance_if_public_access_enabled" {
-  title         = "Detect & correct RDS DB instances if public access enabled"
-  description   = "Detects RDS DB instances if public access is enabled and runs your chosen action."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_public_access_enabled_trigger.md")
+trigger "query" "detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
+  title         = "Detect & correct RDS DB instances with auto minor version upgrade disabled"
+  description   = "Detects RDS DB instances with auto minor version upgrade disabled and runs your chosen action."
+  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled_trigger.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
-  enabled  = var.rds_db_instance_if_public_access_enabled_trigger_enabled
-  schedule = var.rds_db_instance_if_public_access_enabled_trigger_schedule
+  enabled  = var.rds_db_instance_if_auto_minor_version_upgrade_disabled_trigger_enabled
+  schedule = var.rds_db_instance_if_auto_minor_version_upgrade_disabled_trigger_schedule
   database = var.database
-  sql      = local.rds_db_instance_if_public_access_enabled_query
+  sql      = local.rds_db_instances_with_auto_minor_version_upgrade_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_rds_db_instance_if_public_access_enabled
+    pipeline = pipeline.correct_rds_db_instances_with_auto_minor_version_upgrade_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_rds_db_instance_if_public_access_enabled" {
-  title         = "Detect & correct RDS DB instances if public access enabled"
-  description   = "Detects RDS DB instances if public access is enabled and runs your chosen action."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_public_access_enabled.md")
+pipeline "detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
+  title         = "Detect & correct RDS DB instances with auto minor version upgrade disabled"
+  description   = "Detects RDS DB instances with auto minor version upgrade disabled and runs your chosen action."
+  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled.md")
   tags          = merge(local.rds_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -64,22 +65,22 @@ pipeline "detect_and_correct_rds_db_instance_if_public_access_enabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.rds_db_instance_if_public_access_enabled_default_action
+    default     = var.rds_db_instance_if_auto_minor_version_upgrade_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.rds_db_instance_if_public_access_enabled_enabled_actions
+    default     = var.rds_db_instance_if_auto_minor_version_upgrade_disabled_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.rds_db_instance_if_public_access_enabled_query
+    sql      = local.rds_db_instances_with_auto_minor_version_upgrade_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_rds_db_instance_if_public_access_enabled
+    pipeline = pipeline.correct_rds_db_instances_with_auto_minor_version_upgrade_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -91,17 +92,17 @@ pipeline "detect_and_correct_rds_db_instance_if_public_access_enabled" {
   }
 }
 
-pipeline "correct_rds_db_instance_if_public_access_enabled" {
-  title         = "Correct RDS DB instance if public access enabled"
-  description   = "Runs corrective action on a collection of RDS DB instances if public access is enabled."
-  // // documentation = file("./rds/docs/correct_rds_db_instance_if_public_access_enabled.md")
+pipeline "correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
+  title         = "Correct RDS DB instance with auto minor version upgrade disabled"
+  description   = "Runs corrective action on a collection of RDS DB instances with auto minor version upgrade disabled."
+  // // documentation = file("./rds/docs/correct_rds_db_instances_with_auto_minor_version_upgrade_disabled.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
       title                  = string
       db_instance_identifier = string
-      publicly_accessible    = bool
+      auto_minor_version_upgrade = bool
       region                 = string
       cred                   = string
     }))
@@ -129,19 +130,19 @@ pipeline "correct_rds_db_instance_if_public_access_enabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.rds_db_instance_if_public_access_enabled_default_action
+    default     = var.rds_db_instance_if_auto_minor_version_upgrade_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.rds_db_instance_if_public_access_enabled_enabled_actions
+    default     = var.rds_db_instance_if_auto_minor_version_upgrade_disabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} RDS DB instances with public access enabled."
+    text     = "Detected ${length(param.items)} RDS DB instances with auto minor version upgrade disabled."
   }
 
   step "transform" "items_by_id" {
@@ -151,11 +152,11 @@ pipeline "correct_rds_db_instance_if_public_access_enabled" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_rds_db_instance_if_public_access_enabled
+    pipeline        = pipeline.correct_one_rds_db_instance_with_auto_minor_version_upgrade_disabled
     args = {
       title                  = each.value.title
       db_instance_identifier = each.value.db_instance_identifier
-      publicly_accessible    = false
+      auto_minor_version_upgrade = true
       region                 = each.value.region
       cred                   = each.value.cred
       notifier               = param.notifier
@@ -167,10 +168,10 @@ pipeline "correct_rds_db_instance_if_public_access_enabled" {
   }
 }
 
-pipeline "correct_one_rds_db_instance_if_public_access_enabled" {
-  title         = "Correct one RDS DB instance if public access enabled"
-  description   = "Runs corrective action on an RDS DB instance if public access is enabled."
-  // // documentation = file("./rds/docs/correct_one_rds_db_instance_if_public_access_enabled.md")
+pipeline "correct_one_rds_db_instance_with_auto_minor_version_upgrade_disabled" {
+  title         = "Correct one RDS DB instance with auto minor version upgrade disabled"
+  description   = "Runs corrective action on an RDS DB instance with auto minor version upgrade disabled."
+  // // documentation = file("./rds/docs/correct_one_rds_db_instance_with_auto_minor_version_upgrade_disabled.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "title" {
@@ -180,12 +181,12 @@ pipeline "correct_one_rds_db_instance_if_public_access_enabled" {
 
   param "db_instance_identifier" {
     type        = string
-    description = "The identifier of the DB instance."
+    description = "The identifier of DB instance."
   }
 
-  param "publicly_accessible" {
+  param "auto_minor_version_upgrade" {
     type        = bool
-    description = "Enables or disables public access for a DB instance."
+    description = "Enables the auto minor version upgrade property of a DB instance"
   }
 
   param "region" {
@@ -219,13 +220,13 @@ pipeline "correct_one_rds_db_instance_if_public_access_enabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.rds_db_instance_if_public_access_enabled_default_action
+    default     = var.rds_db_instance_if_auto_minor_version_upgrade_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.rds_db_instance_if_public_access_enabled_enabled_actions
+    default     = var.rds_db_instance_if_auto_minor_version_upgrade_disabled_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -234,7 +235,7 @@ pipeline "correct_one_rds_db_instance_if_public_access_enabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected RDS DB instance with public access enabled ${param.title}."
+      detect_msg         = "Detected RDS DB instance ${param.title} with auto minor version upgrade disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -246,7 +247,7 @@ pipeline "correct_one_rds_db_instance_if_public_access_enabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped RDS DB instance ${param.title} with public access enabled."
+            text     = "Skipped RDS DB instance ${param.title} with auto minor version upgrade disabled."
           }
           success_msg = ""
           error_msg   = ""
@@ -257,10 +258,10 @@ pipeline "correct_one_rds_db_instance_if_public_access_enabled" {
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_modify_rds_db_instance
           pipeline_args = {
-            db_instance_identifier = param.db_instance_identifier
-            publicly_accessible    = false
-            region                 = param.region
-            cred                   = param.cred
+            db_instance_identifier     = param.db_instance_identifier
+            auto_minor_version_upgrade = true
+            region                     = param.region
+            cred                       = param.cred
           }
           success_msg = "Updated RDS DB instance ${param.title}."
           error_msg   = "Error updating RDS DB instance ${param.title}."
@@ -270,25 +271,25 @@ pipeline "correct_one_rds_db_instance_if_public_access_enabled" {
   }
 }
 
-variable "rds_db_instance_if_public_access_enabled_trigger_enabled" {
+variable "rds_db_instance_if_auto_minor_version_upgrade_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "rds_db_instance_if_public_access_enabled_trigger_schedule" {
+variable "rds_db_instance_if_auto_minor_version_upgrade_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "rds_db_instance_if_public_access_enabled_default_action" {
+variable "rds_db_instance_if_auto_minor_version_upgrade_disabled_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "rds_db_instance_if_public_access_enabled_enabled_actions" {
+variable "rds_db_instance_if_auto_minor_version_upgrade_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "update_db_instance"]

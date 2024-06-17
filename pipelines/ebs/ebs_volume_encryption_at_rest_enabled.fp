@@ -1,5 +1,5 @@
 locals {
-  ebs_volume_encryption_at_rest_enabled_query = <<-EOQ
+  ebs_volume_with_encryption_at_rest_disabled_query = <<-EOQ
     select
       concat(volume_id, ' [', region, '/', account_id, ']') as title,
       region,
@@ -11,29 +11,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_ebs_volume_encryption_at_rest_enabled" {
-  title         = "Detect & correct EBS Volumes Without Encryption At Rest"
-  description   = "Detects EBS volumes without encryption at rest and runs your chosen action."
-  // // documentation = file("./ebs/docs/detect_and_correct_ebs_volume_encryption_at_rest_enabled_trigger.md")
+trigger "query" "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
+  title         = "Detect & correct EBS volumes with encryption at rest disabled"
+  description   = "Detects EBS volumes with encryption at rest disabled and runs your chosen action."
+  // // documentation = file("./ebs/docs/detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled_trigger.md")
   tags          = merge(local.ebs_common_tags, { class = "security" })
 
   enabled  = var.ebs_volume_encryption_at_rest_enabled_trigger_enabled
   schedule = var.ebs_volume_encryption_at_rest_enabled_trigger_schedule
   database = var.database
-  sql      = local.ebs_volume_encryption_at_rest_enabled_query
+  sql      = local.ebs_volume_with_encryption_at_rest_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_ebs_volume_encryption_at_rest_enabled
+    pipeline = pipeline.correct_ebs_volumes_with_encryption_at_rest_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_ebs_volume_encryption_at_rest_enabled" {
-  title         = "Detect & correct EBS Volumes Without Encryption At Rest"
-  description   = "Detects EBS volumes without encryption at rest and runs your chosen action."
-  // // documentation = file("./ebs/docs/detect_and_correct_ebs_volume_encryption_at_rest_enabled.md")
+pipeline "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
+  title         = "Detect & correct EBS volumes with encryption at rest disabled"
+  description   = "Detects EBS volumes with encryption at rest disabled and runs your chosen action."
+  // // documentation = file("./ebs/docs/detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled.md")
   tags          = merge(local.ebs_common_tags, { class = "security", type = "featured" })
 
   param "database" {
@@ -74,11 +74,11 @@ pipeline "detect_and_correct_ebs_volume_encryption_at_rest_enabled" {
 
   step "query" "detect" {
     database = param.database
-    sql      = local.ebs_volume_encryption_at_rest_enabled_query
+    sql      = local.ebs_volume_with_encryption_at_rest_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_ebs_volume_encryption_at_rest_enabled
+    pipeline = pipeline.correct_ebs_volumes_with_encryption_at_rest_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -90,10 +90,10 @@ pipeline "detect_and_correct_ebs_volume_encryption_at_rest_enabled" {
   }
 }
 
-pipeline "correct_ebs_volume_encryption_at_rest_enabled" {
-  title         = "Correct EBS Volumes Without Encryption At Rest"
-  description   = "Executes corrective actions on EBS volumes without encryption at rest."
-  // // documentation = file("./ebs/docs/correct_ebs_volume_encryption_at_rest_enabled.md")
+pipeline "correct_ebs_volumes_with_encryption_at_rest_disabled" {
+  title         = "Correct EBS volumes with encryption at rest disabled"
+  description   = "Executes corrective actions on EBS volumes with encryption at rest disabled."
+  // // documentation = file("./ebs/docs/correct_ebs_volumes_with_encryption_at_rest_disabled.md")
   tags          = merge(local.ebs_common_tags, { class = "security" })
 
   param "items" {
@@ -138,7 +138,7 @@ pipeline "correct_ebs_volume_encryption_at_rest_enabled" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} EBS volumes without encryption at rest."
+    text     = "Detected ${length(param.items)} EBS volumes with encryption at rest disabled."
   }
 
   step "transform" "items_by_id" {
@@ -148,7 +148,7 @@ pipeline "correct_ebs_volume_encryption_at_rest_enabled" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_ebs_volume_encryption_at_rest_enabled
+    pipeline        = pipeline.correct_one_ebs_volume_with_encryption_at_rest_disabled
     args = {
       title              = each.value.title
       region             = each.value.region
@@ -162,10 +162,10 @@ pipeline "correct_ebs_volume_encryption_at_rest_enabled" {
   }
 }
 
-pipeline "correct_one_ebs_volume_encryption_at_rest_enabled" {
-  title         = "Correct One EBS Volume Without Encryption At Rest"
-  description   = "Runs corrective action on a single EBS volume without encryption at rest."
-  // // documentation = file("./ebs/docs/correct_one_ebs_volume_encryption_at_rest_enabled.md")
+pipeline "correct_one_ebs_volume_with_encryption_at_rest_disabled" {
+  title         = "Correct one EBS volume with encryption at rest disabled"
+  description   = "Runs corrective action on a single EBS volume with encryption at rest disabled."
+  // // documentation = file("./ebs/docs/correct_one_ebs_volume_with_encryption_at_rest_disabled.md")
   tags          = merge(local.ebs_common_tags, { class = "security" })
 
   param "title" {
@@ -219,7 +219,7 @@ pipeline "correct_one_ebs_volume_encryption_at_rest_enabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected EBS volume ${param.title} without encryption at rest."
+      detect_msg         = "Detected EBS volume ${param.title} with encryption at rest disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -231,7 +231,7 @@ pipeline "correct_one_ebs_volume_encryption_at_rest_enabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped EBS volume ${param.title} without encryption at rest."
+            text     = "Skipped EBS volume ${param.title} with encryption at rest disabled."
           }
           success_msg = ""
           error_msg   = ""

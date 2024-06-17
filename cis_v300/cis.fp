@@ -44,6 +44,21 @@ pipeline "cis_v300" {
     default     = var.approvers
   }
 
+  // TODO: Check this out later
+  // step "pipeline" "should_run" {
+  //   if = length(param.approvers) > 0 
+
+  //   pipeline = detect_correct.pipeline.decision
+  //   args = {
+  //     notifier = param.approvers[0]
+  //     prompt   = "Do you wish to run CIS v3.0.0 Section 1: Identity and Access Management?"
+  //     options  = [
+  //       {value = "no", label = "No", style = local.style_alert},
+  //       {value = "yes", label = "Yes", style = local.style_ok}
+  //     ]
+  //   }
+  // }
+
     step "pipeline" "cis_v300" {
     loop {
       until = loop.index >= (length(var.cis_v300_enabled_controls)-1)
