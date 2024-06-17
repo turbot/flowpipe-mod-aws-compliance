@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_rds_db_instance_if_auto_minor_version_upgrade_disabled" {
-  title         = "Detect & correct RDS DB instancesif auto minor version upgrade disabled"
+  title         = "Detect & correct RDS DB instances if auto minor version upgrade disabled"
   description   = "Detects RDS DB instances if auto minor version upgrade is disabled and runs your chosen action."
   // // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_auto_minor_version_upgrade_disabled_trigger.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })

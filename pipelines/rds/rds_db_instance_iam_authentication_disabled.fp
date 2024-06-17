@@ -14,7 +14,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_rds_db_instance_if_iam_authentication_disabled" {
-  title         = "Detect & correct RDS DB instancesif IAM authentication disabled"
+  title         = "Detect & correct RDS DB instances if IAM authentication disabled"
   description   = "Detects RDS DB instances if IAM authentication is disabled and runs your chosen action."
   // // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_iam_authentication_disabled_trigger.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })

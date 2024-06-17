@@ -1,4 +1,4 @@
-# Detect & Correct API Gateway REST API stage if X-Ray tracing disabled
+# Detect & correct API Gateway REST API stage if X-Ray tracing disabled
 
 ## Overview
 

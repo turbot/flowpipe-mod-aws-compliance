@@ -1,5 +1,5 @@
 locals {
-  kms_key_rotation_disabled_query = <<-EOQ
+  kms_keys_with_rotation_disabled_query = <<-EOQ
     select
       concat(id, ' [', region, '/', account_id, ']') as title,
       id as key_id,
@@ -15,29 +15,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_kms_key_rotation_disabled" {
-  title       = "Detect & correct KMS Key Rotation Disabled"
-  description = "Detects KMS Key Rotation Disabled and runs your chosen action."
-  // // documentation = file("./kms/docs/detect_and_correct_kms_key_rotation_disabled_trigger.md")
+trigger "query" "detect_and_correct_kms_keys_with_rotation_disabled" {
+  title       = "Detect & correct KMS keys with rotation disabled"
+  description = "Detects KMS Keys with rotation disabled and runs your chosen action."
+  // // documentation = file("./kms/docs/detect_and_correct_kms_keys_with_rotation_disabled_trigger.md")
   tags          = merge(local.kms_common_tags, { class = "unused" })
 
   enabled  = var.kms_key_rotation_disabled_trigger_enabled
   schedule = var.kms_key_rotation_disabled_trigger_schedule
   database = var.database
-  sql      = local.kms_key_rotation_disabled_query
+  sql      = local.kms_keys_with_rotation_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_kms_key_rotation_disabled
+    pipeline = pipeline.correct_kms_keys_with_rotation_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_kms_key_rotation_disabled" {
-  title       = "Detect & correct KMS Key Rotation Disabled"
-  description = "Detects KMS Key Rotation Disabled and runs your chosen action."
-  // // documentation = file("./kms/docs/detect_and_correct_kms_key_rotation_disabled.md")
+pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
+  title       = "Detect & correct KMS keys with rotation disabled"
+  description = "Detects KMS keys with rotation disabled and runs your chosen action."
+  // // documentation = file("./kms/docs/detect_and_correct_kms_keys_with_rotation_disabled.md")
   // tags          = merge(local.kms_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -78,11 +78,11 @@ pipeline "detect_and_correct_kms_key_rotation_disabled" {
 
   step "query" "detect" {
     database = param.database
-    sql      = local.kms_key_rotation_disabled_query
+    sql      = local.kms_keys_with_rotation_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_kms_key_rotation_disabled
+    pipeline = pipeline.correct_kms_keys_with_rotation_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -94,10 +94,10 @@ pipeline "detect_and_correct_kms_key_rotation_disabled" {
   }
 }
 
-pipeline "correct_kms_key_rotation_disabled" {
-  title       = "Correct KMS Key Rotation Disabled"
-  description = "Executes corrective actions on KMS Key Rotation Disabled."
-  // // documentation = file("./kms/docs/correct_kms_key_rotation_disabled.md")
+pipeline "correct_kms_keys_with_rotation_disabled" {
+  title       = "Correct KMS keys with rotation disabled"
+  description = "Executes corrective actions on KMS keys with rotation disabled."
+  // // documentation = file("./kms/docs/correct_kms_keys_with_rotation_disabled.md")
   // tags          = merge(local.kms_common_tags, { class = "unused" })
 
   param "items" {
@@ -148,7 +148,7 @@ pipeline "correct_kms_key_rotation_disabled" {
   step "pipeline" "correct_item" {
     for_each        = { for item in param.items : item.key_id => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_correct_kms_key_rotation_disabled
+    pipeline        = pipeline.correct_one_correct_kms_key_with_rotation_disabled
     args = {
       title              = each.value.title
       key_id             = each.value.key_id
@@ -163,10 +163,10 @@ pipeline "correct_kms_key_rotation_disabled" {
   }
 }
 
-pipeline "correct_one_correct_kms_key_rotation_disabled" {
+pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
   title       = "Correct one EC2 classic load balancer without connection draining enabled"
   description = "Runs corrective action on a single EC2 classic load balancer without connection draining enabled."
-  // // documentation = file("./kms/docs/correct_one_correct_kms_key_rotation_disabled.md")
+  // // documentation = file("./kms/docs/correct_one_correct_kms_key_with_rotation_disabled.md")
   // tags          = merge(local.kms_common_tags, { class = "unused" })
 
   param "title" {
@@ -225,7 +225,7 @@ pipeline "correct_one_correct_kms_key_rotation_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected key rotation for KMS key ${param.title}."
+      detect_msg         = "Detected key rotation disabled for KMS key ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -237,7 +237,7 @@ pipeline "correct_one_correct_kms_key_rotation_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == "verbose"
-            text     = "Skipped EC2 classic load balancer ${param.title}."
+            text     = "Skipped enabling rotation for KMS key ${param.title}."
           }
           success_msg = "Skipped key rotation for KMS key ${param.title}."
           error_msg   = "Error skipping key rotation for KMS key ${param.title}."

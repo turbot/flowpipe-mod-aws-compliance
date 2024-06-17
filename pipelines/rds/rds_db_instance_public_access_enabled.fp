@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_rds_db_instance_if_public_access_enabled" {
-  title         = "Detect & correct RDS DB instancesif public access enabled"
+  title         = "Detect & correct RDS DB instances if public access enabled"
   description   = "Detects RDS DB instances if public access is enabled and runs your chosen action."
   // // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_public_access_enabled_trigger.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })

@@ -15,7 +15,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_rds_db_instance_if_deletion_protection_disabled" {
-  title         = "Detect & correct RDS DB instancesif deletion protection disabled"
+  title         = "Detect & correct RDS DB instances if deletion protection disabled"
   description   = "Detects RDS DB instances if deletion protection disabled and runs your chosen action."
   // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_deletion_protection_disabled_trigger.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })
