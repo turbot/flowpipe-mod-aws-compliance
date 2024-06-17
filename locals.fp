@@ -67,6 +67,7 @@ locals {
   aws_pipeline_create_iam_policy                    = aws.pipeline.create_iam_policy
   aws_pipeline_attach_polict_to_role                = aws.pipeline.attach_iam_role_policy
   aws_pipeline_start_cloudtrail_trail_logging       = aws.pipeline.start_cloudtrail_trail_logging
+  aws_pipeline_change_iam_password                  = aws.pipeline.change_iam_password
   aws_pipeline_delete_iam_access_key                = aws.pipeline.delete_iam_access_key
   aws_pipeline_update_iam_account_password_policy   = aws.pipeline.update_iam_account_password_policy
   aws_pipeline_create_iam_access_analyzer           = aws.pipeline.create_iam_access_analyzer
