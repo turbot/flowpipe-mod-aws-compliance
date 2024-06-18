@@ -78,4 +78,5 @@ locals {
   aws_pipeline_put_s3_bucket_public_access_block = aws.pipeline.put_s3_bucket_public_access_block
   aws_pipeline_enable_cloudtrail_validation      = aws.pipeline.update_cloudtrail_trail
   aws_pipeline_modify_neptune_db_cluster         = aws.pipeline.modify_neptune_db_cluster
+  aws_pipeline_delete_iam_server_certificate     = aws.pipeline.delete_iam_server_certificate
 }

@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_neptune_db_cluster_if_audit_logs_disabled" {
-  title       = "Detect & Correct Neptune DB Cluster if Audit Logs Disabled"
+  title       = "Detect & Correct Neptune DB Clusters if Audit Logs Disabled"
   description = "Detects Neptune DB clusters if audit logs are disabled and runs your chosen action."
   // tags        = merge(local.neptune_common_tags, { class = "unused" })
 
@@ -90,7 +90,7 @@ pipeline "detect_and_correct_neptune_db_cluster_if_audit_logs_disabled" {
 }
 
 pipeline "correct_neptune_db_cluster_if_audit_logs_disabled" {
-  title       = "Correct Neptune DB Cluster if Audit Logs Disabled"
+  title       = "Correct Neptune DB Clusters if Audit Logs Disabled"
   description = "Runs corrective action on a collection of Neptune DB clusters if audit logs are disabled."
   // tags        = merge(local.neptune_common_tags, { class = "unused" })
 
