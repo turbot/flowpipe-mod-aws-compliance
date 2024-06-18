@@ -54,12 +54,30 @@ pipeline "cis_v300_5" {
     default     = var.approvers
   }
 
+  step "pipeline" "should_run" {
+    if = length(param.approvers) > 0 
+
+    pipeline = detect_correct.pipeline.decision
+    args = {
+      notifier = param.approvers[0]
+      prompt   = "Do you wish to run CIS v3.0.0 Section 5: Networking?"
+      options  = [
+        {value = "no", label = "No", style = local.style_alert},
+        {value = "yes", label = "Yes", style = local.style_ok}
+      ]
+    }
+  }
+
   step "message" "cis_v300_5" {
+    if       = (length(param.approvers) == 0 || step.pipeline.should_run.decision.result == "yes")
     notifier = notifier[param.notifier]
     text     = "Running CIS v3.0.0 Section 5: Networking"
   }
 
   step "pipeline" "cis_v300_5" {
+    depends_on = [step.message.cis_v300_5]
+    if         = (length(param.approvers) == 0 || step.pipeline.should_run.decision.result == "yes")
+
     loop {
       until = loop.index >= (length(var.cis_v300_5_enabled_controls)-1)
     }
