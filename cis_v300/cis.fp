@@ -12,7 +12,7 @@ locals {
 variable "cis_v300_enabled_controls" {
   type        = list(string)
   description = "List of CIS v3.0.0 controls to enable"
-  default     = ["cis_v300_1", "cis_v300_5"]
+  default     = ["cis_v300_1", "cis_v300_2", "cis_v300_3", "cis_v300_5"]
 }
 
 pipeline "cis_v300" {
@@ -44,27 +44,12 @@ pipeline "cis_v300" {
     default     = var.approvers
   }
 
-  // TODO: Check this out later
-  // step "pipeline" "should_run" {
-  //   if = length(param.approvers) > 0 
+  step "pipeline" "cis_v300" {
+  loop {
+    until = loop.index >= (length(var.cis_v300_enabled_controls)-1)
+  }
 
-  //   pipeline = detect_correct.pipeline.decision
-  //   args = {
-  //     notifier = param.approvers[0]
-  //     prompt   = "Do you wish to run CIS v3.0.0 Section 1: Identity and Access Management?"
-  //     options  = [
-  //       {value = "no", label = "No", style = local.style_alert},
-  //       {value = "yes", label = "Yes", style = local.style_ok}
-  //     ]
-  //   }
-  // }
-
-    step "pipeline" "cis_v300" {
-    loop {
-      until = loop.index >= (length(var.cis_v300_enabled_controls)-1)
-    }
-
-    pipeline = local.cis_v300_control_mapping[var.cis_v300_enabled_controls[loop.index]].pipeline
+  pipeline = local.cis_v300_control_mapping[var.cis_v300_enabled_controls[loop.index]].pipeline
     args     = {
       database           = param.database
       notifier           = param.notifier

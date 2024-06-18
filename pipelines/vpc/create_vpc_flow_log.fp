@@ -175,19 +175,16 @@ pipeline "create_vpc_flowlog" {
   param "region" {
     type  = string
     description = local.description_region
-    default = "us-east-2" // Delete this
   }
 
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default" // Delete this
   }
 
   param "vpc_id" {
     type  = string
     description = "The VPC ID"
-    default     = "vpc-aa63a1c1" // Delete this
   }
 
   step "pipeline" "create_cloudwatch_log_group" {
