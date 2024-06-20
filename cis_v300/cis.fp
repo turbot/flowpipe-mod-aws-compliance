@@ -5,6 +5,8 @@ locals {
   })
   cis_v300_control_mapping = {
     cis_v300_1 = { pipeline = pipeline.cis_v300_1 }
+    cis_v300_2 = { pipeline = pipeline.cis_v300_2 }
+    cis_v300_3 = { pipeline = pipeline.cis_v300_3 }
     cis_v300_5 = { pipeline = pipeline.cis_v300_5 }
   }
 }

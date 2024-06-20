@@ -61,29 +61,27 @@ pipeline "cis_v300_2" {
     default     = var.approvers
   }
 
-  step "pipeline" "should_run" {
-    if = length(param.approvers) > 0 
-
-    pipeline = detect_correct.pipeline.decision
-    args = {
-      notifier = param.approvers[0]
-      prompt   = "Do you wish to run CIS v3.0.0 Section 2: Storage?"
-      options  = [
-        {value = "no", label = "No", style = local.style_alert},
-        {value = "yes", label = "Yes", style = local.style_ok}
-      ]
-    }
+  step "input" "should_run" {
+    if       = (length(param.approvers) > 0)
+    notifier = notifier[param.notifier]
+    type     = "button"
+    subject  = "Request to run CIS v3.0.0 Section 2: Storage?"
+    prompt   = "Do you wish to run CIS v3.0.0 Section 2: Storage?"
+    options  = [
+      {value = "no", label = "No", style = local.style_alert},
+      {value = "yes", label = "Yes", style = local.style_ok}
+    ]
   }
 
   step "message" "cis_v300_2" {
-    if       = (length(param.approvers) == 0 || step.pipeline.should_run.decision.result == "yes")
+    if       = ((length(param.approvers) > 0 && step.input.should_run.value == "yes") || length(param.approvers) == 0)
     notifier = notifier[param.notifier]
     text     = "Running CIS v3.0.0 Section 2: Storage"
   }
 
   step "pipeline" "cis_v300_2" {
     depends_on = [step.message.cis_v300_2]
-    if         = (length(param.approvers) == 0 || step.pipeline.should_run.decision.result == "yes")
+    if = ((length(param.approvers) > 0 && step.input.should_run.value == "yes") || length(param.approvers) == 0)
 
     loop {
       until = loop.index >= (length(var.cis_v300_2_enabled_controls)-1)
@@ -97,8 +95,4 @@ pipeline "cis_v300_2" {
       approvers          = param.approvers
     },local.cis_v300_2_control_mapping[var.cis_v300_2_enabled_controls[loop.index]].additional_args)
   }
-
-  // tags = merge(local.cis_v300_2_common_tags, {
-  //   service = "AWS/VPC"
-  // })
 }
