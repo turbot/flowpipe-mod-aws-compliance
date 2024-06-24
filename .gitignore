@@ -14,7 +14,8 @@
 # Flowpipe variable files
 *.fpvars
 
-# Flowpipe mod dependencies and logs
+# Flowpipe mod dependencies, logs and binaries
+flowpipe
 .flowpipe
 *.cache.json
 

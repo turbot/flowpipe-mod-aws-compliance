@@ -20,7 +20,7 @@ variable "approvers" {
   type        = list(string)
   description = "List of notifiers to be used for obtaining action/approval decisions, when empty list will perform the default response associated with the detection."
   // default     = ["admins"]
-  default     = [] 
+  default     = []
 }
 
 variable "max_concurrency" {

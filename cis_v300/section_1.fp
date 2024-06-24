@@ -86,15 +86,20 @@ pipeline "cis_v300_1" {
     ]
   }
 
+  step "transform" "input_value" {
+    value = (length(param.approvers) > 0 ? step.input.should_run.value : "yes")
+  }
+
   step "message" "cis_v300_1" {
-    if       = ((length(param.approvers) > 0 && step.input.should_run.value == "yes") || length(param.approvers) == 0)
+    if       = (step.transform.input_value.value == "yes")
     notifier = notifier[param.notifier]
     text     = "Running CIS v3.0.0 Section 1: Identity and Access Management"
   }
 
   step "pipeline" "cis_v300_1" {
     depends_on = [step.message.cis_v300_1]
-    if = ((length(param.approvers) > 0 && step.input.should_run.value == "yes") || length(param.approvers) == 0)
+    if         = (step.transform.input_value.value == "yes")
+
     loop {
       until = (loop.index >= (length(var.cis_v300_1_enabled_controls)-1))
     }
