@@ -248,7 +248,7 @@ pipeline "correct_one_account_alternate_contact_security_registered" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected account ${param.title} alternate contact security."
+      detect_msg         = "Detected user ${param.title} with alternate contact security enabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
