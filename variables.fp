@@ -7,7 +7,7 @@ variable "database" {
 variable "notifier" {
   type        = string
   description = "The name of the notifier to use for sending notification messages."
-  default     = "default"
+  default     = "admins"
 }
 
 variable "notification_level" {
@@ -19,6 +19,7 @@ variable "notification_level" {
 variable "approvers" {
   type        = list(string)
   description = "List of notifiers to be used for obtaining action/approval decisions, when empty list will perform the default response associated with the detection."
+  // default     = ["admins"]
   default     = []
 }
 
