@@ -2,6 +2,7 @@ locals {
   cloudtrail_trail_multi_region_read_write_disabled_query = <<-EOQ
   with event_selectors_trail_details as (
     select
+      name,
       distinct account_id
     from
       aws_cloudtrail_trail,
@@ -11,6 +12,7 @@ locals {
   ),
   advanced_event_selectors_trail_details as (
     select
+      name,
       distinct account_id
     from
       aws_cloudtrail_trail,
@@ -19,7 +21,7 @@ locals {
       (is_logging and is_multi_region_trail and advanced_event_selectors is not null and (not a like '%readOnly%'))
   )
   select
-    a.title as resource,
+    concat(a.title ' ['/', account_id, ']') as title,
     a.account_id,
     (select concat('fp-', to_char(now(), 'yyyy-mm-dd-hh24-mi-ss'))) as unique_string,
     a._ctx ->> 'connection_name' as cred
@@ -119,7 +121,7 @@ pipeline "correct_cloudtrail_trail_multi_region_read_write_disabled" {
 
   param "items" {
     type = list(object({
-      resource      = string
+      title      = string
       cred          = string
       account_id    = string
       unique_string = string
@@ -164,7 +166,7 @@ pipeline "correct_cloudtrail_trail_multi_region_read_write_disabled" {
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.resource => row }
+    value = { for row in param.items : row.title => row }
   }
 
   step "pipeline" "correct_item" {
@@ -172,7 +174,7 @@ pipeline "correct_cloudtrail_trail_multi_region_read_write_disabled" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_cloudtrail_trail_multi_region_read_write_disabled
     args = {
-      resource           = each.value.resource
+      title           = each.value.title
       account_id         = each.value.account_id
       unique_string      = each.value.unique_string
       cred               = each.value.cred
@@ -191,9 +193,9 @@ pipeline "correct_one_cloudtrail_trail_multi_region_read_write_disabled" {
   // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_multi_region_read_write_enabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
-  param "resource" {
+  param "title" {
     type        = string
-    description = local.description_resource
+    description = local.description_title
   }
 
   param "account_id" {
@@ -247,7 +249,7 @@ pipeline "correct_one_cloudtrail_trail_multi_region_read_write_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudTrail trail without multi-region read/write enabled for resource ${param.resource}."
+      detect_msg         = "Detected CloudTrail trail without multi-region read/write enabled for resource ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -259,7 +261,7 @@ pipeline "correct_one_cloudtrail_trail_multi_region_read_write_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudTrail trail without multi-region read/write enabled for resource ${param.resource}."
+            text     = "Skipped CloudTrail trail without multi-region read/write enabled for resource ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
