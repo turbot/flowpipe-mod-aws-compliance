@@ -1,5 +1,5 @@
 locals {
-  cloudwatch_no_metric_filter_for_config_configuration_changes_query = <<-EOQ
+  cloudwatch_log_groups_without_metric_filter_for_vpc_changes_query = <<-EOQ
     with filter_data as (
       select
         trail.account_id,
@@ -9,6 +9,7 @@ locals {
         filter.name as filter_name,
         action_arn as topic_arn,
         alarm.metric_name,
+        alarm.name as alarm_name,
         subscription.subscription_arn,
         filter.filter_pattern
       from
@@ -24,7 +25,7 @@ locals {
         and se ->> 'ReadWriteType' = 'All'
         and trail.log_group_arn is not null
         and filter.log_group_name = split_part(trail.log_group_arn, ':', 7)
-        and filter.filter_pattern ~ '\s*\$\.eventSource\s*=\s*config.amazonaws.com.+\$\.eventName\s*=\s*StopConfigurationRecorder.+\$\.eventName\s*=\s*DeleteDeliveryChannel.+\$\.eventName\s*=\s*PutDeliveryChannel.+\$\.eventName\s*=\s*PutConfigurationRecorder'
+        and filter.filter_pattern ~ '\s*\$\.eventName\s*=\s*CreateVpc.+\$\.eventName\s*=\s*DeleteVpc.+\$\.eventName\s*=\s*ModifyVpcAttribute.+\$\.eventName\s*=\s*AcceptVpcPeeringConnection.+\$\.eventName\s*=\s*CreateVpcPeeringConnection.+\$\.eventName\s*=\s*DeleteVpcPeeringConnection.+\$\.eventName\s*=\s*RejectVpcPeeringConnection.+\$\.eventName\s*=\s*AttachClassicLinkVpc.+\$\.eventName\s*=\s*DetachClassicLinkVpc.+\$\.eventName\s*=\s*DisableVpcClassicLink.+\$\.eventName\s*=\s*EnableVpcClassicLink'
         and alarm.metric_name = filter.metric_transformation_name
         and subscription.topic_arn = action_arn
     )
@@ -41,29 +42,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_cloudwatch_no_metric_filter_for_config_configuration_changes" {
-  title         = "Detect & correct CloudWatch log groups without Config Configuration changes metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for Config Configuration changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_config_configuration_changes_trigger.md")
+trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
+  title         = "Detect & correct CloudWatch log groups etric filter for VPC changes"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for VPC changes and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
-  enabled  = var.cloudwatch_no_metric_filter_for_config_configuration_changes_trigger_enabled
-  schedule = var.cloudwatch_no_metric_filter_for_config_configuration_changes_trigger_schedule
+  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_enabled
+  schedule = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_schedule
   database = var.database
-  sql      = local.cloudwatch_no_metric_filter_for_config_configuration_changes_query
+  sql      = local.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_config_configuration_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_config_configuration_changes" {
-  title         = "Detect & correct CloudWatch log groups without Config Configuration changes metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for Config Configuration changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_config_configuration_changes.md")
+pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
+  title         = "Detect & correct CloudWatch log groups etric filter for VPC changes"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for VPC changes and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -93,22 +94,22 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_config_configuratio
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_config_configuration_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_config_configuration_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudwatch_no_metric_filter_for_config_configuration_changes_query
+    sql      = local.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_config_configuration_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -120,10 +121,10 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_config_configuratio
   }
 }
 
-pipeline "correct_cloudwatch_no_metric_filter_for_config_configuration_changes" {
-  title         = "Correct CloudWatch log groups without Config Configuration changes metric filter"
-  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Config Configuration changes."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_no_metric_filter_for_config_configuration_changes.md")
+pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
+  title         = "Correct CloudWatch log groups etric filter for VPC changes"
+  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for VPC changes."
+  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "items" {
@@ -155,19 +156,19 @@ pipeline "correct_cloudwatch_no_metric_filter_for_config_configuration_changes" 
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_config_configuration_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_config_configuration_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without Config Configuration changes metric filter."
+    text     = "Detected ${length(param.items)} CloudWatch log groups etric filter for VPC changes."
   }
 
   step "transform" "items_by_id" {
@@ -177,7 +178,7 @@ pipeline "correct_cloudwatch_no_metric_filter_for_config_configuration_changes" 
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudwatch_no_metric_filter_for_config_configuration_changes
+    pipeline        = pipeline.correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_changes
     args = {
       title              = each.value.title
       cred               = each.value.cred
@@ -190,10 +191,10 @@ pipeline "correct_cloudwatch_no_metric_filter_for_config_configuration_changes" 
   }
 }
 
-pipeline "correct_one_cloudwatch_no_metric_filter_for_config_configuration_changes" {
-  title         = "Correct one CloudWatch log group without Config Configuration changes metric filter"
-  description   = "Runs corrective action on a CloudWatch log group without Config Configuration changes metric filter."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_no_metric_filter_for_config_configuration_changes.md")
+pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
+  title         = "Correct one CloudWatch log group etric filter for VPC changes"
+  description   = "Runs corrective action on a CloudWatch log group etric filter for VPC changes."
+  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "title" {
@@ -227,13 +228,13 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_config_configuration_chang
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_config_configuration_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_config_configuration_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_actions
   }
 
   step "pipeline" "respond" {
@@ -242,7 +243,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_config_configuration_chang
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudWatch log group without Config Configuration changes metric filter for account ${param.title}."
+      detect_msg         = "Detected CloudWatch log group etric filter for VPC changes for account ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -254,32 +255,32 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_config_configuration_chang
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudWatch log group without Config Configuration changes metric filter for account ${param.title}."
+            text     = "Skipped CloudWatch log group etric filter for VPC changes for account ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_config_configuration_changes_metric_filter" = {
-          label        = "Enable Config Configuration changes Metric Filter"
-          value        = "enable_config_configuration_changes_metric_filter"
+        "enable_vpc_changes_metric_filter" = {
+          label        = "Enable VPC changes Metric Filter"
+          value        = "enable_vpc_changes_metric_filter"
           style        = local.style_alert
-          pipeline_ref = pipeline.create_cloudwatch_metric_filter_config_configuration_changes
+          pipeline_ref = pipeline.create_cloudwatch_metric_filter_vpc_changes
           pipeline_args = {
             cred             = param.cred
             region           = "us-east-1"
-            log_group_name   = "log_group_name_38"
-            filter_name      = "ConfigConfigurationChangesMetric"
-            role_name        = "ConfigConfigurationChangesMetricRole"
-            trail_name       = "ConfigConfigurationChangesMetricTrail"
-            s3_bucket_name   = "configconfigurationchangemetrics3bucket"
-            metric_name      = "ConfigConfigurationChangeMetrics"
+            log_group_name   = "log_group_name_33"
+            filter_name      = "VPCChangesMetric"
+            role_name        = "VPCChangesMetricrRole"
+            trail_name       = "VPCChangesMetricTrail"
+            s3_bucket_name   = "vpcchangemetrics3bucket"
+            metric_name      = "VPCChangeMetrics"
             metric_namespace = "CISBenchmark"
-            queue_name       = "flowpipeConfigConfigurationChanges"
+            queue_name       = "flowpipeVPCChanges"
             metric_value     = "1"
-            filter_pattern   = "{ ($.eventSource = config.amazonaws.com) && (($.eventName=StopConfigurationRecorder)||($.eventName=DeleteDeliveryChannel) ||($.eventName=PutDeliveryChannel)||($.eventName=PutConfigurationRecorder)) }"
-            sns_topic_name = "config_configuration_changes_metric_topic"
+            filter_pattern   = "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }"
+            sns_topic_name = "vpc_changes_metric_topic"
             protocol       = "SQS"
-            alarm_name     = "config_configuration_changes_alarm"
+            alarm_name     = "vpc_changes_alarm"
             assume_role_policy_document = jsonencode({
             "Version": "2012-10-17",
             "Statement": [
@@ -302,7 +303,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_config_configuration_chang
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:GetBucketAcl",
-                "Resource": "arn:aws:s3:::configconfigurationchangemetrics3bucket"
+                "Resource": "arn:aws:s3:::vpcchangemetrics3bucket"
               },
               {
                 "Sid": "AWSCloudTrailWrite20150319",
@@ -311,7 +312,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_config_configuration_chang
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:PutObject",
-                "Resource": "arn:aws:s3:::configconfigurationchangemetrics3bucket/AWSLogs/533793682495/*",
+                "Resource": "arn:aws:s3:::vpcchangemetrics3bucket/AWSLogs/533793682495/*",
                 "Condition": {
                   "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"
@@ -346,8 +347,8 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_config_configuration_chang
             ]
             })
           }
-          success_msg = "Enabled Config Configuration changes metric filter for account ${param.title}."
-          error_msg   = "Error enabling Config Configuration changes metric filter for account ${param.title}."
+          success_msg = "Enabled VPC changes metric filter for account ${param.title}."
+          error_msg   = "Error enabling VPC changes metric filter for account ${param.title}."
         }
       }
     }
@@ -355,32 +356,32 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_config_configuration_chang
 }
 
 
-variable "cloudwatch_no_metric_filter_for_config_configuration_changes_trigger_enabled" {
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_config_configuration_changes_trigger_schedule" {
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_config_configuration_changes_default_action" {
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "cloudwatch_no_metric_filter_for_config_configuration_changes_default_actions" {
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_actions" {
   type        = list(string)
   description = " The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_config_configuration_changes_metric_filter"]
+  default     = ["skip", "enable_vpc_changes_metric_filter"]
 }
 
 
-pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
+pipeline "create_cloudwatch_metric_filter_vpc_changes" {
   title       = "Create CloudTrail with CloudWatch Logging"
   description = "Creates a CloudTrail trail with integrated CloudWatch logging and necessary IAM roles and policies."
 
@@ -398,31 +399,31 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = "log_group_name_38"
+    default     = "log_group_name_33"
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = "ConfigConfigurationChangesMetric"
+    default     = "VPCChangesMetric"
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = "ConfigConfigurationChangesMetricRole"
+    default     = "VPCChangesMetricrRole"
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = "ConfigConfigurationChangesMetricTrail"
+    default     = "VPCChangesMetricTrail"
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = "configconfigurationchangemetrics3bucket"
+    default     = "vpcchangemetrics3bucket"
   }
 
   param "acl" {
@@ -434,7 +435,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = "ConfigConfigurationChangeMetrics"
+    default     = "VPCChangeMetrics"
   }
 
   param "metric_namespace" {
@@ -452,19 +453,19 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     = "{ ($.eventSource = config.amazonaws.com) && (($.eventName=StopConfigurationRecorder)||($.eventName=DeleteDeliveryChannel) ||($.eventName=PutDeliveryChannel)||($.eventName=PutConfigurationRecorder)) }"
+    default     = "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }"
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = "config_configuration_changes_metric_topic"
+    default     = "vpc_changes_metric_topic"
   }
 
   param "queue_name" {
     type        = string
     description = "The name of the SQS queue."
-    default     = "flowpipeConfigConfigurationChanges"
+    default     = "flowpipeVPCChanges"
   }
 
   param "protocol" {
@@ -476,7 +477,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = "config_configuration_changes_alarm"
+    default     = "vpc_changes_alarm"
   }
 
   param "assume_role_policy_document" {
@@ -509,7 +510,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:GetBucketAcl",
-          "Resource": "arn:aws:s3:::configconfigurationchangemetrics3bucket"
+          "Resource": "arn:aws:s3:::vpcchangemetrics3bucket"
         },
         {
           "Sid": "AWSCloudTrailWrite20150319",
@@ -518,7 +519,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:PutObject",
-          "Resource": "arn:aws:s3:::configconfigurationchangemetrics3bucket/AWSLogs/533793682495/*",
+          "Resource": "arn:aws:s3:::vpcchangemetrics3bucket/AWSLogs/533793682495/*",
           "Condition": {
             "StringEquals": {
               "s3:x-amz-acl": "bucket-owner-full-control"

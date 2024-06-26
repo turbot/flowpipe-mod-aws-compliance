@@ -1,5 +1,5 @@
 locals {
-  cloudwatch_no_metric_filter_for_unauthorized_api_changes_query = <<-EOQ
+  cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_query = <<-EOQ
     with filter_data as (
       select
         trail.account_id,
@@ -43,29 +43,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes" {
-  title         = "Detect & correct CloudWatch log groups without Unauthorized API changes metric filter"
+trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes" {
+  title         = "Detect & correct CloudWatch log groups without metric filter for unauthorized API changes"
   description   = "Detects CloudWatch log groups that do not have a metric filter for Unauthorized API changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes_trigger.md")
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_trigger.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
-  enabled  = var.cloudwatch_no_metric_filter_for_unauthorized_api_changes_trigger_enabled
-  schedule = var.cloudwatch_no_metric_filter_for_unauthorized_api_changes_trigger_schedule
+  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_trigger_enabled
+  schedule = var.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_trigger_schedule
   database = var.database
-  sql      = local.cloudwatch_no_metric_filter_for_unauthorized_api_changes_query
+  sql      = local.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes" {
-  title         = "Detect & correct CloudWatch log groups without Unauthorized API changes metric filter"
+pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes" {
+  title         = "Detect & correct CloudWatch log groups without metric filter for unauthorized API changes"
   description   = "Detects CloudWatch log groups that do not have a metric filter for Unauthorized API changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes.md")
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -95,22 +95,22 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_unauthorized_api_ch
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_unauthorized_api_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_unauthorized_api_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_default_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudwatch_no_metric_filter_for_unauthorized_api_changes_query
+    sql      = local.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -122,10 +122,10 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_unauthorized_api_ch
   }
 }
 
-pipeline "correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes" {
-  title         = "Correct CloudWatch log groups without Unauthorized API changes metric filter"
+pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes" {
+  title         = "Correct CloudWatch log groups without metric filter for unauthorized API changes"
   description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Unauthorized API changes."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes.md")
+  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "items" {
@@ -157,19 +157,19 @@ pipeline "correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_unauthorized_api_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_unauthorized_api_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_default_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without Unauthorized API changes metric filter."
+    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for unauthorized API changes."
   }
 
   step "transform" "items_by_id" {
@@ -179,7 +179,7 @@ pipeline "correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudwatch_no_metric_filter_for_unauthorized_api_changes
+    pipeline        = pipeline.correct_one_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes
     args = {
       title              = each.value.title
       cred               = each.value.cred
@@ -192,10 +192,10 @@ pipeline "correct_cloudwatch_no_metric_filter_for_unauthorized_api_changes" {
   }
 }
 
-pipeline "correct_one_cloudwatch_no_metric_filter_for_unauthorized_api_changes" {
-  title         = "Correct one CloudWatch log group without Unauthorized API changes metric filter"
-  description   = "Runs corrective action on a CloudWatch log group without Unauthorized API changes metric filter."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_no_metric_filter_for_unauthorized_api_changes.md")
+pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes" {
+  title         = "Correct one CloudWatch log group without metric filter for unauthorized API changes"
+  description   = "Runs corrective action on a CloudWatch log group without metric filter for unauthorized API changes."
+  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "title" {
@@ -229,13 +229,13 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_unauthorized_api_changes" 
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_unauthorized_api_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_unauthorized_api_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_default_actions
   }
 
   step "pipeline" "respond" {
@@ -244,7 +244,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_unauthorized_api_changes" 
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudWatch log group without Unauthorized API changes metric filter for account ${param.title}."
+      detect_msg         = "Detected CloudWatch log group without metric filter for unauthorized API changes for account ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -256,7 +256,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_unauthorized_api_changes" 
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudWatch log group without Unauthorized API changes metric filter for account ${param.title}."
+            text     = "Skipped CloudWatch log group without metric filter for unauthorized API changes for account ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
@@ -357,25 +357,25 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_unauthorized_api_changes" 
 }
 
 
-variable "cloudwatch_no_metric_filter_for_unauthorized_api_changes_trigger_enabled" {
+variable "cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_unauthorized_api_changes_trigger_schedule" {
+variable "cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_unauthorized_api_changes_default_action" {
+variable "cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "cloudwatch_no_metric_filter_for_unauthorized_api_changes_default_actions" {
+variable "cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes_default_actions" {
   type        = list(string)
   description = " The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "enable_unauthorized_api_changes_metric_filter"]

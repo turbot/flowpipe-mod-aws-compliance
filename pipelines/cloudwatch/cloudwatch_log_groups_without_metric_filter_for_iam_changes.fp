@@ -1,16 +1,23 @@
+variable "queue_name" {
+  type        = string
+  description = "The name of the SQS queue."
+  default     = "flowpipeIAMChangesMetricQueue"
+}
+
 locals {
-  cloudwatch_no_metric_filter_for_cloudtrail_configuration_query = <<-EOQ
+  cloudwatch_log_groups_without_metric_filter_for_iam_changes_query = <<-EOQ
     with filter_data as (
       select
         trail.account_id,
         trail.name as trail_name,
-        trail.is_logging,
+        trail.is_logging as is_logging,
         split_part(trail.log_group_arn, ':', 7) as log_group_name,
         filter.name as filter_name,
         action_arn as topic_arn,
         alarm.metric_name,
         subscription.subscription_arn,
-        filter.filter_pattern
+        filter.filter_pattern,
+        filter.metric_transformation_name
       from
         aws_cloudtrail_trail as trail,
         jsonb_array_elements(trail.event_selectors) as se,
@@ -24,7 +31,7 @@ locals {
         and se ->> 'ReadWriteType' = 'All'
         and trail.log_group_arn is not null
         and filter.log_group_name = split_part(trail.log_group_arn, ':', 7)
-        and filter.filter_pattern ~ '\s*\$\.eventName\s*=\s*CreateTrail.+\$\.eventName\s*=\s*UpdateTrail.+\$\.eventName\s*=\s*DeleteTrail.+\$\.eventName\s*=\s*StartLogging.+\$\.eventName\s*=\s*StopLogging'
+      and filter.filter_pattern ~ '\s*\$\.eventName\s*=\s*DeleteGroupPolicy.+\$\.eventName\s*=\s*DeleteRolePolicy.+\$\.eventName\s*=\s*DeleteUserPolicy.+\$\.eventName\s*=\s*PutGroupPolicy.+\$\.eventName\s*=\s*PutRolePolicy.+\$\.eventName\s*=\s*PutUserPolicy.+\$\.eventName\s*=\s*CreatePolicy.+\$\.eventName\s*=\s*DeletePolicy.+\$\.eventName\s*=\s*CreatePolicyVersion.+\$\.eventName\s*=\s*DeletePolicyVersion.+\$\.eventName\s*=\s*AttachRolePolicy.+\$\.eventName\s*=\s*DetachRolePolicy.+\$\.eventName\s*=\s*AttachUserPolicy.+\$\.eventName\s*=\s*DetachUserPolicy.+\$\.eventName\s*=\s*AttachGroupPolicy.+\$\.eventName\s*=\s*DetachGroupPolicy'
         and alarm.metric_name = filter.metric_transformation_name
         and subscription.topic_arn = action_arn
     )
@@ -41,29 +48,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration" {
-  title         = "Detect & correct CloudWatch log groups without CloudTrail Configuration metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for CloudTrail Configuration and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration_trigger.md")
+trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
+  title         = "Detect & correct CloudWatch log groups without metric filter for IAM changes"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for IAM changes and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
-  enabled  = var.cloudwatch_no_metric_filter_for_cloudtrail_configuration_trigger_enabled
-  schedule = var.cloudwatch_no_metric_filter_for_cloudtrail_configuration_trigger_schedule
+  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger_enabled
+  schedule = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger_schedule
   database = var.database
-  sql      = local.cloudwatch_no_metric_filter_for_cloudtrail_configuration_query
+  sql      = local.cloudwatch_log_groups_without_metric_filter_for_iam_changes_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration" {
-  title         = "Detect & correct CloudWatch log groups without CloudTrail Configuration metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for CloudTrail Configuration and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration.md")
+pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
+  title         = "Detect & correct CloudWatch log groups without metric filter for IAM changes"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for IAM changes and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -93,22 +100,22 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_cloudtrail_configur
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_cloudtrail_configuration_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_cloudtrail_configuration_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudwatch_no_metric_filter_for_cloudtrail_configuration_query
+    sql      = local.cloudwatch_log_groups_without_metric_filter_for_iam_changes_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -120,10 +127,10 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_cloudtrail_configur
   }
 }
 
-pipeline "correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration" {
-  title         = "Correct CloudWatch log groups without CloudTrail Configuration metric filter"
-  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for CloudTrail Configuration."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration.md")
+pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
+  title         = "Correct CloudWatch log groups without metric filter for IAM changes"
+  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for IAM changes."
+  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "items" {
@@ -155,19 +162,19 @@ pipeline "correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_cloudtrail_configuration_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_cloudtrail_configuration_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without CloudTrail Configuration metric filter."
+    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for IAM changes."
   }
 
   step "transform" "items_by_id" {
@@ -177,7 +184,7 @@ pipeline "correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration
+    pipeline        = pipeline.correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_changes
     args = {
       title              = each.value.title
       cred               = each.value.cred
@@ -190,10 +197,10 @@ pipeline "correct_cloudwatch_no_metric_filter_for_cloudtrail_configuration" {
   }
 }
 
-pipeline "correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration" {
-  title         = "Correct one CloudWatch log group without CloudTrail Configuration metric filter"
-  description   = "Runs corrective action on a CloudWatch log group without CloudTrail Configuration metric filter."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration.md")
+pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
+  title         = "Correct one CloudWatch log group without metric filter for IAM changes"
+  description   = "Runs corrective action on a CloudWatch log group without metric filter for IAM changes."
+  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "title" {
@@ -227,13 +234,13 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration" 
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_cloudtrail_configuration_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_cloudtrail_configuration_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_actions
   }
 
   step "pipeline" "respond" {
@@ -242,7 +249,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration" 
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudWatch log group without CloudTrail Configuration metric filter for account ${param.title}."
+      detect_msg         = "Detected CloudWatch log group without metric filter for IAM changes for account ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -254,32 +261,31 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration" 
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudWatch log group without CloudTrail Configuration metric filter for account ${param.title}."
+            text     = "Skipped CloudWatch log group without metric filter for IAM changes for account ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_cloudtrail_configuration_metric_filter" = {
-          label        = "Enable CloudTrail Configuration Metric Filter"
-          value        = "enable_cloudtrail_configuration_metric_filter"
+        "enable_iam_policy_changes_metric_filter" = {
+          label        = "Enable IAM Changes Metric Filter"
+          value        = "enable_iam_policy_changes_metric_filter"
           style        = local.style_alert
-          pipeline_ref = pipeline.create_cloudwatch_metric_filter_cloudtrail_configuration
+          pipeline_ref = pipeline.create_cloudwatch_metric_filter_iam_changes
           pipeline_args = {
-            cred             = param.cred
-            region           = "us-east-1"
-            log_group_name   = "log_group_name_42"
-            filter_name      = "CloudTrailConfigurationMetric"
-            role_name        = "CloudTrailConfigurationMetricRole"
-            trail_name       = "CloudTrailConfigurationMetricTrail"
-            s3_bucket_name   = "cloudtrailconfigurationmetrics3bucket"
-            metric_name      = "CloudTrailConfigurationMetrics"
+            cred            = param.cred
+            region          = "us-east-1"
+            log_group_name  = "log_group_name_29"
+            filter_name     = "IAMChangesMetric"
+            role_name       = "IAMChangesMetricrRole"
+            trail_name      = "IAMChangesMetricTrail"
+            s3_bucket_name  = "iamchangemetrics3bucket"
+            metric_name     = "IAMChangeMetrics"
             metric_namespace = "CISBenchmark"
-            queue_name       = "flowpipeCloudTrailConfiguration"
-            metric_value     = "1"
-            filter_pattern   = "{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail) || ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName = StopLogging) }"
-            sns_topic_name = "cloudtrail_configuration_metric_topic"
+            metric_value    = "1"
+            filter_pattern  = "{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}"
+            sns_topic_name = "iam_changes_metric_topic"
             protocol       = "SQS"
-            alarm_name     = "cloudtrail_configuration_alarm"
+            alarm_name     = "iam_changes_alarm"
             assume_role_policy_document = jsonencode({
             "Version": "2012-10-17",
             "Statement": [
@@ -302,7 +308,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration" 
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:GetBucketAcl",
-                "Resource": "arn:aws:s3:::cloudtrailconfigurationmetrics3bucket"
+                "Resource": "arn:aws:s3:::iamchangemetrics3bucket"
               },
               {
                 "Sid": "AWSCloudTrailWrite20150319",
@@ -311,7 +317,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration" 
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:PutObject",
-                "Resource": "arn:aws:s3:::cloudtrailconfigurationmetrics3bucket/AWSLogs/533793682495/*",
+                "Resource": "arn:aws:s3:::iamchangemetrics3bucket/AWSLogs/533793682495/*",
                 "Condition": {
                   "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"
@@ -346,8 +352,8 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration" 
             ]
             })
           }
-          success_msg = "Enabled CloudTrail Configuration metric filter for account ${param.title}."
-          error_msg   = "Error enabling CloudTrail Configuration metric filter for account ${param.title}."
+          success_msg = "Enabled IAM changes metric filter for account ${param.title}."
+          error_msg   = "Error enabling IAM changes metric filter for account ${param.title}."
         }
       }
     }
@@ -355,32 +361,36 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_cloudtrail_configuration" 
 }
 
 
-variable "cloudwatch_no_metric_filter_for_cloudtrail_configuration_trigger_enabled" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_cloudtrail_configuration_trigger_schedule" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_cloudtrail_configuration_default_action" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
+  default     = "enable_iam_policy_changes_metric_filter"
 }
 
-variable "cloudwatch_no_metric_filter_for_cloudtrail_configuration_default_actions" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_actions" {
   type        = list(string)
   description = " The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_cloudtrail_configuration_metric_filter"]
+  default     = ["skip", "enable_iam_policy_changes_metric_filter"]
 }
 
 
-pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
+
+
+
+
+pipeline "create_cloudwatch_metric_filter_iam_changes" {
   title       = "Create CloudTrail with CloudWatch Logging"
   description = "Creates a CloudTrail trail with integrated CloudWatch logging and necessary IAM roles and policies."
 
@@ -398,31 +408,31 @@ pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = "log_group_name_42"
+    default     = "log_group_name_29"
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = "CloudTrailConfigurationMetric"
+    default     = "IAMChangesMetric"
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = "CloudTrailConfigurationMetricRole"
+    default     = "IAMChangesMetricrRole"
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = "CloudTrailConfigurationMetricTrail"
+    default     = "IAMChangesMetricTrail"
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = "cloudtrailconfigurationmetrics3bucket"
+    default     = "iamchangemetrics3bucket"
   }
 
   param "acl" {
@@ -434,7 +444,7 @@ pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = "CloudTrailConfigurationMetrics"
+    default     = "IAMChangeMetrics"
   }
 
   param "metric_namespace" {
@@ -452,19 +462,13 @@ pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     = "{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail) || ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName = StopLogging) }"
+    default     = "{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}"
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = "cloudtrail_configuration_metric_topic"
-  }
-
-  param "queue_name" {
-    type        = string
-    description = "The name of the SQS queue."
-    default     = "flowpipeCloudTrailConfiguration"
+    default     = "iam_changes_metric_topic"
   }
 
   param "protocol" {
@@ -476,7 +480,7 @@ pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = "cloudtrail_configuration_alarm"
+    default     = "iam_changes_alarm"
   }
 
   param "assume_role_policy_document" {
@@ -509,7 +513,7 @@ pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:GetBucketAcl",
-          "Resource": "arn:aws:s3:::cloudtrailconfigurationmetrics3bucket"
+          "Resource": "arn:aws:s3:::iamchangemetrics3bucket"
         },
         {
           "Sid": "AWSCloudTrailWrite20150319",
@@ -518,7 +522,7 @@ pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:PutObject",
-          "Resource": "arn:aws:s3:::cloudtrailconfigurationmetrics3bucket/AWSLogs/533793682495/*",
+          "Resource": "arn:aws:s3:::iamchangemetrics3bucket/AWSLogs/533793682495/*",
           "Condition": {
             "StringEquals": {
               "s3:x-amz-acl": "bucket-owner-full-control"
@@ -743,7 +747,7 @@ pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
 
     cmd = concat(
       ["sqs", "create-queue"],
-      ["--queue-name", param.queue_name],
+      ["--queue-name", var.queue_name],
     )
 
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
@@ -758,7 +762,7 @@ pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
       from
         aws_sqs_queue
       where
-        title = '${param.queue_name}'
+        title = '${var.queue_name}'
         and region = '${param.region}'
     EOQ
   }
