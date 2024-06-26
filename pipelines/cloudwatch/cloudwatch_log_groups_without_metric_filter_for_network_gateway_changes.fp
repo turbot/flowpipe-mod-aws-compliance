@@ -1,5 +1,5 @@
 locals {
-  cloudwatch_no_metric_filter_for_disable_or_delete_cmk_query = <<-EOQ
+  cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_query = <<-EOQ
     with filter_data as (
       select
         trail.account_id,
@@ -9,6 +9,7 @@ locals {
         filter.name as filter_name,
         action_arn as topic_arn,
         alarm.metric_name,
+        alarm.name as alarm_name,
         subscription.subscription_arn,
         filter.filter_pattern
       from
@@ -24,7 +25,7 @@ locals {
         and se ->> 'ReadWriteType' = 'All'
         and trail.log_group_arn is not null
         and filter.log_group_name = split_part(trail.log_group_arn, ':', 7)
-        and filter.filter_pattern ~ '\s*\$\.eventSource\s*=\s*kms.amazonaws.com.+\$\.eventName\s*=\s*DisableKey.+\$\.eventName\s*=\s*ScheduleKeyDeletion'
+        and filter.filter_pattern ~ '\s*\$\.eventName\s*=\s*CreateCustomerGateway.+\$\.eventName\s*=\s*DeleteCustomerGateway.+\$\.eventName\s*=\s*AttachInternetGateway.+\$\.eventName\s*=\s*CreateInternetGateway.+\$\.eventName\s*=\s*DeleteInternetGateway.+\$\.eventName\s*=\s*DetachInternetGateway'
         and alarm.metric_name = filter.metric_transformation_name
         and subscription.topic_arn = action_arn
     )
@@ -41,29 +42,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
-  title         = "Detect & correct CloudWatch log groups without Disable or Delete CMK metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for Disable or Delete CMK and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk_trigger.md")
+trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes" {
+  title         = "Detect & correct CloudWatch log groups  without metric filter for network gateway  changes"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for Network Gateway changes and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_trigger.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
-  enabled  = var.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_trigger_enabled
-  schedule = var.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_trigger_schedule
+  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_trigger_enabled
+  schedule = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_trigger_schedule
   database = var.database
-  sql      = local.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_query
+  sql      = local.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
-  title         = "Detect & correct CloudWatch log groups without Disable or Delete CMK metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for Disable or Delete CMK and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk.md")
+pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes" {
+  title         = "Detect & correct CloudWatch log groups  without metric filter for network gateway  changes"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for Network Gateway changes and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -93,22 +94,22 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_disable_or_delete_c
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_default_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_query
+    sql      = local.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -120,10 +121,10 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_disable_or_delete_c
   }
 }
 
-pipeline "correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
-  title         = "Correct CloudWatch log groups without Disable or Delete CMK metric filter"
-  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Disable or Delete CMK."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk.md")
+pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes" {
+  title         = "Correct CloudWatch log groups  without metric filter for network gateway  changes"
+  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Network Gateway changes."
+  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "items" {
@@ -155,19 +156,19 @@ pipeline "correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_default_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without Disable or Delete CMK metric filter."
+    text     = "Detected ${length(param.items)} CloudWatch log groups  without metric filter for network gateway  changes."
   }
 
   step "transform" "items_by_id" {
@@ -177,7 +178,7 @@ pipeline "correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk
+    pipeline        = pipeline.correct_one_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes
     args = {
       title              = each.value.title
       cred               = each.value.cred
@@ -190,10 +191,10 @@ pipeline "correct_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
   }
 }
 
-pipeline "correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
-  title         = "Correct one CloudWatch log group without Disable or Delete CMK metric filter"
-  description   = "Runs corrective action on a CloudWatch log group without Disable or Delete CMK metric filter."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk.md")
+pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes" {
+  title         = "Correct one CloudWatch log group  without metric filter for network gateway  changes"
+  description   = "Runs corrective action on a CloudWatch log group  without metric filter for network gateway  changes."
+  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "title" {
@@ -227,13 +228,13 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_disable_or_delete_cmk_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_default_actions
   }
 
   step "pipeline" "respond" {
@@ -242,7 +243,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudWatch log group without Disable or Delete CMK metric filter for account ${param.title}."
+      detect_msg         = "Detected CloudWatch log group  without metric filter for network gateway  changes for account ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -254,32 +255,32 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudWatch log group without Disable or Delete CMK metric filter for account ${param.title}."
+            text     = "Skipped CloudWatch log group  without metric filter for network gateway  changes for account ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_disable_or_delete_cmk_metric_filter" = {
-          label        = "Enable Disable or Delete CMK Metric Filter"
-          value        = "enable_disable_or_delete_cmk_metric_filter"
+        "enable_network_gateway_changes_metric_filter" = {
+          label        = "Enable Network Gateway changes Metric Filter"
+          value        = "enable_network_gateway_changes_metric_filter"
           style        = local.style_alert
-          pipeline_ref = pipeline.create_cloudwatch_metric_filter_disable_or_delete_cmk
+          pipeline_ref = pipeline.create_cloudwatch_metric_filter_network_gateway_changes
           pipeline_args = {
             cred             = param.cred
             region           = "us-east-1"
-            log_group_name   = "log_group_name_40"
-            filter_name      = "DisableDeleteCMKMetric"
-            role_name        = "DisableDeleteCMKMetricRole"
-            trail_name       = "DisableDeleteCMKCMetricTrail"
-            s3_bucket_name   = "disabledeletecmkmetrics3bucket"
-            metric_name      = "DisableDeleteCMKMetrics"
+            log_group_name   = "log_group_name_35"
+            filter_name      = "NetworkGatewayChangesMetric"
+            role_name        = "NetworkGatewayChangesMetricRole"
+            trail_name       = "NetworkGatewayChangesMetricTrail"
+            s3_bucket_name   = "networkgatewaychangemetrics3bucket"
+            metric_name      = "NetworkGatewayChangeMetrics"
             metric_namespace = "CISBenchmark"
-            queue_name       = "flowpipeDisableDeleteCMK"
+            queue_name       = "flowpipeNetworkGatewayChanges"
             metric_value     = "1"
-            filter_pattern   = "{($.eventSource = kms.amazonaws.com) && (($.eventName=DisableKey)||($.eventName=ScheduleKeyDeletion)) }"
-            sns_topic_name = "disable_delete_cmk_metric_topic"
+            filter_pattern   = "{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway) }"
+            sns_topic_name = "network_gateway_changes_metric_topic"
             protocol       = "SQS"
-            alarm_name     = "disable_delete_cmk_alarm"
+            alarm_name     = "network_gateway_changes_alarm"
             assume_role_policy_document = jsonencode({
             "Version": "2012-10-17",
             "Statement": [
@@ -302,7 +303,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:GetBucketAcl",
-                "Resource": "arn:aws:s3:::disabledeletecmkmetrics3bucket"
+                "Resource": "arn:aws:s3:::networkgatewaychangemetrics3bucket"
               },
               {
                 "Sid": "AWSCloudTrailWrite20150319",
@@ -311,7 +312,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:PutObject",
-                "Resource": "arn:aws:s3:::disabledeletecmkmetrics3bucket/AWSLogs/533793682495/*",
+                "Resource": "arn:aws:s3:::networkgatewaychangemetrics3bucket/AWSLogs/533793682495/*",
                 "Condition": {
                   "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"
@@ -346,8 +347,8 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
             ]
             })
           }
-          success_msg = "Enabled Disable or Delete CMK metric filter for account ${param.title}."
-          error_msg   = "Error enabling Disable or Delete CMK metric filter for account ${param.title}."
+          success_msg = "Enabled Network Gateway changes metric filter for account ${param.title}."
+          error_msg   = "Error enabling Network Gateway changes metric filter for account ${param.title}."
         }
       }
     }
@@ -355,32 +356,32 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_disable_or_delete_cmk" {
 }
 
 
-variable "cloudwatch_no_metric_filter_for_disable_or_delete_cmk_trigger_enabled" {
+variable "cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_disable_or_delete_cmk_trigger_schedule" {
+variable "cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_disable_or_delete_cmk_default_action" {
+variable "cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "cloudwatch_no_metric_filter_for_disable_or_delete_cmk_default_actions" {
+variable "cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_default_actions" {
   type        = list(string)
   description = " The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_disable_or_delete_cmk_metric_filter"]
+  default     = ["skip", "enable_network_gateway_changes_metric_filter"]
 }
 
 
-pipeline "create_cloudwatch_metric_filter_disable_or_delete_cmk" {
+pipeline "create_cloudwatch_metric_filter_network_gateway_changes" {
   title       = "Create CloudTrail with CloudWatch Logging"
   description = "Creates a CloudTrail trail with integrated CloudWatch logging and necessary IAM roles and policies."
 
@@ -398,31 +399,31 @@ pipeline "create_cloudwatch_metric_filter_disable_or_delete_cmk" {
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = "log_group_name_40"
+    default     = "log_group_name_35"
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = "DisableDeleteCMKMetric"
+    default     = "NetworkGatewayChangesMetric"
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = "DisableDeleteCMKMetricRole"
+    default     = "NetworkGatewayChangesMetricRole"
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = "DisableDeleteCMKCMetricTrail"
+    default     = "NetworkGatewayChangesMetricTrail"
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = "disabledeletecmkmetrics3bucket"
+    default     = "networkgatewaychangemetrics3bucket"
   }
 
   param "acl" {
@@ -434,7 +435,7 @@ pipeline "create_cloudwatch_metric_filter_disable_or_delete_cmk" {
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = "DisableDeleteCMKMetrics"
+    default     = "NetworkGatewayChangeMetrics"
   }
 
   param "metric_namespace" {
@@ -452,19 +453,19 @@ pipeline "create_cloudwatch_metric_filter_disable_or_delete_cmk" {
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     = "{($.eventSource = kms.amazonaws.com) && (($.eventName=DisableKey)||($.eventName=ScheduleKeyDeletion)) }"
+    default     = "{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway) }"
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = "disable_delete_cmk_metric_topic"
+    default     = "network_gateway_changes_metric_topic"
   }
 
   param "queue_name" {
     type        = string
     description = "The name of the SQS queue."
-    default     = "flowpipeDisableDeleteCMK"
+    default     = "flowpipeNetworkGatewayChanges"
   }
 
   param "protocol" {
@@ -476,7 +477,7 @@ pipeline "create_cloudwatch_metric_filter_disable_or_delete_cmk" {
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = "disable_delete_cmk_alarm"
+    default     = "network_gateway_changes_alarm"
   }
 
   param "assume_role_policy_document" {
@@ -509,7 +510,7 @@ pipeline "create_cloudwatch_metric_filter_disable_or_delete_cmk" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:GetBucketAcl",
-          "Resource": "arn:aws:s3:::disabledeletecmkmetrics3bucket"
+          "Resource": "arn:aws:s3:::networkgatewaychangemetrics3bucket"
         },
         {
           "Sid": "AWSCloudTrailWrite20150319",
@@ -518,7 +519,7 @@ pipeline "create_cloudwatch_metric_filter_disable_or_delete_cmk" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:PutObject",
-          "Resource": "arn:aws:s3:::disabledeletecmkmetrics3bucket/AWSLogs/533793682495/*",
+          "Resource": "arn:aws:s3:::networkgatewaychangemetrics3bucket/AWSLogs/533793682495/*",
           "Condition": {
             "StringEquals": {
               "s3:x-amz-acl": "bucket-owner-full-control"

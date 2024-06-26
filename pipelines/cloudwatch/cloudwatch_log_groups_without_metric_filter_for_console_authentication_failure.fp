@@ -1,5 +1,5 @@
 locals {
-  cloudwatch_no_metric_filter_for_root_login_changes_query = <<-EOQ
+  cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_query = <<-EOQ
     with filter_data as (
       select
         trail.account_id,
@@ -24,7 +24,7 @@ locals {
         and se ->> 'ReadWriteType' = 'All'
         and trail.log_group_arn is not null
         and filter.log_group_name = split_part(trail.log_group_arn, ':', 7)
-        and filter.filter_pattern ~ '\s*\$\.userIdentity\.type\s*=\s*"Root".+\$\.userIdentity\.invokedBy NOT EXISTS.+\$\.eventType\s*!=\s*"AwsServiceEvent"'
+        and filter.filter_pattern ~ '\s*\$\.eventName\s*=\s*ConsoleLogin.+\$\.errorMessage\s*=\s*"Failed authentication"'
         and alarm.metric_name = filter.metric_transformation_name
         and subscription.topic_arn = action_arn
     )
@@ -41,29 +41,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_cloudwatch_no_metric_filter_for_root_login_changes" {
-  title         = "Detect & correct CloudWatch log groups without Root Login changes metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for Root Login changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_root_login_changes_trigger.md")
+trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure" {
+  title         = "Detect & correct CloudWatch log groups without metric filter for console authentication failure"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for Console Authentication Failure and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trigger.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
-  enabled  = var.cloudwatch_no_metric_filter_for_root_login_changes_trigger_enabled
-  schedule = var.cloudwatch_no_metric_filter_for_root_login_changes_trigger_schedule
+  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trigger_enabled
+  schedule = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trigger_schedule
   database = var.database
-  sql      = local.cloudwatch_no_metric_filter_for_root_login_changes_query
+  sql      = local.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_root_login_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_root_login_changes" {
-  title         = "Detect & correct CloudWatch log groups without Root Login changes metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for Root Login changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_root_login_changes.md")
+pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure" {
+  title         = "Detect & correct CloudWatch log groups without metric filter for console authentication failure"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for Console Authentication Failure and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -93,22 +93,22 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_root_login_changes"
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_root_login_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_root_login_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudwatch_no_metric_filter_for_root_login_changes_query
+    sql      = local.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_root_login_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -120,10 +120,10 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_root_login_changes"
   }
 }
 
-pipeline "correct_cloudwatch_no_metric_filter_for_root_login_changes" {
-  title         = "Correct CloudWatch log groups without Root Login changes metric filter"
-  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Root Login changes."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_no_metric_filter_for_root_login_changes.md")
+pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure" {
+  title         = "Correct CloudWatch log groups without metric filter for console authentication failure"
+  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Console Authentication Failure."
+  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "items" {
@@ -155,19 +155,19 @@ pipeline "correct_cloudwatch_no_metric_filter_for_root_login_changes" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_root_login_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_root_login_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without Root Login changes metric filter."
+    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for console authentication failure."
   }
 
   step "transform" "items_by_id" {
@@ -177,7 +177,7 @@ pipeline "correct_cloudwatch_no_metric_filter_for_root_login_changes" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudwatch_no_metric_filter_for_root_login_changes
+    pipeline        = pipeline.correct_one_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure
     args = {
       title              = each.value.title
       cred               = each.value.cred
@@ -190,10 +190,10 @@ pipeline "correct_cloudwatch_no_metric_filter_for_root_login_changes" {
   }
 }
 
-pipeline "correct_one_cloudwatch_no_metric_filter_for_root_login_changes" {
-  title         = "Correct one CloudWatch log group without Root Login changes metric filter"
-  description   = "Runs corrective action on a CloudWatch log group without Root Login changes metric filter."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_no_metric_filter_for_root_login_changes.md")
+pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure" {
+  title         = "Correct one CloudWatch log group without metric filter for console authentication failure"
+  description   = "Runs corrective action on a CloudWatch log group without metric filter for console authentication failure."
+  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "title" {
@@ -227,13 +227,13 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_root_login_changes" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_root_login_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_root_login_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_actions
   }
 
   step "pipeline" "respond" {
@@ -242,7 +242,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_root_login_changes" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudWatch log group without Root Login changes metric filter for account ${param.title}."
+      detect_msg         = "Detected CloudWatch log group without metric filter for console authentication failure for account ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -254,32 +254,32 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_root_login_changes" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudWatch log group without Root Login changes metric filter for account ${param.title}."
+            text     = "Skipped CloudWatch log group without metric filter for console authentication failure for account ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_root_login_changes_metric_filter" = {
-          label        = "Enable Root Login changes Metric Filter"
-          value        = "enable_root_login_changes_metric_filter"
+        "enable_console_authentication_failure_metric_filter" = {
+          label        = "Enable Console Authentication Failure Metric Filter"
+          value        = "enable_console_authentication_failure_metric_filter"
           style        = local.style_alert
-          pipeline_ref = pipeline.create_cloudwatch_metric_filter_root_login_changes
+          pipeline_ref = pipeline.create_cloudwatch_metric_filter_console_authentication_failure
           pipeline_args = {
             cred             = param.cred
             region           = "us-east-1"
-            log_group_name   = "log_group_name_32"
-            filter_name      = "RootLoginChangesMetric"
-            role_name        = "RootLoginChangesMetricrRole"
-            trail_name       = "RootLoginChangesMetricTrail"
-            s3_bucket_name   = "rootloginchangemetrics3bucket"
-            metric_name      = "RootLoginChangeMetrics"
+            log_group_name   = "log_group_name_41"
+            filter_name      = "ConsoleAuthenticationFailureMetric"
+            role_name        = "ConsoleAuthenticationFailureMetricRole"
+            trail_name       = "ConsoleAuthenticationFailureMetricTrail"
+            s3_bucket_name   = "consoleauthenticationfailuremetrics3bucket"
+            metric_name      = "ConsoleAuthenticationFailureMetrics"
             metric_namespace = "CISBenchmark"
-            queue_name       = "flowpipeRootLoginChanges"
+            queue_name       = "flowpipeConsoleAuthenticationFailure"
             metric_value     = "1"
-            filter_pattern   = "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }"
-            sns_topic_name = "root_login_changes_metric_topic"
+            filter_pattern   = "{ ($.eventName = \"ConsoleLogin\") && ($.errorMessage = \"Failedauthentication\") }"
+            sns_topic_name = "console_authentication_failure_metric_topic"
             protocol       = "SQS"
-            alarm_name     = "root_login_changes_alarm"
+            alarm_name     = "console_authentication_failure_alarm"
             assume_role_policy_document = jsonencode({
             "Version": "2012-10-17",
             "Statement": [
@@ -302,7 +302,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_root_login_changes" {
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:GetBucketAcl",
-                "Resource": "arn:aws:s3:::rootloginchangemetrics3bucket"
+                "Resource": "arn:aws:s3:::consoleauthenticationfailuremetrics3bucket"
               },
               {
                 "Sid": "AWSCloudTrailWrite20150319",
@@ -311,7 +311,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_root_login_changes" {
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:PutObject",
-                "Resource": "arn:aws:s3:::rootloginchangemetrics3bucket/AWSLogs/533793682495/*",
+                "Resource": "arn:aws:s3:::consoleauthenticationfailuremetrics3bucket/AWSLogs/533793682495/*",
                 "Condition": {
                   "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"
@@ -346,8 +346,8 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_root_login_changes" {
             ]
             })
           }
-          success_msg = "Enabled Root Login changes metric filter for account ${param.title}."
-          error_msg   = "Error enabling Root Login changes metric filter for account ${param.title}."
+          success_msg = "Enabled Console Authentication Failure metric filter for account ${param.title}."
+          error_msg   = "Error enabling Console Authentication Failure metric filter for account ${param.title}."
         }
       }
     }
@@ -355,32 +355,32 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_root_login_changes" {
 }
 
 
-variable "cloudwatch_no_metric_filter_for_root_login_changes_trigger_enabled" {
+variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_root_login_changes_trigger_schedule" {
+variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_root_login_changes_default_action" {
+variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "cloudwatch_no_metric_filter_for_root_login_changes_default_actions" {
+variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_actions" {
   type        = list(string)
   description = " The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_root_login_changes_metric_filter"]
+  default     = ["skip", "enable_console_authentication_failure_metric_filter"]
 }
 
 
-pipeline "create_cloudwatch_metric_filter_root_login_changes" {
+pipeline "create_cloudwatch_metric_filter_console_authentication_failure" {
   title       = "Create CloudTrail with CloudWatch Logging"
   description = "Creates a CloudTrail trail with integrated CloudWatch logging and necessary IAM roles and policies."
 
@@ -398,31 +398,31 @@ pipeline "create_cloudwatch_metric_filter_root_login_changes" {
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = "log_group_name_32"
+    default     = "log_group_name_41"
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = "RootLoginChangesMetric"
+    default     = "ConsoleAuthenticationFailureMetric"
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = "RootLoginChangesMetricrRole"
+    default     = "ConsoleAuthenticationFailureMetricRole"
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = "RootLoginChangesMetricTrail"
+    default     = "ConsoleAuthenticationFailureMetricTrail"
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = "rootloginchangemetrics3bucket"
+    default     = "consoleauthenticationfailuremetrics3bucket"
   }
 
   param "acl" {
@@ -434,7 +434,7 @@ pipeline "create_cloudwatch_metric_filter_root_login_changes" {
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = "RootLoginChangeMetrics"
+    default     = "ConsoleAuthenticationFailureMetrics"
   }
 
   param "metric_namespace" {
@@ -452,19 +452,19 @@ pipeline "create_cloudwatch_metric_filter_root_login_changes" {
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     = "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }"
+    default     = "{ ($.eventName = \"ConsoleLogin\") && ($.errorMessage = \"Failedauthentication\") }"
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = "root_login_changes_metric_topic"
+    default     = "console_authentication_failure_metric_topic"
   }
 
   param "queue_name" {
     type        = string
     description = "The name of the SQS queue."
-    default     = "flowpipeRootLoginChanges"
+    default     = "flowpipeConsoleAuthenticationFailure"
   }
 
   param "protocol" {
@@ -476,7 +476,7 @@ pipeline "create_cloudwatch_metric_filter_root_login_changes" {
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = "root_login_changes_alarm"
+    default     = "console_authentication_failure_alarm"
   }
 
   param "assume_role_policy_document" {
@@ -509,7 +509,7 @@ pipeline "create_cloudwatch_metric_filter_root_login_changes" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:GetBucketAcl",
-          "Resource": "arn:aws:s3:::rootloginchangemetrics3bucket"
+          "Resource": "arn:aws:s3:::consoleauthenticationfailuremetrics3bucket"
         },
         {
           "Sid": "AWSCloudTrailWrite20150319",
@@ -518,7 +518,7 @@ pipeline "create_cloudwatch_metric_filter_root_login_changes" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:PutObject",
-          "Resource": "arn:aws:s3:::rootloginchangemetrics3bucket/AWSLogs/533793682495/*",
+          "Resource": "arn:aws:s3:::consoleauthenticationfailuremetrics3bucket/AWSLogs/533793682495/*",
           "Condition": {
             "StringEquals": {
               "s3:x-amz-acl": "bucket-owner-full-control"

@@ -1,5 +1,5 @@
 locals {
-  cloudwatch_no_metric_filter_for_console_login_mfa_changes_query = <<-EOQ
+  cloudwatch_log_groups_without_metric_filter_for_root_login_query = <<-EOQ
     with filter_data as (
       select
         trail.account_id,
@@ -24,7 +24,7 @@ locals {
         and se ->> 'ReadWriteType' = 'All'
         and trail.log_group_arn is not null
         and filter.log_group_name = split_part(trail.log_group_arn, ':', 7)
-        and filter.filter_pattern ~ '\(\s*\$\.eventName\s*=\s*"ConsoleLogin"\)\s+&&\s+\(\s*\$.additionalEventData\.MFAUsed\s*!=\s*"Yes"'
+        and filter.filter_pattern ~ '\s*\$\.userIdentity\.type\s*=\s*"Root".+\$\.userIdentity\.invokedBy NOT EXISTS.+\$\.eventType\s*!=\s*"AwsServiceEvent"'
         and alarm.metric_name = filter.metric_transformation_name
         and subscription.topic_arn = action_arn
     )
@@ -41,29 +41,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes" {
-  title         = "Detect & correct CloudWatch log groups without Console Login MFA changes metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for Console Login MFA changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes_trigger.md")
+trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login" {
+  title         = "Detect & correct CloudWatch log groups without metric filter for root login"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for Root Login and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login_trigger.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
-  enabled  = var.cloudwatch_no_metric_filter_for_console_login_mfa_changes_trigger_enabled
-  schedule = var.cloudwatch_no_metric_filter_for_console_login_mfa_changes_trigger_schedule
+  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_enabled
+  schedule = var.cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_schedule
   database = var.database
-  sql      = local.cloudwatch_no_metric_filter_for_console_login_mfa_changes_query
+  sql      = local.cloudwatch_log_groups_without_metric_filter_for_root_login_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_root_login
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes" {
-  title         = "Detect & correct CloudWatch log groups without Console Login MFA changes metric filter"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for Console Login MFA changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes.md")
+pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login" {
+  title         = "Detect & correct CloudWatch log groups without metric filter for root login"
+  description   = "Detects CloudWatch log groups that do not have a metric filter for Root Login and runs your chosen action."
+  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -93,22 +93,22 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_console_login_mfa_c
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_console_login_mfa_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_root_login_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_console_login_mfa_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_root_login_default_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudwatch_no_metric_filter_for_console_login_mfa_changes_query
+    sql      = local.cloudwatch_log_groups_without_metric_filter_for_root_login_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_root_login
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -120,10 +120,10 @@ pipeline "detect_and_correct_cloudwatch_no_metric_filter_for_console_login_mfa_c
   }
 }
 
-pipeline "correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes" {
-  title         = "Correct CloudWatch log groups without Console Login MFA changes metric filter"
-  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Console Login MFA changes."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes.md")
+pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_root_login" {
+  title         = "Correct CloudWatch log groups without metric filter for root login"
+  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Root Login."
+  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_root_login.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "items" {
@@ -155,19 +155,19 @@ pipeline "correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_console_login_mfa_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_root_login_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_console_login_mfa_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_root_login_default_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without Console Login MFA changes metric filter."
+    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for root login."
   }
 
   step "transform" "items_by_id" {
@@ -177,7 +177,7 @@ pipeline "correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes
+    pipeline        = pipeline.correct_one_cloudwatch_log_groups_without_metric_filter_for_root_login
     args = {
       title              = each.value.title
       cred               = each.value.cred
@@ -190,10 +190,10 @@ pipeline "correct_cloudwatch_no_metric_filter_for_console_login_mfa_changes" {
   }
 }
 
-pipeline "correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes" {
-  title         = "Correct one CloudWatch log group without Console Login MFA changes metric filter"
-  description   = "Runs corrective action on a CloudWatch log group without Console Login MFA changes metric filter."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes.md")
+pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_root_login" {
+  title         = "Correct one CloudWatch log group without metric filter for root login"
+  description   = "Runs corrective action on a CloudWatch log group without metric filter for root login."
+  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_root_login.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "title" {
@@ -227,13 +227,13 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes"
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_no_metric_filter_for_console_login_mfa_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_root_login_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_no_metric_filter_for_console_login_mfa_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_root_login_default_actions
   }
 
   step "pipeline" "respond" {
@@ -242,7 +242,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes"
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudWatch log group without Console Login MFA changes metric filter for account ${param.title}."
+      detect_msg         = "Detected CloudWatch log group without metric filter for root login for account ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -254,32 +254,32 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes"
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudWatch log group without Console Login MFA changes metric filter for account ${param.title}."
+            text     = "Skipped CloudWatch log group without metric filter for root login for account ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_console_login_mfa_policy_changes_metric_filter" = {
-          label        = "Enable Console Login MFA Changes Metric Filter"
-          value        = "enable_console_login_mfa_policy_changes_metric_filter"
+        "enable_root_login_metric_filter" = {
+          label        = "Enable Root Login Metric Filter"
+          value        = "enable_root_login_metric_filter"
           style        = local.style_alert
-          pipeline_ref = pipeline.create_cloudwatch_metric_filter_console_login_mfa_changes
+          pipeline_ref = pipeline.create_cloudwatch_metric_filter_root_login
           pipeline_args = {
-            cred            = param.cred
-            region          = "us-east-1"
-            log_group_name  = "log_group_name_31"
-            filter_name     = "ConsoleLoginMFAChangesMetric"
-            role_name       = "ConsoleLoginMFAChangesMetricrRole"
-            trail_name      = "ConsoleLoginMFAChangesMetricTrail"
-            s3_bucket_name  = "consoleloginmfachangemetrics3bucket"
-            metric_name     = "ConsoleLoginMFAChangeMetrics"
-						queue_name      = "flowpipeConsoleLoginMFAChangesMetricQueue"
+            cred             = param.cred
+            region           = "us-east-1"
+            log_group_name   = "log_group_name_32"
+            filter_name      = "RootLoginChangesMetric"
+            role_name        = "RootLoginChangesMetricrRole"
+            trail_name       = "RootLoginChangesMetricTrail"
+            s3_bucket_name   = "rootloginchangemetrics3bucket"
+            metric_name      = "RootLoginChangeMetrics"
             metric_namespace = "CISBenchmark"
-            metric_value    = "1"
-            filter_pattern  = "{ ($.eventName = \"ConsoleLogin\") &&($.additionalEventData.MFAUsed != \"Yes\") }"
-            sns_topic_name = "console_login_mfa_changes_metric_topic"
+            queue_name       = "flowpipeRootLoginChanges"
+            metric_value     = "1"
+            filter_pattern   = "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }"
+            sns_topic_name = "root_login_metric_topic"
             protocol       = "SQS"
-            alarm_name     = "console_login_mfa_changes_alarm"
+            alarm_name     = "root_login_alarm"
             assume_role_policy_document = jsonencode({
             "Version": "2012-10-17",
             "Statement": [
@@ -302,7 +302,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes"
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:GetBucketAcl",
-                "Resource": "arn:aws:s3:::consoleloginmfachangemetrics3bucket"
+                "Resource": "arn:aws:s3:::rootloginchangemetrics3bucket"
               },
               {
                 "Sid": "AWSCloudTrailWrite20150319",
@@ -311,7 +311,7 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes"
                   "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": "s3:PutObject",
-                "Resource": "arn:aws:s3:::consoleloginmfachangemetrics3bucket/AWSLogs/533793682495/*",
+                "Resource": "arn:aws:s3:::rootloginchangemetrics3bucket/AWSLogs/533793682495/*",
                 "Condition": {
                   "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"
@@ -346,8 +346,8 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes"
             ]
             })
           }
-          success_msg = "Enabled Console Login MFA changes metric filter for account ${param.title}."
-          error_msg   = "Error enabling Console Login MFA changes metric filter for account ${param.title}."
+          success_msg = "Enabled Root Login metric filter for account ${param.title}."
+          error_msg   = "Error enabling Root Login metric filter for account ${param.title}."
         }
       }
     }
@@ -355,33 +355,32 @@ pipeline "correct_one_cloudwatch_no_metric_filter_for_console_login_mfa_changes"
 }
 
 
-variable "cloudwatch_no_metric_filter_for_console_login_mfa_changes_trigger_enabled" {
+variable "cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_console_login_mfa_changes_trigger_schedule" {
+variable "cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "cloudwatch_no_metric_filter_for_console_login_mfa_changes_default_action" {
+variable "cloudwatch_log_groups_without_metric_filter_for_root_login_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "cloudwatch_no_metric_filter_for_console_login_mfa_changes_default_actions" {
+variable "cloudwatch_log_groups_without_metric_filter_for_root_login_default_actions" {
   type        = list(string)
   description = " The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_console_login_mfa_policy_changes_metric_filter"]
+  default     = ["skip", "enable_root_login_metric_filter"]
 }
 
 
-
-pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
+pipeline "create_cloudwatch_metric_filter_root_login" {
   title       = "Create CloudTrail with CloudWatch Logging"
   description = "Creates a CloudTrail trail with integrated CloudWatch logging and necessary IAM roles and policies."
 
@@ -399,31 +398,31 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = "log_group_name_31"
+    default     = "log_group_name_32"
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = "ConsoleLoginMFAChangesMetric"
+    default     = "RootLoginChangesMetric"
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = "ConsoleLoginMFAChangesMetricrRole"
+    default     = "RootLoginChangesMetricrRole"
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = "ConsoleLoginMFAChangesMetricTrail"
+    default     = "RootLoginChangesMetricTrail"
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = "consoleloginmfachangemetrics3bucket"
+    default     = "rootloginchangemetrics3bucket"
   }
 
   param "acl" {
@@ -435,7 +434,7 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = "ConsoleLoginMFAChangeMetrics"
+    default     = "RootLoginChangeMetrics"
   }
 
   param "metric_namespace" {
@@ -453,19 +452,19 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     =  "{ ($.eventName = \"ConsoleLogin\") &&($.additionalEventData.MFAUsed != \"Yes\") }"
+    default     = "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }"
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = "console_login_mfa_changes_metric_topic"
+    default     = "root_login_metric_topic"
   }
 
- 	param "queue_name" {
+  param "queue_name" {
     type        = string
     description = "The name of the SQS queue."
-    default     = "flowpipeConsoleLoginMFAChangesMetricQueue"
+    default     = "flowpipeRootLoginChanges"
   }
 
   param "protocol" {
@@ -477,7 +476,7 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = "console_login_mfa_changes_alarm"
+    default     = "root_login_alarm"
   }
 
   param "assume_role_policy_document" {
@@ -510,7 +509,7 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:GetBucketAcl",
-          "Resource": "arn:aws:s3:::consoleloginmfachangemetrics3bucket"
+          "Resource": "arn:aws:s3:::rootloginchangemetrics3bucket"
         },
         {
           "Sid": "AWSCloudTrailWrite20150319",
@@ -519,7 +518,7 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
             "Service": "cloudtrail.amazonaws.com"
           },
           "Action": "s3:PutObject",
-          "Resource": "arn:aws:s3:::consoleloginmfachangemetrics3bucket/AWSLogs/533793682495/*",
+          "Resource": "arn:aws:s3:::rootloginchangemetrics3bucket/AWSLogs/533793682495/*",
           "Condition": {
             "StringEquals": {
               "s3:x-amz-acl": "bucket-owner-full-control"
@@ -560,7 +559,7 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
     })
   }
 
-  step "container" "create_console_login_mfa_role" {
+  step "container" "create_iam_role" {
     image = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "create-role",
@@ -570,8 +569,8 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
     env = credential.aws[param.cred].env
   }
 
- step "container" "create_console_login_mfa_policy" {
-    depends_on = [step.container.create_console_login_mfa_role]
+ step "container" "create_iam_policy" {
+    depends_on = [step.container.create_iam_role]
     image = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "create-policy",
@@ -581,39 +580,39 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
     env = credential.aws[param.cred].env
   }
 
-  step "query" "get_console_login_mfa_role_arn" {
-    depends_on = [step.container.create_console_login_mfa_role]
+  step "query" "get_iam_role_arn" {
+    depends_on = [step.container.create_iam_role]
     database = var.database
     sql = <<-EOQ
       select
         arn
       from
-        aws_console_login_mfa_role
+        aws_iam_role
       where
         name = '${param.role_name}'
     EOQ
   }
 
-  step "query" "get_console_login_mfa_policy_arn" {
-    depends_on = [step.container.create_console_login_mfa_policy]
+  step "query" "get_iam_policy_arn" {
+    depends_on = [step.container.create_iam_policy]
     database = var.database
     sql = <<-EOQ
       select
         arn
       from
-        aws_console_login_mfa_policy
+        aws_iam_policy
       where
         name = '${param.role_name}'
     EOQ
   }
 
   step "container" "attach_policy_to_role" {
-    depends_on = [step.query.get_console_login_mfa_policy_arn]
+    depends_on = [step.query.get_iam_policy_arn]
     image = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "attach-role-policy",
       "--role-name", param.role_name,
-      "--policy-arn", step.query.get_console_login_mfa_policy_arn.rows[0].arn,
+      "--policy-arn", step.query.get_iam_policy_arn.rows[0].arn,
       ]
     env = credential.aws[param.cred].env
   }
@@ -675,7 +674,7 @@ pipeline "create_cloudwatch_metric_filter_console_login_mfa_changes" {
       ["--s3-bucket-name", param.s3_bucket_name],
       ["--include-global-service-events"],
       ["--cloud-watch-logs-log-group-arn", step.query.get_log_group_arn.rows[0].arn],
-      ["--cloud-watch-logs-role-arn", step.query.get_console_login_mfa_role_arn.rows[0].arn],
+      ["--cloud-watch-logs-role-arn", step.query.get_iam_role_arn.rows[0].arn],
       ["--region", param.region]
     )
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
