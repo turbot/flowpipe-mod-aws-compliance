@@ -1,6 +1,7 @@
 locals {
   cloudtrail_trails_with_s3_logging_disabled_query = <<-EOQ
   select
+    concat(t.name, ' [', region, '/', t.account_id, ']') as title,
     t.arn as resource,
     t.name,
     t.region,
@@ -103,7 +104,7 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
 
   param "items" {
     type = list(object({
-      resource      = string
+      title         = string
       name          = string
       unique_string = string
       region        = string
@@ -150,7 +151,7 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.resource => row }
+    value = { for row in param.items : row.title => row }
   }
 
   step "pipeline" "correct_item" {
@@ -158,7 +159,7 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_cloudtrail_trail_with_s3_logging_disabled
     args = {
-      resource           = each.value.resource
+      title              = each.value.title
       name               = each.value.name
       bucket_name        = each.value.unique_string
       region             = each.value.region
@@ -179,9 +180,9 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
   // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_s3_logging_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
-  param "resource" {
+  param "title" {
     type        = string
-    description = local.description_resource
+    description = local.description_title
   }
 
   param "name" {
@@ -245,7 +246,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudTrail trail with S3 logging disabled for resource ${param.resource}."
+      detect_msg         = "Detected CloudTrail trail with S3 logging disabled for resource ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -257,14 +258,14 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudTrail trail with S3 logging disabled for resource ${param.resource}."
+            text     = "Skipped CloudTrail trail with S3 logging disabled for resource ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_logging" = {
+        "enable_s3_logging" = {
           label        = "Enable S3 Logging"
-          value        = "enable_logging"
+          value        = "enable_s3_logging"
           style        = local.style_alert
           pipeline_ref = pipeline.enable_s3_logging_for_cloudtrail
           pipeline_args = {
@@ -274,8 +275,8 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
             region         = param.region
             account_id     = param.account_id
           }
-          success_msg = "Updated CloudTrail trail ${param.resource} by enabling S3 logging."
-          error_msg   = "Error updating S3 logging ${param.resource}."
+          success_msg = "Updated CloudTrail trail ${param.title} by enabling S3 logging."
+          error_msg   = "Error updating S3 logging ${param.title}."
         }
       }
     }
@@ -376,5 +377,5 @@ variable "cloudtrail_trails_with_s3_logging_disabled_default_action" {
 variable "cloudtrail_trails_with_s3_logging_disabled_default_actions" {
   type        = list(string)
   description = " The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_logging"]
+  default     = ["skip", "enable_s3_logging"]
 }

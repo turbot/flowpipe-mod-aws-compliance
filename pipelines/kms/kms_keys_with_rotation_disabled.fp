@@ -164,8 +164,8 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
 }
 
 pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
-  title       = "Correct one EC2 classic load balancer without connection draining enabled"
-  description = "Runs corrective action on a single EC2 classic load balancer without connection draining enabled."
+  title       = "Correct one KMS key with rotation disabled"
+  description = "Runs corrective action on a single KMS key with rotation disabled."
   // // documentation = file("./kms/docs/correct_one_correct_kms_key_with_rotation_disabled.md")
   // tags          = merge(local.kms_common_tags, { class = "unused" })
 
