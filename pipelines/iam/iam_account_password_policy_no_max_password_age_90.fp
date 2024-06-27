@@ -216,7 +216,7 @@ pipeline "correct_one_iam_account_password_policy_no_max_password_age" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM account password policy with no maximum password age ${param.title}."
+      detect_msg         = "Detected IAM account password policy with no maximum password age for ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -228,7 +228,7 @@ pipeline "correct_one_iam_account_password_policy_no_max_password_age" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM account password policy ${param.title} with no maximum password age."
+            text     = "Skipped IAM account password policy for ${param.title} with no maximum password age."
           }
           success_msg = ""
           error_msg   = ""
@@ -242,8 +242,8 @@ pipeline "correct_one_iam_account_password_policy_no_max_password_age" {
             max_password_age = 90
             cred             = param.cred
           }
-          success_msg = "Updated IAM account password policy ${param.title} to enforce a maximum password age of 90 days."
-          error_msg   = "Error updating IAM account password policy ${param.title}."
+          success_msg = "Updated IAM account password policy for ${param.title} to enforce a maximum password age of 90 days."
+          error_msg   = "Error updating IAM account password policy for ${param.title}."
         }
       }
     }

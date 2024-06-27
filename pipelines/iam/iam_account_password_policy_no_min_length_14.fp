@@ -216,7 +216,7 @@ pipeline "correct_one_iam_account_password_policy_no_min_length_14" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM account password policy with no minimum length of 14 ${param.title}."
+      detect_msg         = "Detected ${param.title} with IAM account password policy without a minimum length of 14."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -228,7 +228,7 @@ pipeline "correct_one_iam_account_password_policy_no_min_length_14" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM account password policy ${param.title} with no minimum length of 14."
+            text     = "Skipped IAM account password policy in ${param.title} without a minimum length of 14."
           }
           success_msg = ""
           error_msg   = ""
@@ -242,8 +242,8 @@ pipeline "correct_one_iam_account_password_policy_no_min_length_14" {
             minimum_password_length = 14
             cred                   = param.cred
           }
-          success_msg = "Updated IAM account password policy ${param.title} to have a minimum length of 14."
-          error_msg   = "Error updating IAM account password policy ${param.title}."
+          success_msg = "Updated IAM account password policy in ${param.title} to have a minimum length of 14."
+          error_msg   = "Error updating IAM account password policy in ${param.title}."
         }
       }
     }

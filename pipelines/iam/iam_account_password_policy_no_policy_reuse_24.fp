@@ -216,7 +216,7 @@ pipeline "correct_one_iam_account_password_policy_no_policy_reuse_24" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM account password policy with no password reuse prevention policy of 24 ${param.title}."
+      detect_msg         = "Detected IAM account password policy with no password reuse prevention policy of 24 for ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -228,7 +228,7 @@ pipeline "correct_one_iam_account_password_policy_no_policy_reuse_24" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM account password policy ${param.title} with no password reuse prevention policy of 24."
+            text     = "Skipped IAM account password policy for ${param.title} with no password reuse prevention policy of 24."
           }
           success_msg = ""
           error_msg   = ""
@@ -242,7 +242,7 @@ pipeline "correct_one_iam_account_password_policy_no_policy_reuse_24" {
             password_reuse_prevention = 24
             cred                     = param.cred
           }
-          success_msg = "Updated IAM account password policy ${param.title} to enforce a password reuse prevention policy of 24."
+          success_msg = "Updated IAM account password policy for ${param.title} to enforce a password reuse prevention policy of 24."
           error_msg   = "Error updating IAM account password policy ${param.title}."
         }
       }

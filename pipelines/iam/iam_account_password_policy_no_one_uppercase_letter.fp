@@ -216,7 +216,7 @@ pipeline "correct_one_iam_account_password_policy_no_one_uppercase_letter" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM account password policy with no requirement for at least one uppercase letter ${param.title}."
+      detect_msg         = "Detected IAM account password policy with no requirement for at least one uppercase letter in ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -228,7 +228,7 @@ pipeline "correct_one_iam_account_password_policy_no_one_uppercase_letter" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM account password policy ${param.title} with no requirement for at least one uppercase letter."
+            text     = "Skipped IAM account password policy for ${param.title} with no requirement for at least one uppercase letter."
           }
           success_msg = ""
           error_msg   = ""
@@ -242,7 +242,7 @@ pipeline "correct_one_iam_account_password_policy_no_one_uppercase_letter" {
             require_uppercase_characters = true
             cred                        = param.cred
           }
-          success_msg = "Updated IAM account password policy ${param.title} to require at least one uppercase letter."
+          success_msg = "Updated IAM account password policy for ${param.title} to require at least one uppercase letter."
           error_msg   = "Error updating IAM account password policy ${param.title}."
         }
       }

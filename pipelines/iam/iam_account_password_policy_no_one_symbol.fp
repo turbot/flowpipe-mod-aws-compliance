@@ -216,7 +216,7 @@ pipeline "correct_one_iam_account_password_policy_no_one_symbol" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM account password policy with no requirement for at least one symbol ${param.title}."
+      detect_msg         = "Detected IAM account password policy with no requirement for at least one symbol in ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -228,7 +228,7 @@ pipeline "correct_one_iam_account_password_policy_no_one_symbol" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM account password policy ${param.title} with no requirement for at least one symbol."
+            text     = "Skipped IAM account password policy for ${param.title} with no requirement for at least one symbol."
           }
           success_msg = ""
           error_msg   = ""
@@ -242,7 +242,7 @@ pipeline "correct_one_iam_account_password_policy_no_one_symbol" {
             require_symbols = true
             cred           = param.cred
           }
-          success_msg = "Updated IAM account password policy ${param.title} to require at least one symbol."
+          success_msg = "Updated IAM account password policy in ${param.title} to require at least one symbol."
           error_msg   = "Error updating IAM account password policy ${param.title}."
         }
       }

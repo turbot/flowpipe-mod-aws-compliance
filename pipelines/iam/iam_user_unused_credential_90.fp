@@ -239,7 +239,7 @@ pipeline "correct_one_iam_user_unused_credential_90" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM user credential ${param.title} that has been unused for 90 days."
+      detect_msg         = "Detected IAM user credential for ${param.title} that has been unused for 90 days."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -251,7 +251,7 @@ pipeline "correct_one_iam_user_unused_credential_90" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM user access keys ${param.title} that has been unused for 90 days."
+            text     = "Skipped IAM user access keys for ${param.title} that has been unused for 90 days."
           }
           success_msg = ""
           error_msg   = ""

@@ -293,7 +293,7 @@ pipeline "detach_policy_from_one_iam_entity" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM entity with the `iam_policy_star_star` policy attached ${param.title}."
+      detect_msg         = "Detected IAM entity with the `iam_policy_star_star` policy attached for ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -305,7 +305,7 @@ pipeline "detach_policy_from_one_iam_entity" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped detaching policy from IAM entity ${param.title}."
+            text     = "Skipped detaching policy from IAM entity for ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
