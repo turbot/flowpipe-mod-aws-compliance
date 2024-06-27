@@ -1,6 +1,6 @@
 locals {
   iam_user_unused_credentials_45_query = <<-EOQ
-	  select
+    select
 			concat(u.name, ' [', u.account_id, ']') as title,
 			access_key_id,
 			u.name as user_name,
@@ -10,12 +10,12 @@ locals {
 					r.password_enabled and r.password_last_used is null and r.password_last_changed < (current_date - interval '45' day)
 					OR r.password_enabled and r.password_last_used  < (current_date - interval '45' day) then true else false
 				end as password_disable
-			from
-				aws_iam_user as u
-				join aws_iam_access_key as k on u.name = k.user_name
-				join aws_iam_credential_report as r on r.user_name = u.name
-			where
-				access_key_last_used_date < (current_date - interval '45' day);
+		from
+			aws_iam_user as u
+			join aws_iam_access_key as k on u.name = k.user_name and u.account_id = k.account_id
+			join aws_iam_credential_report as r on r.user_name = u.name and u.account_id = r.account_id
+		where
+			access_key_last_used_date < (current_date - interval '45' day);
   EOQ
 }
 
