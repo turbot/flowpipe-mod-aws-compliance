@@ -1,14 +1,14 @@
 mod "aws_compliance" {
   title         = "AWS Compliance"
-  description   = "Run pipelines to detect and correct AWS resources that non-compliant."
-  color         = "#0089D6"
+  description   = "Run pipelines to detect and correct AWS resources that are non-compliant."
+  color         = "#FF9900"
   documentation = file("./README.md")
   icon          = "/images/mods/turbot/aws-compliance.svg"
   categories    = ["aws", "compliance", "public cloud"]
 
   opengraph {
     title       = "AWS Compliance Mod for Flowpipe"
-    description = "Run pipelines to detect and correct AWS resources that non-compliant."
+    description = "Run pipelines to detect and correct AWS resources that are non-compliant."
     image       = "/images/mods/turbot/aws-compliance-social-graphic.png"
   }
 
@@ -17,7 +17,7 @@ mod "aws_compliance" {
       version = "*"
     }
     mod "github.com/turbot/flowpipe-mod-aws" {
-      version = "*"
+      version = "v0.4.0-rc.26"
     }
   }
 }
