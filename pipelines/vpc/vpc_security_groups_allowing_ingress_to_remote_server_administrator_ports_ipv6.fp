@@ -189,7 +189,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} VPC Security groups allowing ingress to remote network server administration ports."
+    text     = "Detected ${length(param.items)} VPC Security groups allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from ::/0 (all IPv6 addresses). This poses a significant security risk as it exposes your instances to potential unauthorized access from any IPv6 address on the internet."
   }
 
   step "transform" "items_by_id" {
@@ -283,7 +283,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group ${param.title} with defective rules."
+      detect_msg         = "Detected VPC security group ${param.group_id} with rule ${param.security_group_rule_id} allowing ingress on sensitive ports (e.g., SSH on port 22, RDP on port 3389) from ::/0 (all IPv6 addresses). This configuration is dangerous as it allows unrestricted remote access, increasing the risk of unauthorized access and potential security breaches over IPv6."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {

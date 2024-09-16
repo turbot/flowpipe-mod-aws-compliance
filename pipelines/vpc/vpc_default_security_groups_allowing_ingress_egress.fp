@@ -1,15 +1,30 @@
 locals {
   vpc_default_security_groups_allowing_ingress_egress_query = <<-EOQ
+    with ingress_and_egress_rules as (
+      select
+        group_id,
+        group_name,
+        security_group_rule_id,
+        region,
+        account_id,
+        _ctx ->> 'connection_name' as cred    
+      from
+        aws_vpc_security_group_rule
+      where
+        group_name = 'default'
+      )
     select
-      concat(security_group_rule_id, ' [', region, '/', account_id, ']') as title,
-      group_id,
-      security_group_rule_id,
-      region,
-      _ctx ->> 'connection_name' as cred
+      concat(sg.group_id, ' [', sg.region, '/', sg.account_id, ']') as title,
+      sg.group_id as group_id,
+      ingress_and_egress_rules.security_group_rule_id as security_group_rule_id,
+      sg.region as region,
+      sg._ctx ->> 'connection_name' as cred
     from
-      aws_vpc_security_group_rule
+      aws_vpc_security_group as sg
+      left join ingress_and_egress_rules on ingress_and_egress_rules.group_id = sg.group_id
     where
-      group_name = 'default';
+      sg.group_name = 'default'
+      and ingress_and_egress_rules.group_id is not null;
   EOQ
 }
 
@@ -142,7 +157,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} default VPC Security groups allowing ingress and egress."
+    text     = "Detected ${length(param.items)} default VPC Security group(s) allowing both ingress and egress traffic. Default security groups often come with overly permissive rules, which can lead to security vulnerabilities by allowing unauthorized traffic to and from your instances.."
   }
 
   step "transform" "items_by_id" {
@@ -235,7 +250,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected default VPC security group ${param.title} with rules."
+      detect_msg         = "Detected default VPC security group ${param.title} with ingress and egress rules."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {

@@ -292,7 +292,7 @@ pipeline "correct_one_vpc_network_allowing_ingress_to_remote_server_administrati
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC network ACL ${param.title} with defective rules."
+      detect_msg         = "Detected VPC network ACL ${param.network_acl_id} entry with rule number ${param.rule_number} allowing ingress to port 22 or 3389 from 0.0.0.0/0 or ::/0."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -304,7 +304,7 @@ pipeline "correct_one_vpc_network_allowing_ingress_to_remote_server_administrati
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped VPC network ACL ${param.title} with defective rules."
+            text     = "Skipped VPC network ACL ${param.network_acl_id} entry with rule number ${param.rule_number} allowing ingress to port 22 or 3389 from 0.0.0.0/0 or ::/0."
           }
           success_msg = ""
           error_msg   = ""
@@ -321,8 +321,8 @@ pipeline "correct_one_vpc_network_allowing_ingress_to_remote_server_administrati
             region         = param.region
             cred           = param.cred
           }
-          success_msg = "Deleted defective rule from network ACL ${param.title}."
-          error_msg   = "Error deleting defective rule from network ACL ${param.title}."
+          success_msg = "Deleted defective rule ${param.rule_number} from network ACL ${param.network_acl_id} allowing ingress to port 22 or 3389 from 0.0.0.0/0 or ::/0."
+          error_msg   = "Error deleting defective rule rule ${param.rule_number} from network ACL ${param.network_acl_id} allowing ingress to port 22 or 3389 from 0.0.0.0/0 or ::/0."
         }
       }
     }

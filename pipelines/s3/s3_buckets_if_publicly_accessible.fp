@@ -254,8 +254,8 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
             region = param.region
             cred   = param.cred
           }
-          success_msg = "Deleted S3 bucket ${param.title} with public access."
-          error_msg   = "Error deleting S3 bucket ${param.title} with public access."
+          success_msg = "Enabled blocking of  public access on S3 bucket ${param.title}."
+          error_msg   = "Error disabling public access on S3 bucket ${param.title}."
         }
       }
     }

@@ -173,7 +173,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} VPC Security groups allowing ingress to remote network server administration ports."
+    text     = "Detected ${length(param.items)} VPC Security groups allowing ingress to port 22 from 0.0.0.0/0. Allowing unrestricted SSH access is a significant security risk because it exposes your instances to potential brute-force attacks and unauthorized access from any IP address."
   }
 
   step "transform" "items_by_id" {
@@ -267,7 +267,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group ${param.title} with defective rules."
+      detect_msg         = "Detected VPC security group ${param.title} with rule ${param.security_group_rule_id} allowing ingress on port 22 from 0.0.0.0/0. This configuration is dangerous because it permits SSH access from anywhere on the internet, increasing the risk of unauthorized access and potential security breaches."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -279,7 +279,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped VPC security group ${param.title} with defective rules."
+            text     = "Skipped VPC security group ${param.title} with rule ${param.security_group_rule_id} allowing ingress on port 22 from 0.0.0.0/0."
           }
           success_msg = ""
           error_msg   = ""
@@ -295,7 +295,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
             region                 = param.region
             cred                   = param.cred
           }
-          success_msg = "Deleted defective rule from security group ${param.title}."
+          success_msg = "Deleted defective rule ${param.security_group_rule_id} allowing ingress on port 22 from 0.0.0.0/0 from security group ${param.title}."
           error_msg   = "Error deleting defective rule from security group ${param.title}."
         }
       }
