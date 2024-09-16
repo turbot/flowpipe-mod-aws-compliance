@@ -1,5 +1,5 @@
 # Core options
-database           = "postgres:#steampipe@localhost:9193/steampipe"
+database           = "postgres://steampipe@localhost:9193/steampipe"
 notifier           = "default"
 notification_level = "verbose"
 approvers          = []
