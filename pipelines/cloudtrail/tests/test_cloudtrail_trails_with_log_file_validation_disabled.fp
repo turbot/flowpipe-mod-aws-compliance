@@ -1,7 +1,90 @@
+/*
+pipeline "test_detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled" {
+  title       = "Test Detect and Correct CloudTrail Trails With Log File Validation Disabled"
+  description = "Test the create_s3_bucket pipeline."
+
+  tags = {
+    type = "test"
+  }
+
+  param "cred" {
+    type        = string
+    #description = local.cred_param_description
+    default     = "default"
+  }
+
+  param "region" {
+    type        = string
+    #description = local.region_param_description
+  }
+
+  param "bucket" {
+    type        = string
+    description = "The name of the bucket."
+    default     = "flowpipe-test-${uuid()}"
+  }
+
+  step "transform" "base_args" {
+    output "base_args" {
+      value = {
+        bucket = param.bucket
+        cred   = param.cred
+        region = param.region
+      }
+    }
+  }
+
+  step "pipeline" "create_s3_bucket" {
+    pipeline = pipeline.create_s3_bucket
+    args     = step.transform.base_args.output.base_args
+  }
+
+  # There is no get_s3_bucket pipeline, so use list instead
+  step "pipeline" "list_s3_buckets" {
+    depends_on = [step.pipeline.create_s3_bucket]
+
+    pipeline = pipeline.list_s3_buckets
+    args = {
+      cred   = param.cred
+      region = param.region
+    }
+
+    # Ignore errors so we can always delete
+    error {
+      ignore = true
+    }
+  }
+
+  step "pipeline" "delete_s3_bucket" {
+    # Don't run before we've had a chance to list buckets
+    depends_on = [step.pipeline.list_s3_buckets]
+
+    pipeline = pipeline.delete_s3_bucket
+    args     = step.transform.base_args.output.base_args
+  }
+
+  output "bucket" {
+    description = "Bucket name used in the test."
+    value       = param.bucket
+  }
+
+  output "test_results" {
+    description = "Test results for each step."
+    value = {
+      "create_s3_bucket" = !is_error(step.pipeline.create_s3_bucket) ? "pass" : "fail: ${error_message(step.pipeline.create_s3_bucket)}"
+      "list_s3_buckets"  = !is_error(step.pipeline.list_s3_buckets) && length([for bucket in try(step.pipeline.list_s3_buckets.output.buckets, []) : bucket if bucket.Name == param.bucket]) > 0 ? "pass" : "fail: ${error_message(step.pipeline.list_s3_buckets)}"
+      "delete_s3_bucket" = !is_error(step.pipeline.delete_s3_bucket) ? "pass" : "fail: ${error_message(step.pipeline.create_s3_bucket)}"
+    }
+  }
+
+}
+
+
+/*
 locals {
   cloudtrail_trail_with_log_validation_disabled_query = <<-EOQ
   select
-    concat(name, ' [', account_id, '/', region, ']') as title,
+    concat(name, ' [', region, '/', account_id, ']') as title,
     name,
     region,
     _ctx ->> 'connection_name' as cred
@@ -13,58 +96,30 @@ locals {
   EOQ
 }
 
-variable "cloudtrail_trail_validation_enabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "cloudtrail_trail_validation_enabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "cloudtrail_trail_validation_enabled_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "enable_validation"
-}
-
-variable "cloudtrail_trail_validation_enabled_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_validation"]
-}
-
 trigger "query" "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled" {
-  title         = "Detect & Correct CloudTrail trails With Log File Validation Disabled"
-  // TODO: Improve the last part of this description
-  description   = "Detect CloudTrail trails with log file validation disabled and then enable log file validation for these trails."
-  //documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled_trigger.md")
-  // TODO: What tags to add?
-  tags          = local.cloudtrail_common_tags
+  title         = "Detect & correct CloudTrail trails with log file validation disabled"
+  description   = "Detects CloudTrail trails without log file validation enabled and runs your chosen action."
+  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled_trigger.md")
+  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
-  database = var.database
   enabled  = var.cloudtrail_trail_validation_enabled_trigger_enabled
   schedule = var.cloudtrail_trail_validation_enabled_trigger_schedule
+  database = var.database
   sql      = local.cloudtrail_trail_with_log_validation_disabled_query
 
   capture "insert" {
     pipeline = pipeline.correct_cloudtrail_trails_with_log_file_validation_disabled
     args = {
-      trails = self.inserted_rows
+      items = self.inserted_rows
     }
   }
 }
 
 pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled" {
-  title         = "Detect & Correct CloudTrail Trails With Log File Validation Disabled"
-  // TODO: Improve the last part of this description
-  description   = "Detect CloudTrail trails with log file validation disabled and then enable log file validation for these trails."
+  title         = "Detect & correct CloudTrail trails with log file validation disabled"
+  description   = "Detects CloudTrail trails without log file validation enabled and runs your chosen action."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled.md")
-  // TODO: What tags to add?
-  tags          = local.cloudtrail_common_tags
+  tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -110,7 +165,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled
   step "pipeline" "respond" {
     pipeline = pipeline.correct_cloudtrail_trails_with_log_file_validation_disabled
     args = {
-      trails             = step.query.detect.rows
+      items              = step.query.detect.rows
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -121,12 +176,12 @@ pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled
 }
 
 pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
-  title         = "Correct CloudTrail Trails With Log File Validation Disabled"
-  description   = "Enable log file validation for CloudTrail trails with log file validation disabled."
+  title         = "Correct CloudTrail trails without log file validation enabled"
+  description   = "Runs corrective action on a collection of CloudTrail trails without log file validation enabled."
   // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_log_file_validation_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
-  param "trails" {
+  param "items" {
     type = list(object({
       title  = string
       name   = string
@@ -169,17 +224,17 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.trails)} CloudTrail trails with log file validation disabled."
+    text     = "Detected ${length(param.items)} CloudTrail trails with log file validation disabled."
   }
 
-  step "transform" "trail_names" {
-    value = { for row in param.trails: row.name => row }
+  step "transform" "items_by_id" {
+    value = { for row in param.items : row.name => row }
   }
 
-  step "pipeline" "correct_cloudtrail_trails_with_log_file_validation_disabled" {
-    for_each        = step.transform.trail_names.value
+  step "pipeline" "correct_item" {
+    for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_cloudtrail_trail_with_log_file_validation_disabled
+    pipeline        = pipeline.correct_one_cloudtrail_trail_with_log_file_validation_disabled
     args = {
       title              = each.value.title
       name               = each.value.name
@@ -194,10 +249,10 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
   }
 }
 
-pipeline "correct_cloudtrail_trail_with_log_file_validation_disabled" {
-  title         = "Correct CloudTrail Trail With Log File Validation Enabled"
-  description   = "Enable log file validation for a CloudTrail trail with log file validation disabled."
-  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trail_with_log_file_validation_disabled.md")
+pipeline "correct_one_cloudtrail_trail_with_log_file_validation_disabled" {
+  title         = "Correct one CloudTrail trail without log file validation enabled"
+  description   = "Runs corrective action on a CloudTrail trail without log file validation enabled."
+  // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_log_file_validation_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "title" {
@@ -256,7 +311,7 @@ pipeline "correct_cloudtrail_trail_with_log_file_validation_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudTrail trail with log file validation disabled ${param.title}."
+      detect_msg         = "Detected CloudTrail trail without log file validation enabled ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -268,13 +323,13 @@ pipeline "correct_cloudtrail_trail_with_log_file_validation_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudTrail trail ${param.title} with log file validation disabled."
+            text     = "Skipped CloudTrail trail ${param.title} without log file validation enabled."
           }
           success_msg = ""
           error_msg   = ""
         },
         "enable_validation" = {
-          label        = "Enable log file validation"
+          label        = "Enable Validation"
           value        = "enable_validation"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_enable_cloudtrail_validation
@@ -291,3 +346,28 @@ pipeline "correct_cloudtrail_trail_with_log_file_validation_disabled" {
     }
   }
 }
+
+variable "cloudtrail_trail_validation_enabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "cloudtrail_trail_validation_enabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "cloudtrail_trail_validation_enabled_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "enable_validation"
+}
+
+variable "cloudtrail_trail_validation_enabled_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "enable_validation"]
+}
+*/
