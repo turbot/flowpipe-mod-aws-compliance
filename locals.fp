@@ -77,5 +77,7 @@ locals {
   aws_pipeline_update_dynamodb_continuous_backup    = aws.pipeline.update_dynamodb_continuous_backup
   aws_pipeline_update_dynamodb_table                = aws.pipeline.update_dynamodb_table
   aws_pipeline_update_iam_account_password_policy   = aws.pipeline.update_iam_account_password_policy
-  aws_pipeline_delete_dynamodb_table   = aws.pipeline.delete_dynamodb_table
+  aws_pipeline_delete_dynamodb_table                = aws.pipeline.delete_dynamodb_table
+  aws_pipeline_create_elb_classic_load_balancer     = aws.pipeline.create_elb_classic_load_balancer
+  aws_pipeline_delete_elb_load_balancer             = aws.pipeline.delete_elb_load_balancer
 }
