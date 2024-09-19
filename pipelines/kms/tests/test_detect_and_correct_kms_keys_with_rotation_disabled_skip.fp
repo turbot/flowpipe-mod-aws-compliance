@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_skip" {
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "aws"
+    default     = "default"
   }
 
   param "region" {

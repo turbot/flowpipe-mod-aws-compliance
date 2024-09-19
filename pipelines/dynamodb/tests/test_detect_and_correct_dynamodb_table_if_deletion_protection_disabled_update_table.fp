@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "aws"
+    default     = "default"
   }
 
   param "region" {

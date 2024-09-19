@@ -21,7 +21,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
   param "elb_name" {
     type        = string
     description = "ELB Name"
-    default    = "flowpipe-test"
+    default     = "flowpipe-test"
   }
 
   param "availability_zones" {
