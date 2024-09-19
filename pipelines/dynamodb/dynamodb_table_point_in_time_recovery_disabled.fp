@@ -242,7 +242,7 @@ pipeline "correct_one_dynamodb_table_if_point_in_time_recovery_disabled" {
             send     = param.notification_level == local.level_verbose
             text     = "Skipped DynamoDB table ${param.title} with point-in-time recovery disabled."
           }
-          success_msg = ""
+          success_msg = "Skipped DynamoDB table ${param.title} with point-in-time recovery disabled."
           error_msg   = ""
         },
         "update_table" = {
