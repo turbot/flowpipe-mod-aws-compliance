@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_rotatio
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "aws"
+    default     = "default"
   }
 
   param "region" {
@@ -28,7 +28,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_rotatio
     ]
 
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
- }
+  }
 
   step "pipeline" "run_detection" {
     depends_on = [step.container.create_kms_key]
@@ -63,7 +63,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_rotatio
 				"--pending-window-in-days", "7"
 			]
 
-			env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+		env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
 	}
 
   output "test_results" {

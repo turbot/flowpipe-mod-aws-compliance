@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "aws"
+    default     = "default"
   }
 
   param "region" {
