@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "aws"
+    default     = "default"
   }
 
   param "region" {
@@ -31,14 +31,14 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
   }
 
   param "listeners" {
-    type        = list(map(string))
+    type        = list(map(any))
     description = "A list of listener configurations. Each listener configuration should include 'Protocol', 'LoadBalancerPort', 'InstanceProtocol', and 'InstancePort'."
     default = [
       {
         Protocol          = "HTTP"
-        LoadBalancerPort  = "80"  # Must be passed as a string here but converted later
+        LoadBalancerPort  = 80  # Must be passed as a string here but converted later
         InstanceProtocol  = "HTTP"
-        InstancePort      = "80"  # Must be passed as a string here but converted later
+        InstancePort      = 80  # Must be passed as a string here but converted later
       }
     ]
   }
@@ -58,8 +58,9 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     depends_on = [step.pipeline.create_elb_classic_load_balancer]
     pipeline = pipeline.detect_and_correct_ec2_classic_load_balancers_without_connection_draining_enabled
     args = {
-      default_action     = "skip"
-      enabled_actions    = ["skip"]
+      default_action  = "skip"
+      enabled_actions = ["skip"]
+      approvers       = []
     }
   }
 

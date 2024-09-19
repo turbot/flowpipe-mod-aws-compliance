@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "aws"
+    default     = "default"
   }
 
   param "region" {
@@ -31,26 +31,26 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
   }
 
   param "listeners" {
-    type        = list(map(string))
+    type        = list(map(any))
     description = "A list of listener configurations. Each listener configuration should include 'Protocol', 'LoadBalancerPort', 'InstanceProtocol', and 'InstancePort'."
     default = [
       {
-        Protocol          = "HTTP"
-        LoadBalancerPort  = "80"  # Must be passed as a string here but converted later
-        InstanceProtocol  = "HTTP"
-        InstancePort      = "80"  # Must be passed as a string here but converted later
+        Protocol         = "HTTP"
+        LoadBalancerPort = 80  # Must be passed as a string here but converted later
+        InstanceProtocol = "HTTP"
+        InstancePort     = 80  # Must be passed as a string here but converted later
       }
     ]
   }
 
-	step "pipeline" "create_elb_classic_load_balancer" {
+  step "pipeline" "create_elb_classic_load_balancer" {
     pipeline = local.aws_pipeline_create_elb_classic_load_balancer
     args = {
-      region   = param.region
-      cred    = param.cred
-      name = param.elb_name
-      listeners = param.listeners
       availability_zones = param.availability_zones
+      cred               = param.cred
+      listeners          = param.listeners
+      name               = param.elb_name
+      region             = param.region
     }
   }
 
@@ -58,8 +58,9 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     depends_on = [step.pipeline.create_elb_classic_load_balancer]
     pipeline = pipeline.detect_and_correct_ec2_classic_load_balancers_without_connection_draining_enabled
     args = {
-      default_action     = "enable_connection_draining"
-      enabled_actions    = ["enable_connection_draining"]
+      approvers       = []
+      default_action  = "enable_connection_draining"
+      enabled_actions = ["enable_connection_draining"]
     }
   }
 
@@ -81,9 +82,9 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     depends_on = [step.query.get_elb_classic_load_balancer]
     pipeline  = local.aws_pipeline_delete_elb_load_balancer
     args = {
-      cred    = param.cred
+      cred               = param.cred
       load_balancer_name = param.elb_name
-      region   = param.region
+      region             = param.region
     }
   }
 
