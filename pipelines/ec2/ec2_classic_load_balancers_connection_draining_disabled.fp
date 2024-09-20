@@ -249,8 +249,8 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
             region             = param.region
             cred               = param.cred
           }
-          success_msg = "Deleted EC2 classic load balancer ${param.title}."
-          error_msg   = "Error deleting EC2 classic load balancer ${param.title}."
+          success_msg = "Enabled connection draining for EC2 classic load balancer ${param.title}."
+          error_msg   = "Error enabling connection draining for EC2 classic load balancer ${param.title}."
         }
       }
     }
