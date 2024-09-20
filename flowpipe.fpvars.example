@@ -1,8 +1,8 @@
 # Core options
 database           = "postgres://steampipe@localhost:9193/steampipe"
 notifier           = "default"
-notification_level = "verbose"
-approvers          = []
+notification_level = "info"
+approvers          = ["default"]
 max_concurrency    = 1
 
 # API Gateway X-RAY Tracing Disabled 
