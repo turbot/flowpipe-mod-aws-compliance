@@ -12,7 +12,7 @@ This control will work out-of-the-box with some sensible defaults (configurable 
 
 You should be able to simply run the following command in your terminal:
 ```sh
-flowpipe pipeline run detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_disabled
+flowpipe pipeline run detect_and_correct_apigateway_rest_api_stages_xray_tracing_disabled
 ```
 
 You should now receive notification messages for the detections in your configured [notifier](https://flowpipe.io/docs/reference/config-files/notifier).
@@ -34,7 +34,7 @@ flowpipe server
 
 You can then run the command below:
 ```sh
-flowpipe pipeline run detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_disabled --host local --arg='approvers=["default"]'
+flowpipe pipeline run detect_and_correct_apigateway_rest_api_stages_xray_tracing_disabled --host local --arg='approvers=["default"]'
 ```
 
 This will prompt for an action for each detected resource and then attempt to perform the chosen action upon receipt of input.
@@ -45,12 +45,12 @@ You can also decide to bypass asking for decision and just automatically apply t
 
 You can automatically apply a specific action without the need for running a Flowpipe Server and asking for a decision by setting the `default_action` parameter:
 ```sh
-flowpipe pipeline run detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_disabled --arg='default_action="enable_xray_tracing"'
+flowpipe pipeline run detect_and_correct_apigateway_rest_api_stages_xray_tracing_disabled --arg='default_action="enable_xray_tracing"'
 ```
 
 However; if you have configured a non-empty list for your `approvers` variable, you will need to override it as below:
 ```sh
-flowpipe pipeline run detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_disabled --arg='approvers=[]' --arg='default_action="enable_xray_tracing"'
+flowpipe pipeline run detect_and_correct_apigateway_rest_api_stages_xray_tracing_disabled --arg='approvers=[]' --arg='default_action="enable_xray_tracing"'
 ```
 
-This will attempt to apply the action to every detected item, if you're happy with this approach you could have this occur mmore frequently by either scheduling the command by yourself or enabling the associated [Query Trigger](https://hub.flowpipe.io/mods/turbot/aws_thrifty/triggers/aws_thrifty.trigger.query.detect_and_correct_apigateway_rest_api_stage_if_xray_tracing_disabled).
+This will attempt to apply the action to every detected item, if you're happy with this approach you could have this occur mmore frequently by either scheduling the command by yourself or enabling the associated [Query Trigger](https://hub.flowpipe.io/mods/turbot/aws_thrifty/triggers/aws_thrifty.trigger.query.detect_and_correct_apigateway_rest_api_stages_xray_tracing_disabled).
