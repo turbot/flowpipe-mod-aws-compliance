@@ -5,7 +5,7 @@ locals {
 
   cis_v300_3_control_mapping = {
     cis_v300_3_1  = {pipeline = pipeline.detect_and_correct_cloudtrail_trail_multi_region_read_write_disabled, additional_args = {}}
-    cis_v300_3_2  = {pipeline = pipeline.detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled, additional_args = {}}
+    cis_v300_3_2  = {pipeline = pipeline.detect_and_correct_cloudtrail_trails_log_file_validation_disabled, additional_args = {}}
     cis_v300_3_3  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 3.3 is in the TODO list."}}
     cis_v300_3_4  = {pipeline = pipeline.detect_and_correct_cloudtrail_trails_with_s3_logging_disabled, additional_args = {}}
     cis_v300_3_5  = {pipeline = pipeline.detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk, additional_args = {}}
