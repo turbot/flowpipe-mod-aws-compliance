@@ -9,7 +9,7 @@ locals {
     cis_v300_3_3  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 3.3 is in the TODO list."}}
     cis_v300_3_4  = {pipeline = pipeline.detect_and_correct_cloudtrail_trails_with_s3_logging_disabled, additional_args = {}}
     cis_v300_3_5  = {pipeline = pipeline.detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk, additional_args = {}}
-    cis_v300_3_6  = {pipeline = pipeline.detect_and_correct_kms_keys_with_rotation_disabled, additional_args = {}}
+    cis_v300_3_6  = {pipeline = pipeline.detect_and_correct_kms_keys_rotation_disabled, additional_args = {}}
     cis_v300_3_7  = {pipeline = pipeline.detect_and_correct_vpcs_without_flow_logs, additional_args = {}}
     cis_v300_3_8  = {pipeline = pipeline.detect_and_correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled, additional_args = {}}
     cis_v300_3_9  = {pipeline = pipeline.detect_and_correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled, additional_args = {}}

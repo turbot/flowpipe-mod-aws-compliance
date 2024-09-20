@@ -43,14 +43,19 @@ locals {
   aws_pipeline_attach_polict_to_role                = aws.pipeline.attach_iam_role_policy
   aws_pipeline_create_cloudtrail_trail              = aws.pipeline.create_cloudtrail_trail
   aws_pipeline_create_cloudwatch_log_group          = aws.pipeline.create_cloudwatch_log_group
+  aws_pipeline_create_ebs_snapshot                  = aws.pipeline.create_ebs_snapshot
+  aws_pipeline_create_elb_classic_load_balancer     = aws.pipeline.create_elb_classic_load_balancer
   aws_pipeline_create_iam_access_analyzer           = aws.pipeline.create_iam_access_analyzer
   aws_pipeline_create_iam_policy                    = aws.pipeline.create_iam_policy
   aws_pipeline_create_iam_role_with_policy          = aws.pipeline.create_iam_role
   aws_pipeline_create_s3_bucket                     = aws.pipeline.create_s3_bucket
   aws_pipeline_create_vpc_flow_logs                 = aws.pipeline.create_vpc_flow_logs
+  aws_pipeline_delete_dynamodb_table                = aws.pipeline.delete_dynamodb_table
   aws_pipeline_delete_ebs_snapshot                  = aws.pipeline.delete_ebs_snapshot
+  aws_pipeline_delete_elb_load_balancer             = aws.pipeline.delete_elb_load_balancer
   aws_pipeline_delete_iam_access_key                = aws.pipeline.delete_iam_access_key
   aws_pipeline_delete_network_acl_entry             = aws.pipeline.delete_network_acl_entry
+  aws_pipeline_delete_s3_bucket                     = aws.pipeline.delete_s3_bucket
   aws_pipeline_detach_network_interface             = aws.pipeline.detach_network_interface
   aws_pipeline_enable_cloudtrail_validation         = aws.pipeline.update_cloudtrail_trail
   aws_pipeline_enable_ebs_volume_encryption         = aws.pipeline.enable_ebs_encryption_by_default
@@ -77,7 +82,4 @@ locals {
   aws_pipeline_update_dynamodb_continuous_backup    = aws.pipeline.update_dynamodb_continuous_backup
   aws_pipeline_update_dynamodb_table                = aws.pipeline.update_dynamodb_table
   aws_pipeline_update_iam_account_password_policy   = aws.pipeline.update_iam_account_password_policy
-  aws_pipeline_delete_dynamodb_table                = aws.pipeline.delete_dynamodb_table
-  aws_pipeline_create_elb_classic_load_balancer     = aws.pipeline.create_elb_classic_load_balancer
-  aws_pipeline_delete_elb_load_balancer             = aws.pipeline.delete_elb_load_balancer
 }
