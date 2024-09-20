@@ -142,7 +142,7 @@ pipeline "correct_ec2_instances_if_publicly_accessible" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} publicly accessible EC2 instances."
+    text     = "Detected ${length(param.items)} publicly accessible EC2 instance(s)."
   }
 
   step "transform" "items_by_id" {

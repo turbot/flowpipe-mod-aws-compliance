@@ -7,7 +7,7 @@ locals {
         security_group_rule_id,
         region,
         account_id,
-        _ctx ->> 'connection_name' as cred    
+        _ctx ->> 'connection_name' as cred
       from
         aws_vpc_security_group_rule
       where
@@ -31,7 +31,7 @@ locals {
         cred
     )
     select
-      concat(sg.group_id, ' [', sg.region, '/', sg.account_id, ']') as title,
+      concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
       sg.group_id as group_id,
       ingress_rdp_rules.security_group_rule_id as security_group_rule_id,
       sg.region as region,
@@ -173,7 +173,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} VPC Security groups allowing ingress to port 3389 from 0.0.0.0/0. Allowing unrestricted RDP access is a critical security risk because it exposes your instances to potential brute-force attacks and unauthorized remote access from any IP address.."
+    text     = "Detected ${length(param.items)} VPC security group(s) allowing ingress to port 3389 from 0.0.0.0/0."
   }
 
   step "transform" "items_by_id" {
@@ -267,7 +267,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group ${param.group_id} with rule ${param.security_group_rule_id} allowing ingress on port 3389 from 0.0.0.0/0. This configuration is dangerous because it permits RDP access from anywhere on the internet, which significantly increases the risk of unauthorized remote access and potential compromise of your systems."
+      detect_msg         = "Detected VPC security group ingress rule ${param.security_group_rule_id} in ${param.title} allowing ingress on port 3389 from 0.0.0.0/0."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -279,24 +279,24 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped VPC security group ${param.group_id} with rule ${param.security_group_rule_id} allowing ingress on port 3389 from 0.0.0.0/0."
+            text     = "Skipped VPC security group ingress rule ${param.security_group_rule_id} in ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "delete_defective_security_group_rule" = {
-          label        = "Delete Security Group Rule"
-          value        = "delete_defective_security_group_rule"
+        "revoke_security_group_rule" = {
+          label        = "Revoke Security Group Rule"
+          value        = "revoke_security_group_rule"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_revoke_vpc_security_group_ingress
           pipeline_args = {
-            group_id               = param.group_id
+            security_group_id      = param.group_id
             security_group_rule_id = param.security_group_rule_id
             region                 = param.region
             cred                   = param.cred
           }
-          success_msg = "Deleted VPC security group rule ${param.security_group_rule_id} from VPC security group ${param.group_id} allowing ingress on port 3389 from 0.0.0.0/0."
-          error_msg   = "Error deleting defective rule from security group ${param.title}."
+          success_msg = "Revoked VPC security group ingress rule ${param.security_group_rule_id} from ${param.title}."
+          error_msg   = "Error revoking ingress rule ${param.security_group_rule_id} from security group ${param.title}."
         }
       }
     }
