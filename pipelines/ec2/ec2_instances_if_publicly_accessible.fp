@@ -1,11 +1,11 @@
 locals {
   ec2_instances_if_publicly_accessible_query = <<-EOQ
     select
-      concat(instance_id, ' [', region, '/', account_id, ']') as title,
+      concat(instance_id, ' [', account_id, '/', region, ']') as title,
       instance_id,
       region,
-      _ctx ->> 'connection_name' as cred,
-      public_ip_address
+      public_ip_address,
+      _ctx ->> 'connection_name' as cred
     from
       aws_ec2_instance
     where
@@ -142,7 +142,7 @@ pipeline "correct_ec2_instances_if_publicly_accessible" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} EC2 instances that are publicly accessible."
+    text     = "Detected ${length(param.items)} publicly accessible EC2 instances."
   }
 
   step "transform" "items_by_id" {
@@ -235,7 +235,7 @@ pipeline "correct_one_ec2_instance_if_publicly_accessible" {
       notifier           = param.notifier,
       notification_level = param.notification_level,
       approvers          = param.approvers,
-      detect_msg         = "Detected publicly accessible EC2 instance ${param.title}.",
+      detect_msg         = "Detected publicly accessible EC2 instance ${param.title} with public IP address ${param.public_ip_address}.",
       default_action     = param.default_action,
       enabled_actions    = param.enabled_actions,
       actions = {
@@ -247,7 +247,7 @@ pipeline "correct_one_ec2_instance_if_publicly_accessible" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped publicly accesible EC2 instance ${param.title}."
+            text     = "Skipped EC2 instance ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
@@ -268,7 +268,7 @@ pipeline "correct_one_ec2_instance_if_publicly_accessible" {
         //   error_msg   = "Error removing public IP from EC2 instance ${param.title}."
         // }
         "terminate_instance" = {
-          label        = "Terminate Instance"
+          label        = "Terminate instance"
           value        = "terminate_instance"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_terminate_ec2_instances
@@ -277,8 +277,8 @@ pipeline "correct_one_ec2_instance_if_publicly_accessible" {
             region       = param.region
             cred         = param.cred
           }
-          success_msg = "Deleted EC2 Instance ${param.title}."
-          error_msg   = "Error deleting EC2 Instance ${param.title}."
+          success_msg = "Terminated EC2 instance ${param.title}."
+          error_msg   = "Error terminating EC2 instance ${param.title}."
         }
       }
     }
