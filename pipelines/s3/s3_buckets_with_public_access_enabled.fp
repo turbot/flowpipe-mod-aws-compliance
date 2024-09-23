@@ -1,5 +1,5 @@
 locals {
-  s3_buckets_if_publicly_accessible_query = <<-EOQ
+  s3_buckets_with_public_access_enabled_query = <<-EOQ
     select
       concat(bucket.name, ' [', bucket.region, '/', bucket.account_id, ']') as title,
       bucket.region,
@@ -17,30 +17,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_s3_buckets_if_publicly_accessible" {
-  title       = "Detect & correct S3 buckets if publicly accessible"
-  description = "Detects S3 buckets if publicly accessible and runs your chosen action."
-  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_if_publicly_accessible_trigger.md")
+trigger "query" "detect_and_correct_s3_buckets_with_public_access_enabled" {
+  title       = "Detect & Correct S3 Buckets With Public Access Enabled"
+  description = "Detect S3 buckets with public access enabled and then skip or block public access."
+  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_public_access_enabled_trigger.md")
   // tags          = merge(local.s3_common_tags, { class = "unused" })
 
   enabled  = var.s3_bucket_public_access_enabled_trigger_enabled
   schedule = var.s3_bucket_public_access_enabled_trigger_schedule
   database = var.database
-  sql      = local.s3_buckets_if_publicly_accessible_query
+  sql      = local.s3_buckets_with_public_access_enabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_s3_buckets_if_publicly_accessible
+    pipeline = pipeline.correct_s3_buckets_with_public_access_enabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_s3_buckets_if_publicly_accessible" {
-  title       = "Detect & correct S3 buckets if publicly accessible"
-  description = "Detects S3 buckets if publicly accessible and runs your chosen action."
-  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_if_publicly_accessible.md")
-  // tags          = merge(local.s3_common_tags, { class = "unused", type = "featured" })
+pipeline "detect_and_correct_s3_buckets_with_public_access_enabled" {
+  title       = "Detect & Correct S3 Buckets With Public Access Enabled"
+  description = "Detect S3 buckets with public access enabled and then skip or block public access."
+  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_public_access_enabled.md")
 
   param "database" {
     type        = string
@@ -80,11 +79,11 @@ pipeline "detect_and_correct_s3_buckets_if_publicly_accessible" {
 
   step "query" "detect" {
     database = param.database
-    sql      = local.s3_buckets_if_publicly_accessible_query
+    sql      = local.s3_buckets_with_public_access_enabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_s3_buckets_if_publicly_accessible
+    pipeline = pipeline.correct_s3_buckets_with_public_access_enabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -96,10 +95,10 @@ pipeline "detect_and_correct_s3_buckets_if_publicly_accessible" {
   }
 }
 
-pipeline "correct_s3_buckets_if_publicly_accessible" {
-  title       = "Correct S3 buckets if publicly accessible"
+pipeline "correct_s3_buckets_with_public_access_enabled" {
+  title       = "Correct S3 Buckets With Public Access Enabled"
   description = "Executes corrective actions on publicly accessible S3 buckets."
-  // // documentation = file("./s3/docs/correct_s3_buckets_if_publicly_accessible.md")
+  // // documentation = file("./s3/docs/correct_s3_buckets_with_public_access_enabled.md")
   // tags          = merge(local.s3_common_tags, { class = "unused" })
 
   param "items" {
@@ -166,8 +165,8 @@ pipeline "correct_s3_buckets_if_publicly_accessible" {
 }
 
 pipeline "correct_one_s3_bucket_if_publicly_accessible" {
-  title       = "Correct one S3 bucket if publicly accessible"
-  description = "Runs corrective action on a single S3 bucket if publicly accessible."
+  title       = "Correct One S3 Bucket With Public Access Enabled"
+  description = "Runs corrective action on a single S3 bucket with public access enabled."
   // // documentation = file("./s3/docs/correct_one_s3_bucket_if_publicly_accessible.md")
   // tags          = merge(local.s3_common_tags, { class = "unused" })
 
@@ -227,7 +226,7 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected S3 bucket ${param.title} if publicly accessible."
+      detect_msg         = "Detected S3 bucket ${param.title} with public access enabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -244,17 +243,17 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
           success_msg = "Skipped S3 bucket ${param.title} with public access."
           error_msg   = "Error skipping S3 bucket ${param.title} with public access."
         },
-        "s3_bucket_block_public_access" = {
+        "block_public_access" = {
           label        = "Block public access"
-          value        = "s3_bucket_block_public_access"
+          value        = "block_public_access"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_s3_bucket_block_public_access
+          pipeline_ref  = pipeline.test_put_s3_bucket_public_access_block
           pipeline_args = {
             bucket = param.bucket_name
             region = param.region
             cred   = param.cred
           }
-          success_msg = "Enabled blocking of  public access on S3 bucket ${param.title}."
+          success_msg = "Enabled blocking of public access on S3 bucket ${param.title}."
           error_msg   = "Error disabling public access on S3 bucket ${param.title}."
         }
       }
@@ -283,5 +282,72 @@ variable "s3_bucket_public_access_enabled_default_action" {
 variable "s3_bucket_public_access_enabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "s3_bucket_block_public_access"]
+  default     = ["skip", "block_public_access"]
+}
+
+
+
+pipeline "test_put_s3_bucket_public_access_block" {
+  title       = "Put S3 Public Access Block"
+  description = "Creates or modifies the PublicAccessBlock configuration for an Amazon S3 bucket."
+
+  param "region" {
+    type        = string
+    description = local.description_region
+  }
+
+  param "cred" {
+    type        = string
+    description = local.description_credential
+    default     = "default"
+  }
+
+  param "bucket" {
+    type        = string
+    description = "The name of the S3 bucket."
+  }
+
+  # TODO: AWS defaults to false for all settings when not specified,
+  # but we require each one to prevent accidentally turning off restrictions. Should they be required?
+
+  param "block_public_acls" {
+    type        = bool
+    description = "Specifies whether Amazon S3 should block public access control lists (ACLs) for this bucket and objects in this bucket."
+    default     = true
+  }
+
+  param "ignore_public_acls" {
+    type        = bool
+    description = "Specifies whether Amazon S3 should ignore public ACLs for this bucket and objects in this bucket."
+    default     = true
+  }
+
+  param "block_public_policy" {
+    type        = bool
+    description = "Specifies whether Amazon S3 should block public bucket policies for this bucket."
+    default     = true
+  }
+
+  param "restrict_public_buckets" {
+    type        = bool
+    description = "Specifies whether Amazon S3 should restrict public bucket policies for this bucket."
+    default     = true
+  }
+
+  step "container" "put_s3_bucket_public_access_block" {
+    image = "public.ecr.aws/aws-cli/aws-cli"
+
+    cmd = concat(
+      ["s3api", "put-public-access-block"],
+      ["--bucket", param.bucket],
+      ["--public-access-block-configuration", join(",", concat(
+        param.block_public_acls != null ? ["BlockPublicAcls=${param.block_public_acls}"] : [],
+        param.ignore_public_acls != null ? ["IgnorePublicAcls=${param.ignore_public_acls}"] : [],
+        param.block_public_policy != null ? ["BlockPublicPolicy=${param.block_public_policy}"] : [],
+        param.restrict_public_buckets != null ? ["RestrictPublicBuckets=${param.restrict_public_buckets}"] : []
+      ))]
+    )
+
+    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+  }
 }
