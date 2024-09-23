@@ -3,8 +3,12 @@ locals {
     with ingress_rdp_rules as (
       select
         group_id,
-        count(*) as num_bad_rules,
         security_group_rule_id,
+        ip_protocol,
+        from_port,
+        to_port,
+        coalesce(cidr_ipv4::text, '') as cidr_ipv4,
+        coalesce(cidr_ipv6::text, '') as cidr_ipv6,
         region,
         account_id,
         _ctx ->> 'connection_name' as cred
@@ -12,29 +16,28 @@ locals {
         aws_vpc_security_group_rule
       where
         type = 'ingress'
-        and cidr_ipv4 = '0.0.0.0/0'
+        and (cidr_ipv4 = '0.0.0.0/0' or cidr_ipv6 = '::/0')
         and (
           (
             ip_protocol = '-1'
             and from_port is null
           )
           or (
-            from_port >= 3389
-            and to_port <= 3389
+            from_port <= 3389
+            and to_port >= 3389
           )
         )
-      group by
-        group_id,
-        security_group_rule_id,
-        region,
-        account_id,
-        cred
     )
     select
       concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
       sg.group_id as group_id,
       ingress_rdp_rules.security_group_rule_id as security_group_rule_id,
       sg.region as region,
+      ingress_rdp_rules.ip_protocol as ip_protocol,
+      ingress_rdp_rules.from_port as from_port,
+      ingress_rdp_rules.to_port as to_port,
+      ingress_rdp_rules.cidr_ipv4 as cidr_ipv4,
+      ingress_rdp_rules.cidr_ipv6 as cidr_ipv6,
       sg._ctx ->> 'connection_name' as cred
     from
       aws_vpc_security_group as sg
@@ -44,10 +47,34 @@ locals {
   EOQ
 }
 
+variable "vpc_security_groups_allowing_ingress_to_port_3389_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "vpc_security_groups_allowing_ingress_to_port_3389_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "vpc_security_groups_allowing_ingress_to_port_3389_default_action" {
+  type        = string
+  default     = "notify"
+  description = "The default action to use for the detected item, used if no input is provided."
+}
+
+variable "vpc_security_groups_allowing_ingress_to_port_3389_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "delete_defective_security_group_rule"]
+}
+
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" {
-  title         = "Detect & correct VPC Security groups allowing ingress to port 3389"
-  description   = "Detects Security group rules that allow ingress from 0.0.0.0/0 to port 3389."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389_trigger.md")
+  title         = "Detect & correct VPC security groups allowing ingress to port 3389"
+  description   = "Detects security group rules that allow ingress from 0.0.0.0/0 to port 3389."
+  // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389_trigger.md")
   tags          = merge(local.vpc_common_tags, { class = "security" })
 
   enabled  = var.vpc_security_groups_allowing_ingress_to_port_3389_trigger_enabled
@@ -64,9 +91,9 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port
 }
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" {
-  title         = "Detect & correct VPC Security groups allowing ingress to port 3389"
-  description   = "Detects Security groups that allow risky ingress rules and suggests corrective actions."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389.md")
+  title         = "Detect & correct VPC security groups allowing ingress to port 3389"
+  description   = "Detects security groups that allow risky ingress rules and suggests corrective actions."
+  // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389.md")
   tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })
 
   param "database" {
@@ -124,9 +151,9 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" 
 }
 
 pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
-  title         = "Correct VPC Security groups allowing ingress to port 3389"
-  description   = "Modifies Security group entries to restrict access to port 3389."
-  // // documentation = file("./vpc/docs/correct_vpc_security_groups_allowing_ingress_to_port_3389.md")
+  title         = "Correct VPC security groups allowing ingress to port 3389"
+  description   = "Modifies security group entries to restrict access to port 3389."
+  // documentation = file("./vpc/docs/correct_vpc_security_groups_allowing_ingress_to_port_3389.md")
   tags          = merge(local.vpc_common_tags, { class = "security" })
 
   param "items" {
@@ -134,6 +161,11 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
       title                  = string,
       group_id               = string,
       security_group_rule_id = string,
+      ip_protocol            = string,
+      from_port              = number,
+      to_port                = number,
+      cidr_ipv4              = string,
+      cidr_ipv6              = string,
       region                 = string,
       cred                   = string
     }))
@@ -173,11 +205,11 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} VPC security group rule(s) allowing ingress to port 3389 from 0.0.0.0/0."
+    text     = "Detected ${length(param.items)} VPC security group rule(s) allowing ingress to port 3389 from 0.0.0.0/0 or ::/0."
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.group_id => row }
+    value = { for row in param.items : row.security_group_rule_id => row }
 
   }
 
@@ -189,6 +221,11 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
       title                  = each.value.title,
       group_id               = each.value.group_id,
       security_group_rule_id = each.value.security_group_rule_id
+      ip_protocol            = each.value.ip_protocol,
+      to_port                = each.value.to_port,
+      from_port              = each.value.from_port,
+      cidr_ipv4              = each.value.cidr_ipv4,
+      cidr_ipv6              = each.value.cidr_ipv6,
       region                 = each.value.region,
       cred                   = each.value.cred,
       notifier               = param.notifier,
@@ -201,9 +238,9 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
 }
 
 pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
-  title         = "Correct one VPC Security group allowing ingress to port 3389"
-  description   = "Correct a specific Security group entry to restrict improper access."
-  // // documentation = file("./vpc/docs/correct_one_vpc_security_group_allowing_ingress_to_port_3389.md")
+  title         = "Correct one VPC security group allowing ingress to port 3389"
+  description   = "Correct a specific security group entry to restrict improper access."
+  // documentation = file("./vpc/docs/correct_one_vpc_security_group_allowing_ingress_to_port_3389.md")
   tags          = merge(local.vpc_common_tags, { class = "security" })
 
   param "title" {
@@ -213,12 +250,37 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
 
   param "group_id" {
     type        = string
-    description = "The ID of the Security group."
+    description = "The ID of the security group."
   }
 
   param "security_group_rule_id" {
     type        = string
-    description = "The ID of the Security group rule."
+    description = "The ID of the security group rule."
+  }
+
+  param "ip_protocol" {
+    type        = string
+    description = "IP protocol."
+  }
+
+  param "from_port" {
+    type        = number
+    description = "From port."
+  }
+
+  param "to_port" {
+    type        = number
+    description = "To port."
+  }
+
+  param "cidr_ipv4" {
+    type        = string
+    description = "The IPv4 CIDR range."
+  }
+
+  param "cidr_ipv6" {
+    type        = string
+    description = "The IPv6 CIDR range."
   }
 
   param "region" {
@@ -267,7 +329,22 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group ingress rule ${param.security_group_rule_id} in ${param.title} allowing ingress on port 3389 from 0.0.0.0/0."
+      detect_msg = <<-EOT
+      Detected VPC security group ingress rule ${param.security_group_rule_id} in ${param.title} allowing ingress on port 3389 from 0.0.0.0/0 or ::/0.
+
+      Rule info:
+        - Security Group ID: ${param.group_id}
+        - Rule ID: ${param.security_group_rule_id}
+        - Protocol: ${param.ip_protocol}
+        - Port Range: ${param.from_port}-${param.to_port}
+        - CIDR: ${coalesce(param.cidr_ipv4, param.cidr_ipv6)}
+      EOT
+      /*
+      AWS CLI command to describe the rule:
+      aws ec2 describe-security-group-rules --filter "Name=security-group-rule-id,Values=${param.security_group_rule_id}" --region ${param.region}
+      EOT
+      */
+      //detect_msg         = "Detected VPC security group ingress rule ${param.security_group_rule_id} in ${param.title} allowing ingress on port 3389 from 0.0.0.0/0."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -301,28 +378,4 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
       }
     }
   }
-}
-
-variable "vpc_security_groups_allowing_ingress_to_port_3389_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "vpc_security_groups_allowing_ingress_to_port_3389_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "vpc_security_groups_allowing_ingress_to_port_3389_default_action" {
-  type        = string
-  default     = "notify"
-  description = "The default action to use for the detected item, used if no input is provided."
-}
-
-variable "vpc_security_groups_allowing_ingress_to_port_3389_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_defective_security_group_rule"]
 }
