@@ -3,8 +3,7 @@ locals {
     with ssl_ok as (
       select
         distinct name,
-        arn,
-        'ok' as status
+        arn
       from
         aws_s3_bucket,
         jsonb_array_elements(policy_std -> 'Statement') as s,
@@ -28,16 +27,38 @@ locals {
       aws_s3_bucket as b
       left join ssl_ok as ok on ok.name = b.name
     where
-      ok.name is null
-      and b.name = 'aab-usea1-1icrs7ytnryux';
+      ok.name is null;
   EOQ
 }
 
+variable "s3_bucket_enforce_ssl_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "s3_bucket_enforce_ssl_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "s3_bucket_enforce_ssl_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "skip"
+}
+
+variable "s3_bucket_enforce_ssl_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "enforce_ssl"]
+}
+
 trigger "query" "detect_and_correct_s3_buckets_without_ssl_enforcement" {
-  title       = "Detect & correct S3 buckets without SSL enforcement"
-  description = "Detects S3 buckets that do not enforce SSL and runs your chosen action."
-  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_without_ssl_enforcement_trigger.md")
-  tags = merge(local.s3_common_tags, { class = "security" })
+  title       = "Detect & Correct S3 Buckets Without SSL Enforcement"
+  description = "Detect S3 buckets that do not enforce SSL and then skip or enforce SSL."
+  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_without_ssl_enforcement_trigger.md")  
 
   enabled  = var.s3_bucket_enforce_ssl_trigger_enabled
   schedule = var.s3_bucket_enforce_ssl_trigger_schedule
@@ -53,10 +74,9 @@ trigger "query" "detect_and_correct_s3_buckets_without_ssl_enforcement" {
 }
 
 pipeline "detect_and_correct_s3_buckets_without_ssl_enforcement" {
-  title       = "Detect & correct S3 Buckets without SSL enforcement"
-  description = "Detects S3 buckets that do not enforce SSL and runs your chosen action."
+  title       = "Detect & Correct S3 Buckets Without SSL Enforcement"
+  description = "Detect S3 buckets that do not enforce SSL and then skip or enforce SSL."
   // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_without_ssl_enforcement.md")
-  tags = merge(local.s3_common_tags, { class = "security", type = "featured" })
 
   param "database" {
     type        = string
@@ -113,11 +133,10 @@ pipeline "detect_and_correct_s3_buckets_without_ssl_enforcement" {
 }
 
 pipeline "correct_s3_buckets_without_ssl_enforcement" {
-  title       = "Correct S3 Buckets without SSL enforcement"
+  title       = "Correct S3 Buckets Without SSL Enforcement"
   description = "Executes corrective actions on S3 buckets that do not enforce SSL."
   // // documentation = file("./s3/docs/correct_s3_buckets_without_ssl_enforcement.md")
-  tags = merge(local.s3_common_tags, { class = "security" })
-
+  
   param "items" {
     type = list(object({
       title       = string
@@ -161,7 +180,7 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == "verbose"
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} S3 buckets without SSL enforcement."
+    text     = "Detected ${length(param.items)} S3 bucket(s) without SSL enforcement."
   }
 
   step "pipeline" "correct_item" {
@@ -186,8 +205,7 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
   title       = "Correct One S3 Bucket Without SSL Enforcement"
   description = "Enforces SSL on a single S3 bucket."
   // // documentation = file("./s3/docs/correct_one_s3_bucket_without_ssl_enforcement.md")
-  tags = merge(local.s3_common_tags, { class = "security" })
-
+  
   param "title" {
     type        = string
     description = local.description_title
@@ -267,7 +285,7 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_put_s3_bucket_policy
           pipeline_args = {
-            bucket_name = param.bucket_name
+            bucket      = param.bucket_name
             region      = param.region
             cred        = param.cred
             policy      = "{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Deny\", \"Principal\": \"*\", \"Action\": \"s3:*\", \"Resource\": [ \"arn:aws:s3:::${param.bucket_name}\", \"arn:aws:s3:::${param.bucket_name}/*\" ], \"Condition\": { \"Bool\": { \"aws:SecureTransport\": \"false\" } } } ] }"
@@ -278,28 +296,4 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
       }
     }
   }
-}
-
-variable "s3_bucket_enforce_ssl_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "s3_bucket_enforce_ssl_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "s3_bucket_enforce_ssl_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "enforce_ssl"
-}
-
-variable "s3_bucket_enforce_ssl_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enforce_ssl"]
 }

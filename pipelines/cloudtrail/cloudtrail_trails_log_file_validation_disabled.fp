@@ -39,7 +39,7 @@ variable "cloudtrail_trails_log_file_validation_disabled_enabled_actions" {
 
 trigger "query" "detect_and_correct_cloudtrail_trails_log_file_validation_disabled" {
   title         = "Detect & Correct CloudTrail Trails Log File Validation Disabled"
-  description   = "Detect CloudTrail trails with log file validation disabled and then enable log file validation."
+  description   = "Detect CloudTrail trails with log file validation disabled and then skip or enable log file validation."
   //documentation = file("./cloudtrail/docs/cloudtrail_trails_log_file_validation_disabled.md")
   tags          = local.cloudtrail_common_tags
 
@@ -168,12 +168,8 @@ pipeline "correct_cloudtrail_trails_log_file_validation_disabled" {
     text     = "Detected ${length(param.items)} CloudTrail trails with log file validation disabled."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items: row.name => row }
-  }
-
   step "pipeline" "correct_cloudtrail_trails_log_file_validation_disabled" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for row in param.items: row.name => row }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_cloudtrail_trail_log_file_validation_disabled
     args = {
