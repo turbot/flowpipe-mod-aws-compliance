@@ -37,7 +37,7 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_skip" {
 
   step "pipeline" "run_detection" {
     depends_on = [step.pipeline.create_public_s3_bucket]
-    pipeline   = pipeline.detect_and_correct_s3_buckets_if_publicly_accessible
+    pipeline   = pipeline.detect_and_correct_s3_buckets_with_public_access_enabled
     args = {
       database         = var.database
       notifier         = var.notifier

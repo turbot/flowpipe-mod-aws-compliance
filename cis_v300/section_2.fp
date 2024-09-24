@@ -7,7 +7,7 @@ locals {
     cis_v300_2_1_1  = {pipeline = pipeline.detect_and_correct_s3_buckets_without_ssl_enforcement, additional_args = {}}
     cis_v300_2_1_2  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 2.1.2 is a manual control."}}
     cis_v300_2_1_3  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 2.1.3 is a TODO control."}}
-    cis_v300_2_1_4  = {pipeline = pipeline.detect_and_correct_s3_buckets_if_publicly_accessible, additional_args = {}}
+    cis_v300_2_1_4  = {pipeline = pipeline.detect_and_correct_s3_buckets_with_public_access_enabled, additional_args = {}}
     cis_v300_2_2_1  = {pipeline = pipeline.detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled, additional_args = {}}
     cis_v300_2_3_1  = {pipeline = pipeline.detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled, additional_args = {}}
     cis_v300_2_3_2  = {pipeline = pipeline.detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled, additional_args = {}}

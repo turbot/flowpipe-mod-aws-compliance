@@ -16,7 +16,7 @@ locals {
       where
         p = '*'
         and s ->> 'Effect' = 'Deny'
-        and ssl :: bool = false
+        and ssl::bool = false
     )
     select
       concat(b.name, ' [', b.region, '/', b.account_id, ']') as title,
@@ -46,7 +46,7 @@ variable "s3_bucket_enforce_ssl_trigger_schedule" {
 variable "s3_bucket_enforce_ssl_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "skip"
+  default     = "notify"
 }
 
 variable "s3_bucket_enforce_ssl_enabled_actions" {

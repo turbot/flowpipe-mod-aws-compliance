@@ -289,7 +289,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
 variable "vpc_default_security_groups_allowing_ingress_egress_trigger_enabled" {
   type        = bool
   default     = false
-  description = local.description_trigger_enabled
+  description = "If true, the trigger is enabled."
 }
 
 variable "vpc_default_security_groups_allowing_ingress_egress_trigger_schedule" {
