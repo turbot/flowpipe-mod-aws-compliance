@@ -46,7 +46,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
 
   step "pipeline" "respond" {
     depends_on = [step.sleep.sleep_150_seconds]
-    pipeline = pipeline.detect_and_correct_dynamodb_table_if_deletion_protection_disabled
+    pipeline = pipeline.detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled
     args = {
       default_action     = "update_table"
       enabled_actions    = ["update_table"]

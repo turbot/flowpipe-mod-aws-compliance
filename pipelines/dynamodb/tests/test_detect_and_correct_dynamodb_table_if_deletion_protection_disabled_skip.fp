@@ -41,7 +41,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
 
   step "pipeline" "run_detection" {
     depends_on = [step.container.create_dynamodb_table]
-    pipeline = pipeline.detect_and_correct_dynamodb_table_if_deletion_protection_disabled
+    pipeline = pipeline.detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled
     args = {
       default_action     = "skip"
       enabled_actions    = ["skip"]

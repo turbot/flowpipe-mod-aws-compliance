@@ -46,7 +46,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
 
   step "pipeline" "run_detection" {
     depends_on = [step.sleep.sleep_100_seconds]
-    pipeline = pipeline.detect_and_correct_dynamodb_table_if_point_in_time_recovery_disabled
+    pipeline = pipeline.detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled
     args = {
       database         = var.database
       notifier         = var.notifier

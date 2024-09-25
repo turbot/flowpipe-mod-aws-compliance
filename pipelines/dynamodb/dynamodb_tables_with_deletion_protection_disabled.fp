@@ -1,6 +1,5 @@
 locals {
-
-  dynamodb_table_if_deletion_protection_disabled_query = <<-EOQ
+  dynamodb_tables_with_deletion_protection_disabled_query = <<-EOQ
   select
     concat(name, ' [', region, '/', account_id, ']') as title,
     name,
@@ -9,33 +8,57 @@ locals {
   from
     aws_dynamodb_table
   where
-    not deletion_protection_enabled
+    not deletion_protection_enabled;
   EOQ
 }
 
-trigger "query" "detect_and_correct_dynamodb_table_if_deletion_protection_disabled" {
-  title         = "Detect & correct DynamoDB table if deletion protection disabled"
-  description   = "Detects DynamoDB tables if deletion protection disabled and runs your chosen action."
-  // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_table_if_deletion_protection_disabled_trigger.md")
+trigger "query" "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" {
+  title         = "Detect & correct DynamoDB table with deletion protection disabled"
+  description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
+  // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_tables_with_deletion_protection_disabled_trigger.md")
   tags          = merge(local.dynamodb_common_tags, { class = "unused" })
 
-  enabled  = var.dynamodb_table_if_deletion_protection_disabled_trigger_enabled
-  schedule = var.dynamodb_table_if_deletion_protection_disabled_trigger_schedule
+  enabled  = var.dynamodb_tables_with_deletion_protection_disabled_trigger_enabled
+  schedule = var.dynamodb_tables_with_deletion_protection_disabled_trigger_schedule
   database = var.database
-  sql      = local.dynamodb_table_if_deletion_protection_disabled_query
+  sql      = local.dynamodb_tables_with_deletion_protection_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_dynamodb_table_if_deletion_protection_disabled
+    pipeline = pipeline.correct_dynamodb_tables_with_deletion_protection_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_dynamodb_table_if_deletion_protection_disabled" {
-  title         = "Detect & correct DynamoDB tables if deletion protection disabled"
-  description   = "Detects DynamoDB tables if deletion protection disabled and runs your chosen action."
-  // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_table_if_deletion_protection_disabled.md")
+variable "dynamodb_tables_with_deletion_protection_disabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "dynamodb_tables_with_deletion_protection_disabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "dynamodb_tables_with_deletion_protection_disabled_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+}
+
+variable "dynamodb_tables_with_deletion_protection_disabled_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "enable_deletion_protection"]
+}
+
+pipeline "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" {
+  title         = "Detect & correct DynamoDB tables with deletion protection disabled"
+  description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
+  // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_tables_with_deletion_protection_disabled.md")
   tags          = merge(local.dynamodb_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -65,22 +88,22 @@ pipeline "detect_and_correct_dynamodb_table_if_deletion_protection_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.dynamodb_table_if_deletion_protection_disabled_default_action
+    default     = var.dynamodb_tables_with_deletion_protection_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.dynamodb_table_if_deletion_protection_disabled_enabled_actions
+    default     = var.dynamodb_tables_with_deletion_protection_disabled_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.dynamodb_table_if_deletion_protection_disabled_query
+    sql      = local.dynamodb_tables_with_deletion_protection_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_dynamodb_table_if_deletion_protection_disabled
+    pipeline = pipeline.correct_dynamodb_tables_with_deletion_protection_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -92,10 +115,10 @@ pipeline "detect_and_correct_dynamodb_table_if_deletion_protection_disabled" {
   }
 }
 
-pipeline "correct_dynamodb_table_if_deletion_protection_disabled" {
-  title         = "Correct DynamoDB table if deletion protection disabled"
-  description   = "Runs corrective action on a collection of DynamoDB table if deletion protection disabled."
-  // documentation = file("./dynamodb/docs/correct_dynamodb_table_if_deletion_protection_disabled.md")
+pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
+  title         = "Correct DynamoDB tables with deletion protection disabled"
+  description   = "Runs corrective action on a collection of DynamoDB tables with deletion protection disabled."
+  // documentation = file("./dynamodb/docs/correct_dynamodb_tables_with_deletion_protection_disabled.md")
   tags          = merge(local.dynamodb_common_tags, { class = "unused" })
 
   param "items" {
@@ -129,29 +152,25 @@ pipeline "correct_dynamodb_table_if_deletion_protection_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.dynamodb_table_if_deletion_protection_disabled_default_action
+    default     = var.dynamodb_tables_with_deletion_protection_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.dynamodb_table_if_deletion_protection_disabled_enabled_actions
+    default     = var.dynamodb_tables_with_deletion_protection_disabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} DynamoDB table if deletion protection disabled."
-  }
-
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.name => row }
+    text     = "Detected ${length(param.items)} DynamoDB table(s) with deletion protection disabled."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : items.name => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_dynamodb_table_if_deletion_protection_disabled
+    pipeline        = pipeline.correct_one_dynamodb_table_with_deletion_protection_disabled
     args = {
       title              = each.value.title
       name               = each.value.name
@@ -166,10 +185,10 @@ pipeline "correct_dynamodb_table_if_deletion_protection_disabled" {
   }
 }
 
-pipeline "correct_one_dynamodb_table_if_deletion_protection_disabled" {
-  title         = "Correct one DynamoDB table if deletion protection disabled"
-  description   = "Runs corrective action on an DynamoDB table if deletion protection disabled."
-  // documentation = file("./dynamodb/docs/correct_one_dynamodb_table_if_deletion_protection_disabled.md")
+pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
+  title         = "Correct one DynamoDB table with deletion protection disabled"
+  description   = "Runs corrective action on an DynamoDB table with deletion protection disabled."
+  // documentation = file("./dynamodb/docs/correct_one_dynamodb_table_with_deletion_protection_disabled.md")
   tags          = merge(local.dynamodb_common_tags, { class = "unused" })
 
   param "title" {
@@ -213,13 +232,13 @@ pipeline "correct_one_dynamodb_table_if_deletion_protection_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.dynamodb_table_if_deletion_protection_disabled_default_action
+    default     = var.dynamodb_tables_with_deletion_protection_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.dynamodb_table_if_deletion_protection_disabled_enabled_actions
+    default     = var.dynamodb_tables_with_deletion_protection_disabled_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -228,7 +247,7 @@ pipeline "correct_one_dynamodb_table_if_deletion_protection_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected DynamoDB table with deletion protection disabled ${param.title}."
+      detect_msg         = "Detected DynamoDB table ${param.title} with deletion protection disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -245,9 +264,9 @@ pipeline "correct_one_dynamodb_table_if_deletion_protection_disabled" {
           success_msg = "Skipped DynamoDB table ${param.title} with deletion protection disabled."
           error_msg   = ""
         },
-        "update_table" = {
-          label        = "Update Table"
-          value        = "update_table"
+        "enable_deletion_protection" = {
+          label        = "Enable Deletion Protection"
+          value        = "enable_deletion_protection"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_update_dynamodb_table
           pipeline_args = {
@@ -255,34 +274,10 @@ pipeline "correct_one_dynamodb_table_if_deletion_protection_disabled" {
             region      = param.region
             cred        = param.cred
           }
-          success_msg = "Updated DynamoDB table ${param.title}."
-          error_msg   = "Error updating DynamoDB table ${param.title}."
+          success_msg = "Enabled deletion protection for DynamoDB table ${param.title}."
+          error_msg   = "Error enabling deletion protection for DynamoDB table ${param.title}."
         }
       }
     }
   }
-}
-
-variable "dynamodb_table_if_deletion_protection_disabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "dynamodb_table_if_deletion_protection_disabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "dynamodb_table_if_deletion_protection_disabled_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "dynamodb_table_if_deletion_protection_disabled_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "update_table"]
 }
