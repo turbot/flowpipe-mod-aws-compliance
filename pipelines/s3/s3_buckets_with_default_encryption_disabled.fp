@@ -16,7 +16,6 @@ trigger "query" "detect_and_correct_s3_buckets_with_default_encryption_disabled"
   title       = "Detect & Correct S3 Buckets With Default Encryption Disabled"
   description = "Detect S3 buckets with default encryption disabled and then skip or enable default encryption."
   // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_default_encryption_disabled_trigger.md")
-  
 
   enabled  = var.s3_bucket_default_encryption_disabled_trigger_enabled
   schedule = var.s3_bucket_default_encryption_disabled_trigger_schedule
@@ -156,7 +155,7 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == "verbose"
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} S3 bucket(s) with default encryption disabled."
   }
@@ -273,7 +272,7 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
           pipeline_ref = local.pipeline_optional_message
           pipeline_args = {
             notifier = param.notifier
-            send     = param.notification_level == "verbose"
+            send     = param.notification_level == local.level_verbose
             text     = "Skipped S3 bucket ${param.bucket_name} with default encryption disabled."
           }
           success_msg = "Skipped S3 bucket ${param.bucket_name} with default encryption disabled."

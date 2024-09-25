@@ -1,8 +1,7 @@
 locals {
-
   rds_db_instances_with_auto_minor_version_upgrade_disabled_query = <<-EOQ
     select
-      concat(db_instance_identifier, ' [', region, '/', account_id, ']') as title,
+      concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
       db_instance_identifier,
       region,
       _ctx ->> 'connection_name' as cred
@@ -140,9 +139,9 @@ pipeline "correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} RDS DB instances with auto minor version upgrade disabled."
+    text     = "Detected ${length(param.items)} RDS DB instance(s) with auto minor version upgrade disabled."
   }
 
   step "transform" "items_by_id" {

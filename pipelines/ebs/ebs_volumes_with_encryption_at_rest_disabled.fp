@@ -160,7 +160,7 @@ pipeline "correct_ebs_volumes_with_encryption_at_rest_disabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} EBS volume(s) with encryption at rest disabled."
   }
@@ -257,7 +257,7 @@ pipeline "correct_one_ebs_volumes_with_encryption_at_rest_disabled" {
           error_msg   = ""
         },
         "enable_encryption" = {
-          label        = "Enable Encryption"
+          label        = "Enable EBS encryption by default in ${param.region} region"
           value        = "enable_encryption"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_enable_ebs_volume_encryption

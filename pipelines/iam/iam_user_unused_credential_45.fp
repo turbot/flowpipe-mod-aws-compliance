@@ -1,21 +1,21 @@
 locals {
   iam_user_unused_credentials_45_query = <<-EOQ
     select
-			concat(u.name, ' [', u.account_id, ']') as title,
-			access_key_id,
-			u.name as user_name,
-			u._ctx ->> 'connection_name' as cred,
-			case
-				when
-					r.password_enabled and r.password_last_used is null and r.password_last_changed < (current_date - interval '45' day)
-					OR r.password_enabled and r.password_last_used  < (current_date - interval '45' day) then true else false
-				end as password_disable
-		from
-			aws_iam_user as u
-			join aws_iam_access_key as k on u.name = k.user_name and u.account_id = k.account_id
-			join aws_iam_credential_report as r on r.user_name = u.name and u.account_id = r.account_id
-		where
-			access_key_last_used_date < (current_date - interval '45' day);
+      concat(u.name, ' [', u.account_id, ']') as title,
+      access_key_id,
+      u.name as user_name,
+      u._ctx ->> 'connection_name' as cred,
+      case
+        when
+          r.password_enabled and r.password_last_used is null and r.password_last_changed < (current_date - interval '45' day)
+          OR r.password_enabled and r.password_last_used  < (current_date - interval '45' day) then true else false
+        end as password_disable
+    from
+      aws_iam_user as u
+      join aws_iam_access_key as k on u.name = k.user_name and u.account_id = k.account_id
+      join aws_iam_credential_report as r on r.user_name = u.name and u.account_id = r.account_id
+    where
+      access_key_last_used_date < (current_date - interval '45' day);
   EOQ
 }
 
@@ -107,7 +107,7 @@ pipeline "deactivate_iam_user_unused_credentials_45" {
       user_name     = string
       account_id    = string
       access_key_id = string
-			password_disable = bool
+      password_disable = bool
       cred          = string
     }))
     description = local.description_items
@@ -144,7 +144,7 @@ pipeline "deactivate_iam_user_unused_credentials_45" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} IAM user credentials that have been unused for 45 days."
   }
@@ -161,7 +161,7 @@ pipeline "deactivate_iam_user_unused_credentials_45" {
       title              = each.value.title
       user_name          = each.value.user_name
       access_key_id      = each.value.access_key_id
-			password_disable = each.value.password_disable
+      password_disable   = each.value.password_disable
       cred               = each.value.cred
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -263,7 +263,7 @@ pipeline "correct_one_iam_user_unused_credential_45" {
           pipeline_ref = pipeline.deactivate_access_key_and_disable_console_access
           pipeline_args = {
             user_name     = param.user_name
-						password_disable = param.password_disable
+            password_disable = param.password_disable
             access_key_id = param.access_key_id
             cred          = param.cred
           }

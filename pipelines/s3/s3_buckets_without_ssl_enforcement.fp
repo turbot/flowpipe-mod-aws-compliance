@@ -17,9 +17,10 @@ locals {
         p = '*'
         and s ->> 'Effect' = 'Deny'
         and ssl::bool = false
+      limit 3 -- TODO: Remove after tests
     )
     select
-      concat(b.name, ' [', b.region, '/', b.account_id, ']') as title,
+      concat(b.name, ' [', b.account_id, '/', b.region, ']') as title,
       b.name as bucket_name,
       b._ctx ->> 'connection_name' as cred,
       b.region
@@ -27,7 +28,8 @@ locals {
       aws_s3_bucket as b
       left join ssl_ok as ok on ok.name = b.name
     where
-      ok.name is null;
+      ok.name is null
+    limit 3 -- TODO: Remove after tests
   EOQ
 }
 
@@ -178,7 +180,7 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == "verbose"
+    if       = var.notification_level == "info"
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} S3 bucket(s) without SSL enforcement."
   }
@@ -273,14 +275,14 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
           pipeline_ref = local.pipeline_optional_message
           pipeline_args = {
             notifier = param.notifier
-            send     = param.notification_level == "verbose"
+            send     = param.notification_level == local.level_verbose
             text     = "Skipped S3 bucket ${param.bucket_name} without SSL enforcement."
           }
           success_msg = "Skipped S3 bucket ${param.bucket_name} without SSL enforcement."
           error_msg   = "Error skipping S3 bucket ${param.bucket_name} without SSL enforcement."
         },
         "enforce_ssl" = {
-          label        = "Enforce SSL"
+          label        = "Add bucket policy statement to enforce SSL to S3 bucket ${param.bucket_name}"
           value        = "enforce_ssl"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_put_s3_bucket_policy
@@ -290,8 +292,8 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
             cred        = param.cred
             policy      = "{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Deny\", \"Principal\": \"*\", \"Action\": \"s3:*\", \"Resource\": [ \"arn:aws:s3:::${param.bucket_name}\", \"arn:aws:s3:::${param.bucket_name}/*\" ], \"Condition\": { \"Bool\": { \"aws:SecureTransport\": \"false\" } } } ] }"
           }
-          success_msg = "Enforced SSL for S3 bucket ${param.bucket_name}."
-          error_msg   = "Failed to enforce SSL for S3 bucket ${param.bucket_name}."
+          success_msg = "Added bucket policy statement to enforce SSL to S3 bucket ${param.bucket_name}."
+          error_msg   = "Failed to add bucket policy statement to enforce SSL to S3 bucket ${param.bucket_name}."
         }
       }
     }

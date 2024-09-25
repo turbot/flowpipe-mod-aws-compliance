@@ -1,12 +1,10 @@
+# TODO: Convert remaining controls and remove use of pipeline key when looping
 locals {
-  // cis_v300_1_common_tags = merge(local.cis_v300_common_tags, {
-  //   cis_section_id = "1"
-  // })
   cis_v300_1_control_mapping = {
-    cis_v300_1_1  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.1 is a manual control."}}
-    cis_v300_1_2  = {pipeline = pipeline.detect_and_correct_accounts_alternate_contact_security_unregistered, additional_args = {}}
-    cis_v300_1_3  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.3 is a manual control."}}
-    cis_v300_1_4  = {pipeline = pipeline.detect_and_delete_iam_root_access_keys, additional_args = {}}
+    cis_v300_1_1  = {pipeline = pipeline.cis_v300_1_1 }
+    cis_v300_1_2  = {pipeline = pipeline.cis_v300_1_2 }
+    cis_v300_1_3  = {pipeline = pipeline.cis_v300_1_3 }
+    cis_v300_1_4  = {pipeline = pipeline.cis_v300_1_4 }
     cis_v300_1_5  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.5 is a manual control."}}
     cis_v300_1_6  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.6 is a manual control."}}
     cis_v300_1_7  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.7 is a manual control."}}
@@ -28,22 +26,220 @@ locals {
   }
 }
 
-variable "cis_v300_1_enabled_controls" {
+variable "cis_v300_1_enabled_pipelines" {
   type        = list(string)
-  description = "List of CIS v3.0.0 section 1 controls to enable"
-  default     = [
+  description = "List of CIS v3.0.0 section 1 pipelines to enable."
+
+  default = [
+    "cis_v300_1_1",
     "cis_v300_1_2",
+    "cis_v300_1_3",
     "cis_v300_1_4",
+    /*
+    "cis_v300_1_5",
+    "cis_v300_1_6",
+    "cis_v300_1_7",
     "cis_v300_1_8",
     "cis_v300_1_9",
+    "cis_v300_1_10",
+    "cis_v300_1_11",
     "cis_v300_1_12",
     "cis_v300_1_13",
     "cis_v300_1_14",
     "cis_v300_1_15",
     "cis_v300_1_16",
+    "cis_v300_1_17",
+    "cis_v300_1_18",
+    "cis_v300_1_19",
     "cis_v300_1_20",
+    "cis_v300_1_21",
     "cis_v300_1_22"
+    */
   ]
+}
+
+pipeline "cis_v300_1_1" {
+  title         = "1.1 Maintain current contact details"
+  #documentation = file("./cis_v300/docs/cis_v300_1_1.md")
+
+  param "database" {
+    type        = string
+    description = local.description_database
+    default     = var.database
+  }
+
+  param "notifier" {
+    type        = string
+    description = local.description_notifier
+    default     = var.notifier
+  }
+
+  param "notification_level" {
+    type        = string
+    description = local.description_notifier_level
+    default     = var.notification_level
+  }
+
+  param "approvers" {
+    type        = list(string)
+    description = local.description_approvers
+    default     = var.approvers
+  }
+
+  step "message" "header" {
+    notifier = notifier[param.notifier]
+    text     = "1.1 Maintain current contact details"
+  }
+
+  step "pipeline" "run_pipeline" {
+    depends_on = [step.message.header]
+    pipeline   = pipeline.manual_control
+
+    args = {
+      database           = param.database
+      notifier           = param.notifier
+      notification_level = param.notification_level
+      approvers          = param.approvers
+    }
+  }
+}
+
+pipeline "cis_v300_1_2" {
+  title         = "1.2 Ensure security contact information is registered"
+  #documentation = file("./cis_v300/docs/cis_v300_1_2.md")
+
+  param "database" {
+    type        = string
+    description = local.description_database
+    default     = var.database
+  }
+
+  param "notifier" {
+    type        = string
+    description = local.description_notifier
+    default     = var.notifier
+  }
+
+  param "notification_level" {
+    type        = string
+    description = local.description_notifier_level
+    default     = var.notification_level
+  }
+
+  param "approvers" {
+    type        = list(string)
+    description = local.description_approvers
+    default     = var.approvers
+  }
+
+  step "message" "header" {
+    notifier = notifier[param.notifier]
+    text     = "1.2 Ensure security contact information is registered"
+  }
+
+  step "pipeline" "run_pipeline" {
+    depends_on = [step.message.header]
+    pipeline   = pipeline.detect_and_correct_accounts_without_alternate_security_contact
+
+    args = {
+      database           = param.database
+      notifier           = param.notifier
+      notification_level = param.notification_level
+      approvers          = param.approvers
+    }
+  }
+}
+
+pipeline "cis_v300_1_3" {
+  title         = "1.3 Ensure security questions are registered in the AWS account"
+  #documentation = file("./cis_v300/docs/cis_v300_1_3.md")
+
+  param "database" {
+    type        = string
+    description = local.description_database
+    default     = var.database
+  }
+
+  param "notifier" {
+    type        = string
+    description = local.description_notifier
+    default     = var.notifier
+  }
+
+  param "notification_level" {
+    type        = string
+    description = local.description_notifier_level
+    default     = var.notification_level
+  }
+
+  param "approvers" {
+    type        = list(string)
+    description = local.description_approvers
+    default     = var.approvers
+  }
+
+  step "message" "header" {
+    notifier = notifier[param.notifier]
+    text     = "1.3 Ensure security questions are registered in the AWS account"
+  }
+
+  step "pipeline" "run_pipeline" {
+    depends_on = [step.message.header]
+    pipeline   = pipeline.manual_control
+
+    args = {
+      database           = param.database
+      notifier           = param.notifier
+      notification_level = param.notification_level
+      approvers          = param.approvers
+    }
+  }
+}
+
+pipeline "cis_v300_1_4" {
+  title         = "1.4 Ensure no 'root' user account access key exists"
+  #documentation = file("./cis_v300/docs/cis_v300_1_4.md")
+
+  param "database" {
+    type        = string
+    description = local.description_database
+    default     = var.database
+  }
+
+  param "notifier" {
+    type        = string
+    description = local.description_notifier
+    default     = var.notifier
+  }
+
+  param "notification_level" {
+    type        = string
+    description = local.description_notifier_level
+    default     = var.notification_level
+  }
+
+  param "approvers" {
+    type        = list(string)
+    description = local.description_approvers
+    default     = var.approvers
+  }
+
+  step "message" "header" {
+    notifier = notifier[param.notifier]
+    text     = "1.4 Ensure no 'root' user account access key exists"
+  }
+
+  step "pipeline" "run_pipeline" {
+    depends_on = [step.message.header]
+    pipeline   = pipeline.detect_and_delete_iam_root_access_keys
+
+    args = {
+      database           = param.database
+      notifier           = param.notifier
+      notification_level = param.notification_level
+      approvers          = param.approvers
+    }
+  }
 }
 
 pipeline "cis_v300_1" {
@@ -74,42 +270,24 @@ pipeline "cis_v300_1" {
     default     = var.approvers
   }
 
-  step "input" "should_run" {
-    if       = (length(param.approvers) > 0)
+  step "message" "header" {
     notifier = notifier[param.notifier]
-    type     = "button"
-    subject  = "Request to run CIS v3.0.0 Section 1: Identity and Access Management?"
-    prompt   = "Do you wish to run CIS v3.0.0 Section 1: Identity and Access Management?"
-    options  = [
-      {value = "no", label = "No", style = local.style_alert},
-      {value = "yes", label = "Yes", style = local.style_ok}
-    ]
+    text     = "1 Identity and Access Management"
   }
 
-  step "transform" "input_value" {
-    value = (length(param.approvers) > 0 ? step.input.should_run.value : "yes")
-  }
-
-  step "message" "cis_v300_1" {
-    if       = (step.transform.input_value.value == "yes")
-    notifier = notifier[param.notifier]
-    text     = "Running CIS v3.0.0 Section 1: Identity and Access Management"
-  }
-
-  step "pipeline" "cis_v300_1" {
-    depends_on = [step.message.cis_v300_1]
-    if         = (step.transform.input_value.value == "yes")
+  step "pipeline" "run_pipelines" {
+    depends_on = [step.message.header]
 
     loop {
-      until = (loop.index >= (length(var.cis_v300_1_enabled_controls)-1))
+      until = (loop.index >= (length(var.cis_v300_1_enabled_pipelines)-1))
     }
 
-    pipeline = local.cis_v300_1_control_mapping[var.cis_v300_1_enabled_controls[loop.index]].pipeline
-    args     = merge({
+    pipeline = local.cis_v300_1_control_mapping[var.cis_v300_1_enabled_pipelines[loop.index]].pipeline
+    args     = {
       database           = param.database
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-    },local.cis_v300_1_control_mapping[var.cis_v300_1_enabled_controls[loop.index]].additional_args)
+    }
   }
 }

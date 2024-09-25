@@ -1,7 +1,7 @@
 locals {
   s3_buckets_with_public_access_enabled_query = <<-EOQ
     select
-      concat(bucket.name, ' [', bucket.region, '/', bucket.account_id, ']') as title,
+      concat(bucket.name, ' [', bucket.account_id, '/', bucket.region, ']') as title,
       bucket.region,
       bucket._ctx ->> 'connection_name' as cred,
       bucket.name as bucket_name
@@ -13,7 +13,8 @@ locals {
       and not (bucket.block_public_acls or s3account.block_public_acls)
       and not (bucket.block_public_policy or s3account.block_public_policy)
       and not (bucket.ignore_public_acls or s3account.ignore_public_acls)
-      and not (bucket.restrict_public_buckets or s3account.restrict_public_buckets);
+      and not (bucket.restrict_public_buckets or s3account.restrict_public_buckets)
+    limit 3 -- TODO: Remove after testing
   EOQ
 }
 
@@ -165,7 +166,7 @@ pipeline "correct_s3_buckets_with_public_access_enabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == "verbose"
+    if       = var.notification_level == "info"
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} S3 bucket(s) with public access."
   }
@@ -261,14 +262,14 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
           pipeline_ref = local.pipeline_optional_message
           pipeline_args = {
             notifier = param.notifier
-            send     = param.notification_level == "verbose"
-            text     = "Skipped S3 bucket ${param.title} with public access."
+            send     = param.notification_level == local.level_verbose
+            text     = "Skipped S3 bucket ${param.title}."
           }
-          success_msg = "Skipped S3 bucket ${param.title} with public access."
-          error_msg   = "Error skipping S3 bucket ${param.title} with public access."
+          success_msg = "Skipped S3 bucket ${param.title}."
+          error_msg   = "Error skipping S3 bucket ${param.title}."
         },
         "block_public_access" = {
-          label        = "Block public access"
+          label        = "Block public access for S3 bucket ${param.bucket_name}"
           value        = "block_public_access"
           style        = local.style_alert
           pipeline_ref  = pipeline.test_put_s3_bucket_public_access_block
