@@ -1,5 +1,5 @@
 locals {
-  cloudtrail_trails_with_s3_object_read_events_audit_disabled_query = <<-EOQ
+  cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_query = <<-EOQ
    with s3_selectors as
     (
       select
@@ -24,7 +24,7 @@ locals {
         ) limit 1
     )
     select
-      concat(t.trail_name, ' [', t.region, '/', t.account_id, ']') as title,
+      concat(a.title, ' [', '/', t.account_id, ']') as title,
       count(t.trail_name) as bucket_selector_count,
       a.account_id,
       (select concat('fp-', to_char(now(), 'yyyy-mm-dd-hh24-mi-ss'))) as resource_name,
@@ -39,29 +39,53 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled" {
-  title         = "Detect & correct CloudTrail trails with S3 object read events audit disabled"
-  description   = "Detects CloudTrail trails with S3 object read events audit disabled and runs your chosen action."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled_trigger.md")
+variable "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+}
+
+variable "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_default_actions" {
+  type        = list(string)
+  description = " The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "enable_s3_object_level_logging_for_read_events"]
+}
+
+trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
+  title         = "Detect & correct CloudTrail trails with S3 object level logging for read events disabled"
+  description   = "Detect CloudTrail trails where S3 object level logging for read events is disabled, and then either skip or enable the logging of S3 object read events."
+  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_trigger.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
-  enabled  = var.cloudtrail_trails_with_s3_object_read_events_audit_disabled_trigger_enabled
-  schedule = var.cloudtrail_trails_with_s3_object_read_events_audit_disabled_trigger_schedule
+  enabled  = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_trigger_enabled
+  schedule = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_trigger_schedule
   database = var.database
-  sql      = local.cloudtrail_trails_with_s3_object_read_events_audit_disabled_query
+  sql      = local.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled
+    pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled" {
-  title         = "Detect & correct CloudTrail trails with S3 object read events audit disabled"
-  description   = "Detects CloudTrail trails that have S3 object read events audit disabled and runs your chosen action."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled.md")
+pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
+  title         = "Detect & correct CloudTrail trails with S3 object level logging for read events disabled"
+  description   = "Detect CloudTrail trails where S3 object level logging for read events is disabled, and then either skip or enable the logging of S3 object read events."
+  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -91,22 +115,22 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_read_events_audit_
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trails_with_s3_object_read_events_audit_disabled_default_action
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trails_with_s3_object_read_events_audit_disabled_default_actions
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_default_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudtrail_trails_with_s3_object_read_events_audit_disabled_query
+    sql      = local.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled
+    pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -118,18 +142,20 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_read_events_audit_
   }
 }
 
-pipeline "correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled" {
-  title         = "Correct CloudTrail trails with S3 object read events audit disabled"
-  description   = "Runs corrective action on a collection of CloudTrail trails that have S3 object read events audit disabled."
-  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled.md")
+pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
+  title         = "Correct CloudTrail trails with S3 object level logging for read events disabled"
+  description   = "Runs corrective action on a collection of CloudTrail trails that have S3 object level logging for read events disabled."
+  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
+      trail_name            = string
       bucket_selector_count = number
       resource_name         = string
       cred                  = string
       account_id            = string
+      home_region           = string
     }))
     description = local.description_items
   }
@@ -155,30 +181,27 @@ pipeline "correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trails_with_s3_object_read_events_audit_disabled_default_action
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trails_with_s3_object_read_events_audit_disabled_default_actions
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_default_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudTrail trails with S3 object read events audit disabled."
-  }
-
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.resource_name => row }
+    text     = "Detected ${length(param.items)} CloudTrail trail(s) with S3 object level logging for read events disabled."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : row.resource_name => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudtrail_trail_with_s3_object_read_events_audit_disabled
+    pipeline        = pipeline.correct_one_cloudtrail_trail_with_s3_object_level_logging_for_read_events_disabled
     args = {
+      trail_name            = each.value.trail_name
       bucket_selector_count = each.value.bucket_selector_count
       account_id            = each.value.account_id
       resource_name         = each.value.resource_name
@@ -188,14 +211,15 @@ pipeline "correct_cloudtrail_trails_with_s3_object_read_events_audit_disabled" {
       approvers             = param.approvers
       default_action        = param.default_action
       enabled_actions       = param.enabled_actions
+      home_region           = param.home_region
     }
   }
 }
 
-pipeline "correct_one_cloudtrail_trail_with_s3_object_read_events_audit_disabled" {
-  title         = "Correct one CloudTrail trail with S3 object read events audit disabled"
-  description   = "Runs corrective action on a CloudTrail trail with S3 object read events audit disabled."
-  // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_s3_object_read_events_audit_disabled.md")
+pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_read_events_disabled" {
+  title         = "Correct one CloudTrail trail with S3 object level logging for read events disabled"
+  description   = "Runs corrective action on a CloudTrail trail with S3 object level logging for read events disabled."
+  // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_s3_object_level_logging_for_read_events_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "resource_name" {
@@ -210,7 +234,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_read_events_audit_disabled
 
   param "bucket_selector_count" {
     type        = number
-    description = "Indicates if remediation required or not."
+    description = "Indicates if remediation is required or not."
   }
 
   param "cred" {
@@ -239,13 +263,13 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_read_events_audit_disabled
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trails_with_s3_object_read_events_audit_disabled_default_action
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trails_with_s3_object_read_events_audit_disabled_default_actions
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_default_actions
   }
 
   step "pipeline" "respond" {
@@ -254,7 +278,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_read_events_audit_disabled
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudTrail trail with S3 object read events audit disabled for resource ${param.resource_name}."
+      detect_msg         = "Detected CloudTrail trail ${param.trail_name} with S3 object level logging for read events disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -266,38 +290,39 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_read_events_audit_disabled
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudTrail trail with S3 object read events audit disabled for ${param.resource_name}."
+            text     = "Skipped CloudTrail trail ${param.trail_name} with S3 object level logging for read events disabled."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_s3_object_read_events" = {
-          label        = "Enable logging S3 Object read events"
-          value        = "enable_s3_object_read_events"
+        "enable_s3_object_level_logging_for_read_events" = {
+          label        = "Enable S3 object level logging for read events"
+          value        = "enable_s3_object_level_logging_for_read_events"
           style        = local.style_alert
-          pipeline_ref = pipeline.create_cloudtrail_trail_enable_s3_object_read_events
+          pipeline_ref = pipeline.create_cloudtrail_trail_to_enable_s3_object_level_logging_for_read_events
           pipeline_args = {
+            trail_name            = param.trail_name
             bucket_selector_count = param.bucket_selector_count
             cred                  = param.cred
             resource_name         = param.resource_name
-            region                = var.cloudtrail_trail_home_region
+            region                = param.home_region
             account_id            = param.account_id
           }
-          success_msg = "Enabled multi-region S3 object read event for CloudTrail trail."
-          error_msg   = "Error enabling multi-region S3 object read event for CloudTrail trail."
+          success_msg = "Created a CloudTrail trail ${param.resource_name} with S3 object level logging for read events."
+          error_msg   = "Error creating a CloudTrail trail ${param.resource_name} with S3 object level logging for read events."
         }
       }
     }
   }
 }
 
-pipeline "create_cloudtrail_trail_enable_s3_object_read_events" {
-  title       = "Create CloudTrail Trail with S3 object read events audit disabled"
-  description = "Creates a CloudTrail trail with S3 object read events audit disabled."
+pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_read_events" {
+  title       = "Create CloudTrail trail to enable S3 object level logging for read events"
+  description = "Create CloudTrail trail to enable S3 object level logging for read events."
 
   param "region" {
     type        = string
-    description = "The AWS region in which to create the CloudTrail trail."
+    description = local.description_region
   }
 
   param "bucket_selector_count" {
@@ -307,12 +332,12 @@ pipeline "create_cloudtrail_trail_enable_s3_object_read_events" {
 
   param "account_id" {
     type        = string
-    description = "The AWS account ID in which to create the CloudTrail trail."
+    description = "The AWS account ID in which to create the S3 bucket."
   }
 
   param "cred" {
     type        = string
-    description = "The AWS credentials to use for creating the trail."
+    description = local.description_credential
     default     = "default"
   }
 
@@ -369,35 +394,5 @@ pipeline "create_cloudtrail_trail_enable_s3_object_read_events" {
       cred            = param.cred
     }
   }
-}
-
-variable "cloudtrail_trails_with_s3_object_read_events_audit_disabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "cloudtrail_trails_with_s3_object_read_events_audit_disabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "cloudtrail_trails_with_s3_object_read_events_audit_disabled_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "cloudtrail_trail_home_region" {
-  type        = string
-  description = "The AWS region ID to create the multi regional trail."
-  default     = "us-east-1"
-}
-
-variable "cloudtrail_trails_with_s3_object_read_events_audit_disabled_default_actions" {
-  type        = list(string)
-  description = " The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_s3_object_read_events"]
 }
 

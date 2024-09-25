@@ -17,6 +17,30 @@ locals {
   EOQ
 }
 
+variable "s3_bucket_public_access_enabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "s3_bucket_public_access_enabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "s3_bucket_public_access_enabled_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+}
+
+variable "s3_bucket_public_access_enabled_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "block_public_access"]
+}
+
 trigger "query" "detect_and_correct_s3_buckets_with_public_access_enabled" {
   title       = "Detect & Correct S3 Buckets With Public Access Enabled"
   description = "Detect S3 buckets with public access enabled and then skip or block public access."
@@ -260,32 +284,6 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
     }
   }
 }
-
-variable "s3_bucket_public_access_enabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "s3_bucket_public_access_enabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "s3_bucket_public_access_enabled_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "s3_bucket_public_access_enabled_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "block_public_access"]
-}
-
-
 
 pipeline "test_put_s3_bucket_public_access_block" {
   title       = "Put S3 Public Access Block"

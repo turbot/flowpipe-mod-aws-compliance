@@ -1,5 +1,5 @@
 locals {
-  cloudtrail_trails_using_public_s3_bucket_query = <<-EOQ
+  cloudtrail_trails_with_public_s3_bucket_query = <<-EOQ
   with public_bucket_data as (
     select
       t.s3_bucket_name as name,
@@ -44,29 +44,53 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_cloudtrail_trails_using_public_s3_bucket" {
+variable "cloudtrail_trails_with_public_s3_bucket_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "cloudtrail_trails_with_public_s3_bucket_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "cloudtrail_trails_with_public_s3_bucket_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+}
+
+variable "cloudtrail_trails_with_public_s3_bucket_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "update_s3_bucket_block_public_access"]
+}
+
+trigger "query" "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
   title         = "Detect & correct CloudTrail trails using public S3 bucket"
-  description   = "Detects CloudTrail trails using public S3 bucket and runs your chosen action."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_using_public_s3_bucket_trigger.md")
+  description   = "Detect CloudTrail trails with public S3 buckets and then skip or update S3 bucket public access block."
+  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_public_s3_bucket_trigger.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
-  enabled  = var.cloudtrail_trail_using_public_s3_bucket_trigger_enabled
-  schedule = var.cloudtrail_trail_using_public_s3_bucket_trigger_schedule
+  enabled  = var.cloudtrail_trails_with_public_s3_bucket_trigger_enabled
+  schedule = var.cloudtrail_trails_with_public_s3_bucket_trigger_schedule
   database = var.database
-  sql      = local.cloudtrail_trails_using_public_s3_bucket_query
+  sql      = local.cloudtrail_trails_with_public_s3_bucket_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudtrail_trails_using_public_s3_bucket
+    pipeline = pipeline.correct_cloudtrail_trails_with_public_s3_bucket
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudtrail_trails_using_public_s3_bucket" {
+pipeline "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
   title         = "Detect & correct CloudTrail trails using public S3 bucket"
-  description   = "Detects CloudTrail trails using public S3 bucket and runs your chosen action."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_using_public_s3_bucket.md")
+  description   = "Detect CloudTrail trails with public S3 bucket and then skip or update S3 bucket public access block."
+  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_public_s3_bucket.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -96,22 +120,22 @@ pipeline "detect_and_correct_cloudtrail_trails_using_public_s3_bucket" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trail_using_public_s3_bucket_default_action
+    default     = var.cloudtrail_trails_with_public_s3_bucket_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trail_using_public_s3_bucket_enabled_actions
+    default     = var.cloudtrail_trails_with_public_s3_bucket_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudtrail_trails_using_public_s3_bucket_query
+    sql      = local.cloudtrail_trails_with_public_s3_bucket_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudtrail_trails_using_public_s3_bucket
+    pipeline = pipeline.correct_cloudtrail_trails_with_public_s3_bucket
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -123,10 +147,10 @@ pipeline "detect_and_correct_cloudtrail_trails_using_public_s3_bucket" {
   }
 }
 
-pipeline "correct_cloudtrail_trails_using_public_s3_bucket" {
-  title         = "Correct CloudTrail trails using public S3 bucket"
-  description   = "Runs corrective action on a collection of CloudTrail trails using public S3 bucket."
-  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_using_public_s3_bucket.md")
+pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
+  title         = "Correct CloudTrail trails with public S3 buckets"
+  description   = "Runs corrective action on a collection of CloudTrail trails with public S3 buckets."
+  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_public_s3_bucket.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "items" {
@@ -162,29 +186,25 @@ pipeline "correct_cloudtrail_trails_using_public_s3_bucket" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trail_using_public_s3_bucket_default_action
+    default     = var.cloudtrail_trails_with_public_s3_bucket_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trail_using_public_s3_bucket_enabled_actions
+    default     = var.cloudtrail_trails_with_public_s3_bucket_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudTrail trails using public S3 bucket."
-  }
-
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.name => row }
+    text     = "Detected ${length(param.items)} CloudTrail trail(s) with public S3 bucket."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : row.name => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudtrail_trail_using_public_s3_bucket
+    pipeline        = pipeline.correct_one_cloudtrail_trail_with_public_s3_bucket
     args = {
       title              = each.value.title
       name               = each.value.name
@@ -201,10 +221,10 @@ pipeline "correct_cloudtrail_trails_using_public_s3_bucket" {
   }
 }
 
-pipeline "correct_one_cloudtrail_trail_using_public_s3_bucket" {
+pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
   title         = "Correct one CloudTrail trail with public S3 bucket"
   description   = "Runs corrective action on a CloudTrail trail with a public S3 bucket."
-  // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_using_public_s3_bucket.md")
+  // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_public_s3_bucket.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "title" {
@@ -258,13 +278,13 @@ pipeline "correct_one_cloudtrail_trail_using_public_s3_bucket" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trail_using_public_s3_bucket_default_action
+    default     = var.cloudtrail_trails_with_public_s3_bucket_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trail_using_public_s3_bucket_enabled_actions
+    default     = var.cloudtrail_trails_with_public_s3_bucket_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -290,9 +310,9 @@ pipeline "correct_one_cloudtrail_trail_using_public_s3_bucket" {
           success_msg = ""
           error_msg   = ""
         },
-        "update_s3_bucket" = {
-          label        = "Update S3 Bucket"
-          value        = "update_s3_bucket"
+        "update_s3_bucket_block_public_access" = {
+          label        = "Update S3 Bucket Block Public Access"
+          value        = "update_s3_bucket_block_public_access"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_put_s3_bucket_public_access_block
           pipeline_args = {
@@ -304,34 +324,10 @@ pipeline "correct_one_cloudtrail_trail_using_public_s3_bucket" {
             block_public_acls = true
             ignore_public_acls = true
           }
-          success_msg = "Updated S3 Bucket access policy ${param.title}."
+          success_msg = "Updated S3 Bucket access policy for ${param.title}."
           error_msg   = "Error updating S3 Bucket access policy ${param.title}."
         }
       }
     }
   }
-}
-
-variable "cloudtrail_trail_using_public_s3_bucket_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "cloudtrail_trail_using_public_s3_bucket_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "cloudtrail_trail_using_public_s3_bucket_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "cloudtrail_trail_using_public_s3_bucket_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "update_s3_bucket"]
 }

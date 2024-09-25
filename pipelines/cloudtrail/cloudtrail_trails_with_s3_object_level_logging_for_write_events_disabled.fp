@@ -1,5 +1,6 @@
+// TODO: Update the resource name logic and check the query logic
 locals {
-  cloudtrail_trails_with_s3_object_write_events_audit_disabled_query = <<-EOQ
+  cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_query = <<-EOQ
    with s3_selectors as
     (
       select
@@ -24,7 +25,7 @@ locals {
         ) limit 1
     )
     select
-      concat(t.trail_name, ' [', t.region, '/', t.account_id, ']') as title,
+      concat(a.title, ' [', '/', t.account_id, ']') as title,
       count(t.trail_name) as bucket_selector_count,
       a.account_id,
       (select concat('fp-', to_char(now(), 'yyyy-mm-dd-hh24-mi-ss'))) as resource_name,
@@ -39,29 +40,60 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled" {
-  title         = "Detect & correct CloudTrail trails with S3 object write events audit disabled"
-  description   = "Detects CloudTrail trails that do not have multi-region Object-level logging for write events is enabled for S3 bucket and runs your chosen action."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled_trigger.md")
+variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+}
+
+variable "cloudtrail_trail_home_region_for_write_event" {
+  type        = string
+  description = "The AWS region ID to create the multi regional trail."
+  default     = "us-east-1"
+}
+
+variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_default_actions" {
+  type        = list(string)
+  description = " The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "enable_s3_object_level_logging_for_write_events"]
+}
+
+
+trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled" {
+  title         = "Detect & correct CloudTrail trails with S3 object level logging for write events disabled"
+  description   = "Detect CloudTrail trails where S3 object level logging for write events is disabled, and then either skip or enable the logging of S3 object write events."
+  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trigger.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
-  enabled  = var.cloudtrail_trails_with_s3_object_write_events_audit_disabled_trigger_enabled
-  schedule = var.cloudtrail_trails_with_s3_object_write_events_audit_disabled_trigger_schedule
+  enabled  = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trigger_enabled
+  schedule = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trigger_schedule
   database = var.database
-  sql      = local.cloudtrail_trails_with_s3_object_write_events_audit_disabled_query
+  sql      = local.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled
+    pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled" {
-  title         = "Detect & correct CloudTrail trails with S3 object write events audit disabled"
-  description   = "Detects CloudTrail trails that do not have multi-region Object-level logging for write events is enabled for S3 bucket and runs your chosen action."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled.md")
+pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled" {
+  title         = "Detect & correct CloudTrail trails with S3 object level logging for write events disabled"
+  description   = "Detect CloudTrail trails where S3 object level logging for write events is disabled, and then either skip or enable the logging of S3 object write events."
+  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -91,22 +123,22 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_write_events_audit
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trails_with_s3_object_write_events_audit_disabled_default_action
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trails_with_s3_object_write_events_audit_disabled_default_actions
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_default_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudtrail_trails_with_s3_object_write_events_audit_disabled_query
+    sql      = local.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled
+    pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -118,10 +150,10 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_write_events_audit
   }
 }
 
-pipeline "correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled" {
+pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled" {
   title         = "Correct CloudTrail trails with S3 object write events audit disabled"
-  description   = "Runs corrective action on a collection of CloudTrail trails that do not have multi-region Object-level logging for write events is enabled for S3 bucket."
-  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled.md")
+  description   = "Runs corrective action on a collection of CloudTrail trails that do not have S3 Object-level logging for write events."
+  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "items" {
@@ -156,27 +188,23 @@ pipeline "correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled" 
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trails_with_s3_object_write_events_audit_disabled_default_action
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trails_with_s3_object_write_events_audit_disabled_default_actions
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_default_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudTrail trails with S3 object write events audit disabled."
-  }
-
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.resource_name => row }
+    text     = "Detected ${length(param.items)} CloudTrail trail(s) with S3 object write events audit disabled."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : item.resource_name => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disabled
     args = {
@@ -195,8 +223,8 @@ pipeline "correct_cloudtrail_trails_with_s3_object_write_events_audit_disabled" 
 }
 
 pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disabled" {
-  title         = "Correct one CloudTrail trail with S3 object write events audit disabled"
-  description   = "Runs corrective action on a CloudTrail trail with S3 object write events audit disabled."
+  title         = "Correct one CloudTrail trail with S3 object level logging for write events disabled"
+  description   = "Runs corrective action on a CloudTrail trail with S3 object level logging for write events disabled."
   // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
@@ -217,7 +245,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disable
 
   param "bucket_selector_count" {
     type        = number
-    description = "Indicates if remediation required or not."
+    description = "Indicates if remediation is required or not."
   }
 
   param "cred" {
@@ -246,13 +274,13 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disable
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trails_with_s3_object_write_events_audit_disabled_default_action
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trails_with_s3_object_write_events_audit_disabled_default_actions
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_default_actions
   }
 
   step "pipeline" "respond" {
@@ -261,7 +289,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disable
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudTrail trail ${param.title} with S3 object write events audit disabled."
+      detect_msg         = "Detected account ${param.title} with S3 object level logging for write events disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -273,16 +301,16 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disable
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudTrail trail with S3 object write events audit disabled for ${param.title}."
+            text     = "Skipped account ${param.title} with S3 object level logging for write events disabled."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_s3_object_write_events" = {
-          label        = "Enable logging S3 Object write events"
-          value        = "enable_s3_object_write_events"
+        "enable_s3_object_level_logging_for_write_events" = {
+          label        = "Enable S3 object level logging for write events"
+          value        = "enable_s3_object_level_logging_for_write_events"
           style        = local.style_alert
-          pipeline_ref = pipeline.create_cloudtrail_trail_enable_s3_object_write_events
+          pipeline_ref = pipeline.create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_events
           pipeline_args = {
             bucket_selector_count = param.bucket_selector_count
             cred                  = param.cred
@@ -290,17 +318,17 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disable
             region                = var.cloudtrail_trail_home_region_for_write_event
             account_id            = param.account_id
           }
-          success_msg = "Enabled multi-region S3 object write event for CloudTrail trail ${param.title}."
-          error_msg   = "Error enabling multi-region S3 object write event for CloudTrail trail ${param.title}."
+          success_msg = "Created a CloudTrail trail ${param.resource_name} with S3 object level logging for write events."
+          error_msg   = "Error creating a CloudTrail trail ${param.resource_name} with S3 object level logging for write events."
         }
       }
     }
   }
 }
 
-pipeline "create_cloudtrail_trail_enable_s3_object_write_events" {
-  title       = "Create CloudTrail Trail with Multi-Region Object-level logging for write events is enabled for S3 bucket"
-  description = "Creates a CloudTrail trail with multi-region Object-level logging for write events is enabled for S3 bucket."
+pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_events" {
+  title       = "Create CloudTrail Trail with S3 Object-level logging for write events"
+  description = "Creates a CloudTrail trail with S3 Object-level logging for write events."
 
   param "region" {
     type        = string
@@ -376,35 +404,5 @@ pipeline "create_cloudtrail_trail_enable_s3_object_write_events" {
       cred            = param.cred
     }
   }
-}
-
-variable "cloudtrail_trails_with_s3_object_write_events_audit_disabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "cloudtrail_trails_with_s3_object_write_events_audit_disabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "cloudtrail_trails_with_s3_object_write_events_audit_disabled_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "cloudtrail_trail_home_region_for_write_event" {
-  type        = string
-  description = "The AWS region ID to create the multi regional trail."
-  default     = "us-east-1"
-}
-
-variable "cloudtrail_trails_with_s3_object_write_events_audit_disabled_default_actions" {
-  type        = list(string)
-  description = " The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_s3_object_write_events"]
 }
 

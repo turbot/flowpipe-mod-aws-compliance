@@ -9,19 +9,62 @@ locals {
       aws_cloudtrail_trail
     where
       region = home_region
-      and kms_key_id is null
-      and account_id = '533793682495' and name = 'tewsr';
+      and kms_key_id is null;
   EOQ
+}
+
+variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger_enabled" {
+  type        = bool
+  description = "If true, the trigger is enabled."
+  default     = false
+}
+
+variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+}
+
+variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "encrypt_cloud_trail_logs"]
+}
+
+//TODO: Fix the default values of the following variables
+variable "cloudtrail_policy_name" {
+  type        = string
+  description = "The name of the policy to use for encryption."
+  default     = "default"
+}
+
+variable "cloudtrail_policy" {
+  type        = string
+  description = "The policy to use for encryption."
+  // default     = "{\"Sid\": \"Allow CloudTrail to encrypt event data store\",\"Effect\": \"Allow\", \"Principal\": {\"Service\": \"cloudtrail.amazonaws.com\"},\"Action\": [\"kms:GenerateDataKey\",\"kms:Decrypt\"],\"Resource\": \"*\"}"
+  default = ""
+}
+
+variable "cloudtrail_cmk_key_id" {
+  type        = string
+  description = "The ID of the KMS CMK to use for encryption."
+  default     = "7f097e1f-6991-40be-bd09-cc7493341231"
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   title       = "Detect & correct CloudTrail Trail logs not encrypted with KMS CMK"
-  description = "Detects CloudTrail trail logs not encrypted with KMS CMK and runs your chosen action."
+  description = "Detect CloudTrail trail logs not encrypted with KMS CMK and then skip or encrypt with KMS CMK."
   // // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger.md")
   // tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
-  enabled  = var.cloudtrail_trail_logs_encrypted_with_kms_cmk_trigger_enabled
-  schedule = var.cloudtrail_trail_logs_encrypted_with_kms_cmk_trigger_schedule
+  enabled  = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger_enabled
+  schedule = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger_schedule
   database = var.database
   sql      = local.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_query
 
@@ -35,7 +78,7 @@ trigger "query" "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms
 
 pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   title       = "Detect & correct CloudTrail Trail logs not encrypted with KMS CMK"
-  description = "Detects CloudTrail trail logs not encrypted with KMS CMK and runs your chosen action."
+  description = "Detect CloudTrail trail logs not encrypted with KMS CMK and then skip or encrypt with KMS CMK."
   // // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk.md")
   // tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
 
@@ -66,13 +109,13 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trail_logs_encrypted_with_kms_cmk_default_action
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trail_logs_encrypted_with_kms_cmk_enabled_actions
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions
   }
 
   step "query" "detect" {
@@ -129,19 +172,19 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trail_logs_encrypted_with_kms_cmk_default_action
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trail_logs_encrypted_with_kms_cmk_enabled_actions
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == "verbose"
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudTrail trail logs not encrypted with KMS CMK."
+    text     = "Detected ${length(param.items)} CloudTrail trail log(s) not encrypted with KMS CMK."
   }
 
   step "pipeline" "correct_item" {
@@ -164,7 +207,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
 
 pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
   title       = "Correct one CloudTrail trail log not encrypted with KMS CMK"
-  description = "Runs corrective action on a single CloudTrail trail logs not encrypted with cmk."
+  description = "Runs corrective action on a single CloudTrail trail logs not encrypted with KMS CMK."
   // // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_classic_load_balancer_without_connection_draining_disabled.md")
   // tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
@@ -209,18 +252,18 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudtrail_trail_logs_encrypted_with_kms_cmk_default_action
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trail_logs_encrypted_with_kms_cmk_enabled_actions
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions
   }
 
   param "cloudtrail_cmk_key_id" {
     type        = string
-    description = "The id of the cmk to use for encryption."
+    description = "The ID of the KMS CMK to use for encryption."
     default     = var.cloudtrail_cmk_key_id
   }
 
@@ -233,21 +276,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
   param "cloudtrail_policy" {
     type        = string
     description = "The policy to use for encryption."
-    default = jsonencode({
-    "Version": "2012-10-17",
-    "Id": "key-default-1",
-    "Statement": [
-        {
-            "Sid": "Enable IAM User Permissions",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::533793682495:root"
-            },
-            "Action": "kms:*",
-            "Resource": "*"
-        }
-    ]
-})
+    default     = var.cloudtrail_policy
   }
 
   step "pipeline" "respond" {
@@ -256,7 +285,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudTrail trail logs ${param.title} not encrypted with cmk."
+      detect_msg         = "Detected CloudTrail trail log ${param.title} not encrypted with KMS CMK."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -268,10 +297,10 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == "verbose"
-            text     = "Skipped CloudTrail logs ${param.title} not encrypted with cmk."
+            text     = "Skipped CloudTrail logs ${param.title} not encrypted with KMS CMK."
           }
-          success_msg = "Skipped CloudTrail logs ${param.title} not encrypted with cmk."
-          error_msg   = "Error skipping CloudTrail logs ${param.title} not encrypted with cmk."
+          success_msg = "Skipped CloudTrail logs ${param.title} not encrypted with KMS CMK."
+          error_msg   = "Error skipping CloudTrail logs ${param.title} not encrypted with KMS CMK."
         },
         "encrypt_cloud_trail_logs" = {
           label        = "Encrypt CloudTrail logs"
@@ -350,47 +379,4 @@ pipeline "encrypt_cloud_trail_logs" {
     }
   }
 
-}
-
-variable "cloudtrail_trail_logs_encrypted_with_kms_cmk_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "cloudtrail_trail_logs_encrypted_with_kms_cmk_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "cloudtrail_trail_logs_encrypted_with_kms_cmk_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "encrypt_cloud_trail_logs"
-}
-
-variable "cloudtrail_trail_logs_encrypted_with_kms_cmk_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "encrypt_cloud_trail_logs"]
-}
-
-variable "cloudtrail_policy_name" {
-  type        = string
-  description = "The name of the policy to use for encryption."
-  default     = "default"
-}
-
-variable "cloudtrail_policy" {
-  type        = string
-  description = "The policy to use for encryption."
-  // default     = "{\"Sid\": \"Allow CloudTrail to encrypt event data store\",\"Effect\": \"Allow\", \"Principal\": {\"Service\": \"cloudtrail.amazonaws.com\"},\"Action\": [\"kms:GenerateDataKey\",\"kms:Decrypt\"],\"Resource\": \"*\"}"
-  default = ""
-}
-
-variable "cloudtrail_cmk_key_id" {
-  type        = string
-  description = "The id of the cmk to use for encryption."
-  default     = "7f097e1f-6991-40be-bd09-cc7493341231"
 }

@@ -17,9 +17,33 @@ locals {
   EOQ
 }
 
+variable "cloudtrail_trails_with_s3_logging_disabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "cloudtrail_trails_with_s3_logging_disabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "cloudtrail_trails_with_s3_logging_disabled_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+}
+
+variable "cloudtrail_trails_with_s3_logging_disabled_default_actions" {
+  type        = list(string)
+  description = " The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "enable_s3_logging"]
+}
+
 trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
   title         = "Detect & correct CloudTrail trails with S3 logging disabled"
-  description   = "Detects CloudTrail trails with S3 logging disabled and runs your chosen action."
+  description   = "Detect CloudTrail trails with S3 logging disabled and then skip or enable S3 logging."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_logging_disabled_trigger.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
 
@@ -38,7 +62,7 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" 
 
 pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
   title         = "Detect & correct CloudTrail trails with S3 logging disabled"
-  description   = "Detects CloudTrail trails with S3 logging disabled and runs your chosen action."
+  description   = "Detect CloudTrail trails with S3 logging disabled and then skip or enable S3 logging."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_logging_disabled.md")
   tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
 
@@ -147,15 +171,11 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudTrail trails with S3 logging disabled."
-  }
-
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.title => row }
+    text     = "Detected ${length(param.items)} CloudTrail trail(s) with S3 logging disabled."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : row.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_cloudtrail_trail_with_s3_logging_disabled
     args = {
@@ -246,7 +266,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudTrail trail with S3 logging disabled for resource ${param.title}."
+      detect_msg         = "Detected CloudTrail trail ${param.title} with S3 logging disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -258,7 +278,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudTrail trail with S3 logging disabled for resource ${param.title}."
+            text     = "Skipped CloudTrail trail ${param.title} with S3 logging disabled."
           }
           success_msg = ""
           error_msg   = ""
@@ -276,7 +296,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
             account_id     = param.account_id
           }
           success_msg = "Updated CloudTrail trail ${param.title} by enabling S3 logging."
-          error_msg   = "Error updating S3 logging ${param.title}."
+          error_msg   = "Error updating S3 logging for ${param.title}."
         }
       }
     }
@@ -326,7 +346,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
     depends_on = [step.pipeline.create_s3_bucket]
     pipeline   = local.aws_pipeline_put_s3_bucket_policy
     args = {
-      region = "us-east-1"
+      region = param.region
       cred   = param.cred
       bucket = param.s3_bucket_name
       policy = "{\"Version\": \"2012-10-17\",\n\"Statement\": [\n{\n\"Sid\":\"AWSCloudTrailAclCheck\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:GetBucketAcl\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}\"\n},\n{\n\"Sid\": \"AWSCloudTrailWrite\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\": \"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutObject\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.account_id}/*\",\n\"Condition\": {\n\"StringEquals\": {\n\"s3:x-amz-acl\":\n\"bucket-owner-full-control\"\n}\n}\n}\n]\n}"
@@ -348,34 +368,10 @@ pipeline "enable_s3_logging_for_cloudtrail" {
     depends_on = [step.pipeline.create_s3_bucket, step.pipeline.put_s3_bucket_policy, step.pipeline.update_cloudtrail_trail]
     pipeline   = local.aws_pipeline_put_s3_bucket_logging
     args = {
-      region         = param.region
-      bucket     = param.s3_bucket_name
+      cred                  = param.cred
+      region                = param.region
+      bucket                = param.s3_bucket_name
       bucket_logging_status = "{\"LoggingEnabled\": {\"TargetBucket\": \"${param.s3_bucket_name}\", \"TargetPrefix\": \"AWSLogs/\"}}"
-      cred           = param.cred
     }
   }
-}
-
-variable "cloudtrail_trails_with_s3_logging_disabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "cloudtrail_trails_with_s3_logging_disabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "cloudtrail_trails_with_s3_logging_disabled_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "cloudtrail_trails_with_s3_logging_disabled_default_actions" {
-  type        = list(string)
-  description = " The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "enable_s3_logging"]
 }
