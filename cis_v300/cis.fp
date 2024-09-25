@@ -1,10 +1,10 @@
 locals {
   cis_v300_control_mapping = {
-    cis_v300_1 = { pipeline = pipeline.cis_v300_1 }
-    cis_v300_2 = { pipeline = pipeline.cis_v300_2 }
-    cis_v300_3 = { pipeline = pipeline.cis_v300_3 }
-    cis_v300_4 = { pipeline = pipeline.cis_v300_4 }
-    cis_v300_5 = { pipeline = pipeline.cis_v300_5 }
+    cis_v300_1 = pipeline.cis_v300_1
+    cis_v300_2 = pipeline.cis_v300_2
+    cis_v300_3 = pipeline.cis_v300_3
+    cis_v300_4 = pipeline.cis_v300_4
+    cis_v300_5 = pipeline.cis_v300_5
   }
 }
 
@@ -15,9 +15,11 @@ variable "cis_v300_enabled_pipelines" {
   default = [
     "cis_v300_1",
     "cis_v300_2",
+    /*
     "cis_v300_3",
     "cis_v300_4",
     "cis_v300_5"
+    */
   ]
 }
 
@@ -61,7 +63,7 @@ pipeline "cis_v300" {
       until = loop.index >= (length(var.cis_v300_enabled_pipelines)-1)
     }
 
-    pipeline = local.cis_v300_control_mapping[var.cis_v300_enabled_pipelines[loop.index]].pipeline
+    pipeline = local.cis_v300_control_mapping[var.cis_v300_enabled_pipelines[loop.index]]
     args     = {
       database           = param.database
       notifier           = param.notifier

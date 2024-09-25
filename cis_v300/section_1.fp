@@ -1,3 +1,4 @@
+# TODO: Convert remaining controls and remove use of pipeline key when looping
 locals {
   cis_v300_1_control_mapping = {
     cis_v300_1_1  = {pipeline = pipeline.cis_v300_1_1 }
@@ -94,12 +95,12 @@ pipeline "cis_v300_1_1" {
     depends_on = [step.message.header]
     pipeline   = pipeline.manual_control
 
-    args = merge({
+    args = {
       database           = param.database
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-    })
+    }
   }
 }
 
@@ -138,14 +139,14 @@ pipeline "cis_v300_1_2" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_accounts_alternate_contact_security_unregistered
+    pipeline   = pipeline.detect_and_correct_accounts_without_alternate_security_contact
 
-    args = merge({
+    args = {
       database           = param.database
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-    })
+    }
   }
 }
 
@@ -186,12 +187,12 @@ pipeline "cis_v300_1_3" {
     depends_on = [step.message.header]
     pipeline   = pipeline.manual_control
 
-    args = merge({
+    args = {
       database           = param.database
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-    })
+    }
   }
 }
 
@@ -232,12 +233,12 @@ pipeline "cis_v300_1_4" {
     depends_on = [step.message.header]
     pipeline   = pipeline.detect_and_delete_iam_root_access_keys
 
-    args = merge({
+    args = {
       database           = param.database
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-    })
+    }
   }
 }
 

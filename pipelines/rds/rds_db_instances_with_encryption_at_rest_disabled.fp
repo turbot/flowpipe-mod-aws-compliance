@@ -1,21 +1,21 @@
 locals {
   rds_db_instances_with_encryption_at_rest_disabled_query = <<-EOQ
     select
-			concat(r.db_instance_identifier, ' [', r.region, '/', r.account_id, ']') as title,
-			r.db_instance_identifier,
-			r.region,
-			concat(r.db_instance_identifier, '-snapshot-', replace(cast(now() as varchar), ' ', '_')) as snapshot_identifier,
-			k.arn as aws_managed_kms_key_arn,
-			r._ctx ->> 'connection_name' as cred
-		from
-			aws_rds_db_instance as r
-		left join
-			aws_kms_key as k on r.region = k.region,
-			jsonb_array_elements(k.aliases) as a
-		where
-			k.key_manager = 'AWS'
-			and a ->> 'AliasName' = 'alias/aws/rds'
-  		and (not r.storage_encrypted);
+      concat(r.db_instance_identifier, ' [', r.account_id, '/', r.region, ']') as title,
+      r.db_instance_identifier,
+      r.region,
+      concat(r.db_instance_identifier, '-snapshot-', replace(cast(now() as varchar), ' ', '_')) as snapshot_identifier,
+      k.arn as aws_managed_kms_key_arn,
+      r._ctx ->> 'connection_name' as cred
+    from
+      aws_rds_db_instance as r
+    left join
+      aws_kms_key as k on r.region = k.region,
+      jsonb_array_elements(k.aliases) as a
+    where
+      k.key_manager = 'AWS'
+      and a ->> 'AliasName' = 'alias/aws/rds'
+      and (not r.storage_encrypted);
   EOQ
 }
 
@@ -105,7 +105,7 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
     type = list(object({
       title                   = string
       db_instance_identifier  = string
-			snapshot_identifier     = string
+      snapshot_identifier     = string
       aws_managed_kms_key_arn = string
       region                  = string
       cred                    = string
@@ -144,9 +144,9 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} RDS DB instances with encryption at rest disabled."
+    text     = "Detected ${length(param.items)} RDS DB instance(s) with encryption at rest disabled."
   }
 
   step "transform" "items_by_id" {
@@ -160,7 +160,7 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
     args = {
       title                   = each.value.title
       db_instance_identifier  = each.value.db_instance_identifier
-			snapshot_identifier    = each.value.snapshot_identifier
+      snapshot_identifier    = each.value.snapshot_identifier
       aws_managed_kms_key_arn = each.value.aws_managed_kms_key_arn
       region                  = each.value.region
       cred                    = each.value.cred
@@ -188,7 +188,7 @@ pipeline "correct_one_rds_db_instance_with_encryption_at_rest_disabled" {
     description = "The identifier of the DB instance."
   }
 
- 	param "snapshot_identifier" {
+  param "snapshot_identifier" {
     type        = string
     description = "The snapshot identifier of the DB instance."
   }
@@ -268,7 +268,7 @@ pipeline "correct_one_rds_db_instance_with_encryption_at_rest_disabled" {
           pipeline_ref = pipeline.update_rds_encryption
           pipeline_args = {
             db_instance_identifier  = param.db_instance_identifier
-						snapshot_identifier     = param.snapshot_identifier
+            snapshot_identifier     = param.snapshot_identifier
             aws_managed_kms_key_arn = param.aws_managed_kms_key_arn
             region                 = param.region
             cred                   = param.cred
@@ -335,13 +335,13 @@ pipeline "update_rds_encryption" {
   param "encrypted_snapshot_identifier" {
     type        = string
     description = "The identifier for the encrypted DB snapshot."
-		default = "snapshot-encrypted-database-123"
+    default = "snapshot-encrypted-database-123"
   }
 
   param "new_db_instance_identifier" {
     type        = string
     description = "The identifier for the new DB instance."
-		default = "new-encrypted-database-123"
+    default = "new-encrypted-database-123"
   }
 
   param "aws_managed_kms_key_arn" {
@@ -378,10 +378,10 @@ step "sleep" "sleep_10_seconds" {
     env = credential.aws[param.cred].env
   }
 
-	step "sleep" "sleep_300_seconds" {
-		depends_on = [ step.container.copy_db_snapshot ]
-		duration   = "300s"
-	}
+  step "sleep" "sleep_300_seconds" {
+    depends_on = [ step.container.copy_db_snapshot ]
+    duration   = "300s"
+}
 
   step "container" "restore_db_instance_from_snapshot" {
     depends_on = [step.sleep.sleep_300_seconds]

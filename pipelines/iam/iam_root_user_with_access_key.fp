@@ -140,9 +140,9 @@ pipeline "delete_iam_root_access_keys" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM root user access keys."
+    text     = "Detected ${length(param.items)} IAM root user access key(s)."
   }
 
   step "transform" "items_by_id" {
@@ -253,7 +253,7 @@ pipeline "correct_one_iam_root_access_key" {
           error_msg   = ""
         },
         "delete_access_key" = {
-          label        = "Delete Access Key"
+          label        = "Delete IAM root access key ${param.access_key_id}"
           value        = "delete_access_key"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_delete_iam_access_key
