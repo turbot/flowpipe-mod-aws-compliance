@@ -1,8 +1,4 @@
 locals {
-  cis_v300_common_tags = merge(local.aws_compliance_common_tags, {
-    cis         = "true"
-    cis_version = "v3.0.0"
-  })
   cis_v300_control_mapping = {
     cis_v300_1 = { pipeline = pipeline.cis_v300_1 }
     cis_v300_2 = { pipeline = pipeline.cis_v300_2 }
@@ -12,10 +8,17 @@ locals {
   }
 }
 
-variable "cis_v300_enabled_controls" {
+variable "cis_v300_enabled_pipelines" {
   type        = list(string)
-  description = "List of CIS v3.0.0 controls to enable"
-  default     = ["cis_v300_1", "cis_v300_2", "cis_v300_3", "cis_v300_5"]
+  description = "List of CIS v3.0.0 pipelines to enable."
+
+  default = [
+    "cis_v300_1",
+    "cis_v300_2",
+    "cis_v300_3",
+    "cis_v300_4",
+    "cis_v300_5"
+  ]
 }
 
 pipeline "cis_v300" {
@@ -47,58 +50,23 @@ pipeline "cis_v300" {
     default     = var.approvers
   }
 
-  step "pipeline" "cis_v300" {
-  loop {
-    until = loop.index >= (length(var.cis_v300_enabled_controls)-1)
+  step "message" "header" {
+    #if       = (step.transform.input_value.value == "yes")
+    notifier = notifier[param.notifier]
+    text     = "CIS v3.0.0"
   }
 
-  pipeline = local.cis_v300_control_mapping[var.cis_v300_enabled_controls[loop.index]].pipeline
+  step "pipeline" "run_pipelines" {
+    loop {
+      until = loop.index >= (length(var.cis_v300_enabled_pipelines)-1)
+    }
+
+    pipeline = local.cis_v300_control_mapping[var.cis_v300_enabled_pipelines[loop.index]].pipeline
     args     = {
       database           = param.database
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-    } 
-  }
-}
-
-// TODO: Move this somewhere else
-pipeline "manual_control" {
-  title         = "Manual Control"
-  description   = "This is a manual control that requires human intervention."
-  documentation =  "" // TODO: Add documentation
-
-   param "database" {
-    type        = string
-    description = local.description_database
-    default     = var.database
-  }
-
-  param "notifier" {
-    type        = string
-    description = local.description_notifier
-    default     = var.notifier
-  }
-
-  param "notification_level" {
-    type        = string
-    description = local.description_notifier_level
-    default     = var.notification_level
-  }
-
-  param "approvers" {
-    type        = list(string)
-    description = local.description_approvers
-    default     = var.approvers
-  }
-
-  param "message" {
-    type        = string
-    description = "Message to display."
-  }
-
-  step "message" "manual_control" {
-    notifier = notifier[param.notifier]
-    text     = param.message
+    }
   }
 }

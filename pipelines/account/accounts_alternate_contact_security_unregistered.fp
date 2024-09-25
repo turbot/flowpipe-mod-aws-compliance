@@ -217,7 +217,7 @@ pipeline "correct_accounts_alternate_contact_security_unregistered" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == "verbose"
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} accounts with alternate contact security runegistered."
+    text     = "Detected ${length(param.items)} accounts with alternate contact security registered."
   }
 
   step "pipeline" "correct_item" {
