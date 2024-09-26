@@ -1,22 +1,47 @@
 locals {
   ec2_instances_with_multiple_enis_query = <<-EOQ
     select
-      concat(instance_id, ' [', region, '/', account_id, ']') as title,
+      concat(instance_id, ' [', account_id, '/', region, ']') as title,
       instance_id, 
       eni -> 'Attachment' ->> 'AttachmentId' as attachment_id,
       region,
       _ctx ->> 'connection_name' as cred
     from
     aws_ec2_instance,
-      jsonb_array_elements(network_interfaces) AS eni
+      jsonb_array_elements(network_interfaces) as eni
     where   
       (eni -> 'Attachment' -> 'DeviceIndex')::int <> 0;
   EOQ
 }
 
+variable "ec2_instances_with_multiple_enis_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "ec2_instances_with_multiple_enis_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "ec2_instances_with_multiple_enis_default_action" {
+  type        = string
+  default     = "notify"
+  description = "The default action to use for the detected item, used if no input is provided."
+}
+
+variable "ec2_instances_with_multiple_enis_enabled_actions" {
+  type        = list(string)
+  default     = ["skip", "detach_network_interface"]
+  description = "The list of enabled actions to provide for selection."
+}
+
+
 trigger "query" "detect_and_correct_ec2_instances_with_multiple_enis" {
   title         = "Detect & correct EC2 instances with multiple ENIs"
-  description   = "Detects EC2 instances with multiple Elastic Network Interfaces and executes the chosen action."
+  description   = "Detect EC2 instances with multiple Elastic Network Interfaces and then skip or detach the network interface(s)."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_multiple_enis_trigger.md")
   tags          = merge(local.ec2_common_tags, { class = "configuration" })
 
@@ -35,7 +60,7 @@ trigger "query" "detect_and_correct_ec2_instances_with_multiple_enis" {
 
 pipeline "detect_and_correct_ec2_instances_with_multiple_enis" {
   title         = "Detect & correct EC2 instances with multiple ENIs"
-  description   = "Detects EC2 instances with multiple Elastic Network Interfaces and performs the chosen action."
+  description   = "Detect EC2 instances with multiple Elastic Network Interfaces and then skip or detach the network interface(s)."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_multiple_enis.md")
   tags          = merge(local.ec2_common_tags, { class = "configuration", type = "featured" })
 
@@ -143,7 +168,7 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} EC2 Instances with multiple ENIs."
+    text     = "Detected ${length(param.items)} EC2 Instance(s) with multiple ENIs."
   }
 
   step "transform" "items_by_id" {
@@ -240,9 +265,22 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
       default_action     = param.default_action,
       enabled_actions    = param.enabled_actions,
       actions = {
-        "reduce_enis" = {
-          label        = "Reduce ENIs"
-          value        = "reduce_enis"
+        "skip" = {
+          label        = "Skip"
+          value        = "skip"
+          style        = local.style_info
+          pipeline_ref = local.pipeline_optional_message
+          pipeline_args = {
+            notifier = param.notifier
+            send     = param.notification_level == local.level_verbose
+            text     = "Skipped EC2 instance ${param.title}."
+          }
+          success_msg = ""
+          error_msg   = ""
+        },
+        "detach_network_interface" = {
+          label        = "Detach Network Interface"
+          value        = "detach_network_interface"
           style        = local.style_alert
           pipeline_ref = local.aws_pipeline_detach_network_interface
           pipeline_args = {
@@ -256,28 +294,4 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
       }
     }
   }
-}
-
-variable "ec2_instances_with_multiple_enis_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "ec2_instances_with_multiple_enis_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "ec2_instances_with_multiple_enis_default_action" {
-  type        = string
-  default     = "reduce_enis"
-  description = "The default action to use for the detected item, used if no input is provided."
-}
-
-variable "ec2_instances_with_multiple_enis_enabled_actions" {
-  type        = list(string)
-  default     = ["reduce_enis"]
-  description = "The list of enabled actions to provide for selection."
 }

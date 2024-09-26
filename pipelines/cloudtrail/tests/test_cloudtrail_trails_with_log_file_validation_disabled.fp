@@ -84,7 +84,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_log_file_validation_dis
 locals {
   cloudtrail_trail_with_log_validation_disabled_query = <<-EOQ
   select
-    concat(name, ' [', region, '/', account_id, ']') as title,
+    concat(name, ' [', account_id, '/', region, ']') as title,
     name,
     region,
     _ctx ->> 'connection_name' as cred

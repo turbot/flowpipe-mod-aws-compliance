@@ -1,5 +1,5 @@
 locals {
-  ec2_instances_if_publicly_accessible_query = <<-EOQ
+  ec2_instances_with_public_access_enabled_query = <<-EOQ
     select
       concat(instance_id, ' [', account_id, '/', region, ']') as title,
       instance_id,
@@ -13,29 +13,53 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_ec2_instances_if_publicly_accessible" {
-  title         = "Detect & correct EC2 instances if publicly accessible"
-  description   = "Detects EC2 instances with public IP addresses and executes the chosen action."
-  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_if_publicly_accessible_trigger.md")
-  tags          = merge(local.ec2_common_tags, { class = "security" })
+variable "ec2_instances_with_public_access_enabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
 
-  enabled  = var.ec2_instances_if_publicly_accessible_trigger_enabled
-  schedule = var.ec2_instances_if_publicly_accessible_trigger_schedule
+variable "ec2_instances_with_public_access_enabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+}
+
+variable "ec2_instances_with_public_access_enabled_default_action" {
+  type        = string
+  default     = "notify"
+  description = "The default action to use for the detected item, used if no input is provided."
+}
+
+variable "ec2_instances_with_public_access_enabled_enabled_actions" {
+  type        = list(string)
+  default     = ["skip", "stop_instance", "terminate_instance"]
+  description = "The list of enabled actions to provide for selection."
+}
+
+
+trigger "query" "detect_and_correct_ec2_instances_with_public_access_enabled" {
+  title         = "Detect & correct EC2 instances with public access enabled"
+  description   = "Detect EC2 instances with public IP addresses and then skip or stop the instance or terminate the instance."
+  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_public_access_enabled_trigger.md")
+
+  enabled  = var.ec2_instances_with_public_access_enabled_trigger_enabled
+  schedule = var.ec2_instances_with_public_access_enabled_trigger_schedule
   database = var.database
-  sql      = local.ec2_instances_if_publicly_accessible_query
+  sql      = local.ec2_instances_with_public_access_enabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_ec2_instances_if_publicly_accessible
+    pipeline = pipeline.correct_ec2_instances_with_public_access_enabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_ec2_instances_if_publicly_accessible" {
-  title         = "Detect & correct EC2 instances if publicly accessible"
-  description   = "Detects EC2 instances with public IP addresses and performs the chosen action."
-  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_if_publicly_accessible.md")
+pipeline "detect_and_correct_ec2_instances_with_public_access_enabled" {
+  title         = "Detect & correct EC2 instances with public access enabled"
+  description   = "Detect EC2 instances with public IP addresses and then skip or stop the instance or terminate the instance."
+  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_public_access_enabled.md")
   tags          = merge(local.ec2_common_tags, { class = "security", type = "featured" })
 
   param "database" {
@@ -65,22 +89,22 @@ pipeline "detect_and_correct_ec2_instances_if_publicly_accessible" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ec2_instances_if_publicly_accessible_default_action
+    default     = var.ec2_instances_with_public_access_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ec2_instances_if_publicly_accessible_enabled_actions
+    default     = var.ec2_instances_with_public_access_enabled_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.ec2_instances_if_publicly_accessible_query
+    sql      = local.ec2_instances_with_public_access_enabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_ec2_instances_if_publicly_accessible
+    pipeline = pipeline.correct_ec2_instances_with_public_access_enabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -92,10 +116,10 @@ pipeline "detect_and_correct_ec2_instances_if_publicly_accessible" {
   }
 }
 
-pipeline "correct_ec2_instances_if_publicly_accessible" {
-  title         = "Correct EC2 instances if publicly accessible"
+pipeline "correct_ec2_instances_with_public_access_enabled" {
+  title         = "Correct EC2 instances with public access enabled"
   description   = "Executes corrective actions on EC2 instances with public IP addresses."
-  // documentation = file("./ec2/docs/correct_ec2_instances_if_publicly_accessible.md")
+  // documentation = file("./ec2/docs/correct_ec2_instances_with_public_access_enabled.md")
   tags          = merge(local.ec2_common_tags, { class = "security" })
 
   param "items" {
@@ -130,13 +154,13 @@ pipeline "correct_ec2_instances_if_publicly_accessible" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ec2_instances_if_publicly_accessible_default_action
+    default     = var.ec2_instances_with_public_access_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ec2_instances_if_publicly_accessible_enabled_actions
+    default     = var.ec2_instances_with_public_access_enabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -145,14 +169,10 @@ pipeline "correct_ec2_instances_if_publicly_accessible" {
     text     = "Detected ${length(param.items)} publicly accessible EC2 instance(s)."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.instance_id => row }
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : item.instance_id => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_ec2_instance_if_publicly_accessible
+    pipeline        = pipeline.correct_one_ec2_instance_with_public_access_enabled
     args = {
       title              = each.value.title,
       instance_id        = each.value.instance_id,
@@ -168,10 +188,10 @@ pipeline "correct_ec2_instances_if_publicly_accessible" {
   }
 }
 
-pipeline "correct_one_ec2_instance_if_publicly_accessible" {
-  title         = "Correct one EC2 instance if publicly accessible"
+pipeline "correct_one_ec2_instance_with_public_access_enabled" {
+  title         = "Correct one EC2 instance with public access enabled"
   description   = "Runs corrective action on an EC2 instance with a public IP address."
-  // documentation = file("./ec2/docs/correct_one_ec2_instance_if_publicly_accessible.md")
+  // documentation = file("./ec2/docs/correct_one_ec2_instance_with_public_access_enabled.md")
   tags          = merge(local.ec2_common_tags, { class = "security" })
 
   param "title" {
@@ -220,13 +240,13 @@ pipeline "correct_one_ec2_instance_if_publicly_accessible" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ec2_instances_if_publicly_accessible_default_action
+    default     = var.ec2_instances_with_public_access_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ec2_instances_if_publicly_accessible_enabled_actions
+    default     = var.ec2_instances_with_public_access_enabled_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -235,7 +255,7 @@ pipeline "correct_one_ec2_instance_if_publicly_accessible" {
       notifier           = param.notifier,
       notification_level = param.notification_level,
       approvers          = param.approvers,
-      detect_msg         = "Detected publicly accessible EC2 instance ${param.title} with public IP address ${param.public_ip_address}.",
+      detect_msg         = "Detected EC2 instance ${param.title} with public IP address ${param.public_ip_address}.",
       default_action     = param.default_action,
       enabled_actions    = param.enabled_actions,
       actions = {
@@ -267,11 +287,24 @@ pipeline "correct_one_ec2_instance_if_publicly_accessible" {
         //   success_msg = "Public IP removed from EC2 instance ${param.title}."
         //   error_msg   = "Error removing public IP from EC2 instance ${param.title}."
         // }
+        "stop_instance" = {
+          label        = "Stop instance"
+          value        = "stop_instance"
+          style        = local.style_alert
+          pipeline_ref = aws.pipeline.stop_ec2_instances
+          pipeline_args = {
+            instance_ids = [param.instance_id]
+            region       = param.region
+            cred         = param.cred
+          }
+          success_msg = "Stopped EC2 instance ${param.title}."
+          error_msg   = "Error stopping EC2 instance ${param.title}."
+        }
         "terminate_instance" = {
           label        = "Terminate instance"
           value        = "terminate_instance"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_terminate_ec2_instances
+          pipeline_ref = aws.pipeline.terminate_ec2_instances
           pipeline_args = {
             instance_ids = [param.instance_id]
             region       = param.region
@@ -285,26 +318,3 @@ pipeline "correct_one_ec2_instance_if_publicly_accessible" {
   }
 }
 
-variable "ec2_instances_if_publicly_accessible_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "ec2_instances_if_publicly_accessible_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "ec2_instances_if_publicly_accessible_default_action" {
-  type        = string
-  default     = "notify"
-  description = "The default action to use for the detected item, used if no input is provided."
-}
-
-variable "ec2_instances_if_publicly_accessible_enabled_actions" {
-  type        = list(string)
-  default     = ["skip", "terminate_instance"]
-  description = "The list of enabled actions to provide for selection."
-}

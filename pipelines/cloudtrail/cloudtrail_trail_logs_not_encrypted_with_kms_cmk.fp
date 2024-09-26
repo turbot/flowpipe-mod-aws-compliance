@@ -1,7 +1,7 @@
 locals {
   cloudtrail_trail_logs_not_encrypted_with_kms_cmk_query = <<-EOQ
     select
-      concat(name, ' [', region, '/', account_id, ']') as title,
+      concat(name, ' [', account_id, '/', region, ']') as title,
       region,
       _ctx ->> 'connection_name' as cred,
       name

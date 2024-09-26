@@ -1,7 +1,7 @@
 // locals {
 //   ec2_client_vpn_endpoints_without_logging_query = <<-EOQ
 //     select
-//       concat(client_vpn_endpoint_id, ' [', region, '/', account_id, ']') as title,
+//       concat(client_vpn_endpoint_id, ' [', account_id, '/', region, ']') as title,
 //       client_vpn_endpoint_id,
 //       region,
 //       _ctx ->> 'connection_name' as cred,
