@@ -2,7 +2,7 @@ locals {
 
   rds_db_instance_if_copy_tags_to_snapshot_disabled_query = <<-EOQ
     select
-      concat(db_instance_identifier, ' [', region, '/', account_id, ']') as title,
+      concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
       db_instance_identifier,
       region,
       _ctx ->> 'connection_name' as cred

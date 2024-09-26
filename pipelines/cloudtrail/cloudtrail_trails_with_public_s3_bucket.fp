@@ -26,7 +26,7 @@ locals {
       t._ctx
   )
   select
-    concat(name, ' [', region, '/', account_id, ']') as title,
+    concat(name, ' [', account_id, '/', region, ']') as title,
     name,
     case
       when arn is null then 'arn:aws:s3:::' || name

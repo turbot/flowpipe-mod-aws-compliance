@@ -1,7 +1,7 @@
 locals {
   rds_db_cluster_if_auto_minor_version_upgrade_disabled_query = <<-EOQ
     select
-      concat(db_cluster_identifier, ' [', region, '/', account_id, ']') as title,
+      concat(db_cluster_identifier, ' [', account_id, '/', region, ']') as title,
       db_cluster_identifier,
       region,
       _ctx ->> 'connection_name' as cred

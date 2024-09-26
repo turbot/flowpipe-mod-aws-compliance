@@ -1,7 +1,7 @@
 locals {
   s3_buckets_with_default_encryption_disabled_query = <<-EOQ
     select
-      concat(name, ' [', region, '/', account_id, ']') as title,
+      concat(name, ' [', account_id, '/', region, ']') as title,
       name as bucket_name,
       region,
       _ctx ->> 'connection_name' as cred

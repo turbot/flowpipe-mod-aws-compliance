@@ -1,7 +1,7 @@
 locals {
   apigateway_rest_api_stages_with_xray_tracing_disabled_query = <<-EOQ
   select
-    concat(rest_api_id, ' [', '/', region, '/', account_id, ']') as title,
+    concat(rest_api_id, ' [', '/', account_id, '/', region, ']') as title,
     rest_api_id,
     name as stage_name,
     region,

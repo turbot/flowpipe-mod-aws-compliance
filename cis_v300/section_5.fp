@@ -9,7 +9,7 @@ locals {
     cis_v300_5_3  = {pipeline = pipeline.detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6, additional_args = {}}
     cis_v300_5_4  = {pipeline = pipeline.detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4, additional_args = {}}
     cis_v300_5_5  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 5.5 is a manual control."}}
-    cis_v300_5_6  = {pipeline = pipeline.detect_and_correct_ec2_instances_not_using_imdsv2, additional_args = {}}
+    cis_v300_5_6  = {pipeline = pipeline.detect_and_correct_ec2_instances_without_imdsv2, additional_args = {}}
   }
 }
 

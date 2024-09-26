@@ -56,7 +56,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
 
   step "pipeline" "run_detection" {
     depends_on = [step.pipeline.create_elb_classic_load_balancer]
-    pipeline = pipeline.detect_and_correct_ec2_classic_load_balancers_without_connection_draining_enabled
+    pipeline = pipeline.detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled
     args = {
       approvers       = []
       default_action  = "enable_connection_draining"

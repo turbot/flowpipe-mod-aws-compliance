@@ -1,7 +1,7 @@
 locals {
   dynamodb_tables_with_deletion_protection_disabled_query = <<-EOQ
   select
-    concat(name, ' [', region, '/', account_id, ']') as title,
+    concat(name, ' [', account_id, '/', region, ']') as title,
     name,
     region,
     _ctx ->> 'connection_name' as cred

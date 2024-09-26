@@ -1,7 +1,7 @@
 locals {
   kms_keys_rotation_disabled_query = <<-EOQ
     select
-      concat(id, ' [', region, '/', account_id, ']') as title,
+      concat(id, ' [', account_id, '/', region, ']') as title,
       id as key_id,
       region,
       _ctx ->> 'connection_name' as cred
