@@ -68,7 +68,7 @@ variable "vpc_security_groups_allowing_ingress_to_port_3389_default_action" {
 variable "vpc_security_groups_allowing_ingress_to_port_3389_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_defective_security_group_rule"]
+  default     = ["skip", "revoke_security_group_rule"]
 }
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" {

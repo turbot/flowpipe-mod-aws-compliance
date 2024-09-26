@@ -17,7 +17,6 @@ locals {
         p = '*'
         and s ->> 'Effect' = 'Deny'
         and ssl::bool = false
-      limit 3 -- TODO: Remove after tests
     )
     select
       concat(b.name, ' [', b.account_id, '/', b.region, ']') as title,
@@ -29,7 +28,6 @@ locals {
       left join ssl_ok as ok on ok.name = b.name
     where
       ok.name is null
-    limit 3 -- TODO: Remove after tests
   EOQ
 }
 
@@ -60,7 +58,7 @@ variable "s3_bucket_enforce_ssl_enabled_actions" {
 trigger "query" "detect_and_correct_s3_buckets_without_ssl_enforcement" {
   title       = "Detect & Correct S3 Buckets Without SSL Enforcement"
   description = "Detect S3 buckets that do not enforce SSL and then skip or enforce SSL."
-  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_without_ssl_enforcement_trigger.md")  
+  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_without_ssl_enforcement_trigger.md")
 
   enabled  = var.s3_bucket_enforce_ssl_trigger_enabled
   schedule = var.s3_bucket_enforce_ssl_trigger_schedule
@@ -138,7 +136,7 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
   title       = "Correct S3 Buckets Without SSL Enforcement"
   description = "Executes corrective actions on S3 buckets that do not enforce SSL."
   // // documentation = file("./s3/docs/correct_s3_buckets_without_ssl_enforcement.md")
-  
+
   param "items" {
     type = list(object({
       title       = string
@@ -207,7 +205,7 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
   title       = "Correct One S3 Bucket Without SSL Enforcement"
   description = "Enforces SSL on a single S3 bucket."
   // // documentation = file("./s3/docs/correct_one_s3_bucket_without_ssl_enforcement.md")
-  
+
   param "title" {
     type        = string
     description = local.description_title
