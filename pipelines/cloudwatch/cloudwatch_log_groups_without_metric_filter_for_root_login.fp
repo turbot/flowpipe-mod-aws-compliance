@@ -364,18 +364,18 @@ variable "cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_ena
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_schedule" {
   type        = string
   default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
+  description = "If the trigger is enabled, run it on this schedule."
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_default_action" {
   type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
+  description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_default_actions" {
   type        = list(string)
-  description = " The list of enabled actions to provide to approvers for selection."
+  description = " The list of enabled actions approvers can select."
   default     = ["skip", "enable_root_login_metric_filter"]
 }
 

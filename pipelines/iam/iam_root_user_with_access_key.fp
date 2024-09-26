@@ -279,17 +279,17 @@ variable "iam_root_access_keys_trigger_enabled" {
 variable "iam_root_access_keys_trigger_schedule" {
   type        = string
   default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
+  description = "If the trigger is enabled, run it on this schedule."
 }
 
 variable "iam_root_access_keys_default_action" {
   type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
+  description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
 variable "iam_root_access_keys_enabled_actions" {
   type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
+  description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_access_key"]
 }

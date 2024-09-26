@@ -27,7 +27,7 @@ variable "cloudtrail_trails_with_log_file_validation_disabled_trigger_schedule" 
 
 variable "cloudtrail_trails_with_log_file_validation_disabled_default_action" {
   type        = string
-  description = "The default action to use for detected items."
+  description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 

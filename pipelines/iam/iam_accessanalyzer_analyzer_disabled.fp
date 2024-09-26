@@ -9,8 +9,7 @@ locals {
       left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
 		where
 			r.opt_in_status <> 'not-opted-in'
-			and aa.arn is null
-			limit 1
+			and aa.arn is null;
   EOQ
 }
 
@@ -275,18 +274,18 @@ variable "iam_accessanalyzer_analyzer_disabled_trigger_enabled" {
 variable "iam_accessanalyzer_analyzer_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
+  description = "If the trigger is enabled, run it on this schedule."
 }
 
 variable "iam_accessanalyzer_analyzer_disabled_default_action" {
   type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
+  description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
 variable "iam_accessanalyzer_analyzer_disabled_enabled_actions" {
   type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
+  description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_analyzer"]
 }
 

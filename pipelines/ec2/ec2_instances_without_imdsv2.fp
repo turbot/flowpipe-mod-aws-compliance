@@ -21,13 +21,13 @@ variable "ec2_instances_without_imdsv2_trigger_enabled" {
 variable "ec2_instances_without_imdsv2_trigger_schedule" {
   type        = string
   default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
+  description = "If the trigger is enabled, run it on this schedule."
 }
 
 variable "ec2_instances_without_imdsv2_default_action" {
   type        = string
   default     = "notify"
-  description = "The default action to use for the detected item, used if no input is provided."
+  description = "The default action to use when there are no approvers."
 }
 
 variable "ec2_instances_without_imdsv2_enabled_actions" {

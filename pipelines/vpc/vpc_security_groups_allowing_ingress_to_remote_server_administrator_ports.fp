@@ -3,7 +3,6 @@ locals {
     with bad_rules as (
       select
         group_id,
-        count(*) as num_bad_rules,
         security_group_rule_id,
         region,
         account_id,
@@ -29,12 +28,6 @@ locals {
                 and to_port <= 3389
             )
         )
-      group by
-        group_id,
-        security_group_rule_id,
-        region,
-        account_id,
-        cred
     )
     select
       concat(sg.group_id, ' [', sg.region, '/', sg.account_id, ']') as title,
@@ -318,17 +311,17 @@ variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_p
 variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_trigger_schedule" {
   type        = string
   default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
+  description = "If the trigger is enabled, run it on this schedule."
 }
 
 variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_default_action" {
   type        = string
   default     = "notify"
-  description = "The default action to use for the detected item, used if no input is provided."
+  description = "The default action to use when there are no approvers."
 }
 
 variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_enabled_actions" {
   type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
+  description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_defective_security_group_rule"]
 }

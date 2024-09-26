@@ -15,7 +15,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_regions_with_security_hub_disabled" {
-  title       = "Detect & correct regions with Security Hub disabled"
+  title       = "Detect & correct Security Hub disabled in regions"
   description = "Detects regions with Security Hub disabled and runs your chosen action."
   // // documentation = file("./securityhub/docs/detect_and_correct_regions_with_security_hub_disabled_trigger.md")
   // tags          = merge(local.securityhub_common_tags, { class = "unused" })
@@ -275,17 +275,17 @@ variable "regions_with_security_hub_disabled_trigger_enabled" {
 variable "regions_with_security_hub_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
+  description = "If the trigger is enabled, run it on this schedule."
 }
 
 variable "regions_with_security_hub_disabled_default_action" {
   type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
+  description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
 variable "regions_with_security_hub_disabled_enabled_actions" {
   type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
+  description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_with_default_standards", "enable_without_default_standards"]
 }

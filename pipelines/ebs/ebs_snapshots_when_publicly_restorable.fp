@@ -21,18 +21,18 @@ variable "ebs_snapshots_when_publicly_restorable_trigger_enabled" {
 variable "ebs_snapshots_when_publicly_restorable_trigger_schedule" {
   type        = string
   default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
+  description = "If the trigger is enabled, run it on this schedule."
 }
 
 variable "ebs_snapshots_when_publicly_restorable_default_action" {
   type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
+  description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
 variable "ebs_snapshots_when_publicly_restorable_enabled_actions" {
   type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
+  description = "The list of enabled actions approvers can select."
   default     = ["skip", "update_snapshot_permision_to_private", "delete_snapshot"]
 }
 
@@ -117,7 +117,7 @@ pipeline "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
 
 pipeline "correct_ebs_snapshots_when_publicly_restorable" {
   title         = "Correct EBS snapshots when publicly restorable"
-  description   = "Runs corrective action on a collection of EBS snapshots that are publicly restorable."
+  description   = "Update snapshot permission to private or delete the snapshot on a collection of EBS snapshots that are publicly restorable."
   // documentation = file("./ebs/docs/correct_ebs_snapshots_when_publicly_restorable.md")
   tags          = merge(local.ebs_common_tags, { class = "unused" })
 
@@ -263,6 +263,7 @@ pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
           success_msg = ""
           error_msg   = ""
         },
+        // TODO: Is the pipeline correct?
         "update_snapshot_permision_to_private" = {
           label        = "Update Snapshot Permission to Private"
           value        = "update_snapshot_permision_to_private"

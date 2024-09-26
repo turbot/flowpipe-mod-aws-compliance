@@ -32,7 +32,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_skip" {
 
   step "pipeline" "run_detection" {
     depends_on = [step.container.create_kms_key]
-    pipeline = pipeline.detect_and_correct_kms_keys_rotation_disabled
+    pipeline = pipeline.detect_and_correct_kms_keys_with_rotation_disabled
     args = {
       default_action     = "skip"
       enabled_actions    = ["skip"]
