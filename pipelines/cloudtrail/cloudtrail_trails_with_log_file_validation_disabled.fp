@@ -263,7 +263,7 @@ pipeline "correct_one_cloudtrail_trail_log_file_validation_disabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -276,7 +276,7 @@ pipeline "correct_one_cloudtrail_trail_log_file_validation_disabled" {
           label        = "Enable log file validation"
           value        = "enable_log_file_validation"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_enable_cloudtrail_validation
+          pipeline_ref = aws.pipeline.update_cloudtrail_trail
           pipeline_args = {
             trail_name                 = param.name
             enable_log_file_validation = true

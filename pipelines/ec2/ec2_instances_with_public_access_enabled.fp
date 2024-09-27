@@ -263,7 +263,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -277,7 +277,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
         //   label        = "Remove Public IP"
         //   value        = "remove_public_ip"
         //   style        = local.style_alert
-        //   pipeline_ref = local.aws_pipeline_modify_ec2_instance
+        //   pipeline_ref = aws.pipeline.modify_ec2_instance
         //   pipeline_args = {
         //     instance_id = param.instance_id,
         //     action      = "terminate_instance",

@@ -260,7 +260,7 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
           label         = "Skip"
           value         = "skip"
           style         = local.style_info
-          pipeline_ref  = local.pipeline_optional_message
+          pipeline_ref  = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -273,7 +273,7 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
           label         = "Enable xray tracing"
           value         = "enable_xray_tracing"
           style         = local.style_ok
-          pipeline_ref  = local.aws_pipeline_modify_apigateway_rest_api_stage
+          pipeline_ref  = aws.pipeline.modify_apigateway_rest_api_stage
           pipeline_args = {
             rest_api_id   = param.rest_api_id
             stage_name    = param.stage_name

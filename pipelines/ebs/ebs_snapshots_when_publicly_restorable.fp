@@ -254,7 +254,7 @@ pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -268,7 +268,7 @@ pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
           label        = "Update Snapshot Permission to Private"
           value        = "update_snapshot_permision_to_private"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_modify_ebs_snapshot
+          pipeline_ref = aws.pipeline.modify_ebs_snapshot
           pipeline_args = {
             snapshot_id = param.snapshot_id
             region      = param.region
@@ -281,7 +281,7 @@ pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
           label        = "Delete Snapshot"
           value        = "delete_snapshot"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_delete_ebs_snapshot
+          pipeline_ref = aws.pipeline.delete_ebs_snapshot
           pipeline_args = {
             snapshot_id = param.snapshot_id
             region      = param.region

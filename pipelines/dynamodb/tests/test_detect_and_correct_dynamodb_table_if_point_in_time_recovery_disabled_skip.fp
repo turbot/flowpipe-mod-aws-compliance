@@ -73,7 +73,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
 
   step "pipeline" "delete_dynamodb_table" {
     depends_on = [step.query.get_dynamodb_table]
-    pipeline = local.aws_pipeline_delete_dynamodb_table
+    pipeline = aws.pipeline.delete_dynamodb_table
     args = {
 			table_name  = param.table_name
 			region      = param.region

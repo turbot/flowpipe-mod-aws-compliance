@@ -224,7 +224,7 @@ pipeline "correct_one_iam_account_password_policy_no_one_symbol" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -237,7 +237,7 @@ pipeline "correct_one_iam_account_password_policy_no_one_symbol" {
           label        = "Update Password Policy Require Symbols"
           value        = "update_password_policy_require_symbols"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_update_iam_account_password_policy
+          pipeline_ref = aws.pipeline.update_iam_account_password_policy
           pipeline_args = {
             require_symbols = true
             cred           = param.cred

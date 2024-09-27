@@ -69,7 +69,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
 
   step "pipeline" "delete_dynamodb_table" {
     depends_on = [step.sleep.sleep_300_seconds]
-    pipeline = local.aws_pipeline_delete_dynamodb_table
+    pipeline = aws.pipeline.delete_dynamodb_table
     args = {
 			table_name  = param.table_name
 			region      = param.region

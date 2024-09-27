@@ -293,7 +293,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == "verbose"
@@ -358,7 +358,7 @@ pipeline "encrypt_cloud_trail_logs" {
   }
 
   step "pipeline" "put_kms_key_policy" {
-    pipeline = local.aws_pipeline_put_kms_key_policy
+    pipeline = aws.pipeline.put_kms_key_policy
     args = {
       key_id      = param.key_id
       policy_name = param.policy_name
@@ -370,7 +370,7 @@ pipeline "encrypt_cloud_trail_logs" {
 
   step "pipeline" "update_cloud_trail" {
     depends_on = [step.pipeline.put_kms_key_policy]
-    pipeline   = local.aws_pipeline_update_cloudtrail_trail
+    pipeline   = aws.pipeline.update_cloudtrail_trail
     args = {
       trail_name = param.trail_name
       kms_key_id = param.key_id
@@ -378,5 +378,4 @@ pipeline "encrypt_cloud_trail_logs" {
       cred       = param.cred
     }
   }
-
 }

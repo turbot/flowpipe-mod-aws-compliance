@@ -300,7 +300,7 @@ pipeline "correct_one_vpc_network_allowing_ingress_to_remote_server_administrati
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -313,7 +313,7 @@ pipeline "correct_one_vpc_network_allowing_ingress_to_remote_server_administrati
           label        = "Delete Network ACL Entry"
           value        = "delete_defective_network_acl_entry"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_delete_network_acl_entry
+          pipeline_ref = aws.pipeline.delete_network_acl_entry
           pipeline_args = {
             network_acl_id = param.network_acl_id
             rule_number    = param.rule_number

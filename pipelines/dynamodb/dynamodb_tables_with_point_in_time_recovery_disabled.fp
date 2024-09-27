@@ -255,7 +255,7 @@ pipeline "correct_one_dynamodb_tables_with_point_in_time_recovery_disabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -268,7 +268,7 @@ pipeline "correct_one_dynamodb_tables_with_point_in_time_recovery_disabled" {
           label        = "Enable Point In Time Recovery"
           value        = "enable_point_in_time_recovery"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_update_dynamodb_continuous_backup
+          pipeline_ref = aws.pipeline.update_dynamodb_continuous_backup
           pipeline_args = {
             table_name  = param.name
             region      = param.region

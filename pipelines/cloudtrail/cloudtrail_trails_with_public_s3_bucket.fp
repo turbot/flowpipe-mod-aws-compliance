@@ -301,7 +301,7 @@ pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -314,7 +314,7 @@ pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
           label        = "Update S3 Bucket Block Public Access"
           value        = "update_s3_bucket_block_public_access"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_put_s3_bucket_public_access_block
+          pipeline_ref = aws.pipeline.put_s3_bucket_public_access_block
           pipeline_args = {
             region      = param.region
             cred        = param.cred

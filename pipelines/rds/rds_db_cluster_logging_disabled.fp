@@ -246,7 +246,7 @@ pipeline "correct_one_rds_db_cluster_if_logging_disabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -259,7 +259,7 @@ pipeline "correct_one_rds_db_cluster_if_logging_disabled" {
           label        = "Update DB Cluster"
           value        = "update_db_cluster"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_modify_rds_db_cluster
+          pipeline_ref = aws.pipeline.modify_rds_db_cluster
           pipeline_args = {
             db_cluster_identifier              = param.db_cluster_identifier
             engine                             = param.engine

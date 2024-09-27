@@ -31,7 +31,7 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_skip" {
   }
 
   step "pipeline" "create_public_s3_bucket" {
-    pipeline = local.aws_pipeline_create_s3_bucket
+    pipeline = aws.pipeline.create_s3_bucket
     args     = step.transform.base_args.output.base_args
   }
 
@@ -76,7 +76,7 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_skip" {
     # Don't run before we've had a chance to list buckets
     depends_on = [step.query.verify_skip]
 
-    pipeline = local.aws_pipeline_delete_s3_bucket
+    pipeline = aws.pipeline.delete_s3_bucket
     args     = step.transform.base_args.output.base_args
   }
 

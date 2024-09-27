@@ -297,7 +297,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disable
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -358,7 +358,7 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
 
   step "pipeline" "create_s3_bucket" {
     if       = param.bucket_selector_count == 0
-    pipeline = local.aws_pipeline_create_s3_bucket
+    pipeline = aws.pipeline.create_s3_bucket
     args = {
       region = param.region
       cred   = param.cred
@@ -369,7 +369,7 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
   step "pipeline" "put_s3_bucket_policy" {
     if         = param.bucket_selector_count == 0
     depends_on = [step.pipeline.create_s3_bucket]
-    pipeline   = local.aws_pipeline_put_s3_bucket_policy
+    pipeline   = aws.pipeline.put_s3_bucket_policy
     args = {
       region = param.region
       cred   = param.cred
@@ -381,7 +381,7 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
   step "pipeline" "create_cloudtrail_trail" {
     if         = param.bucket_selector_count == 0
     depends_on = [step.pipeline.create_s3_bucket, step.pipeline.put_s3_bucket_policy]
-    pipeline   = local.aws_pipeline_create_cloudtrail_trail
+    pipeline   = aws.pipeline.create_cloudtrail_trail
     args = {
       region                        = param.region
       name                          = param.resource_name
@@ -396,7 +396,7 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
   step "pipeline" "set_event_selectors" {
     if         = param.bucket_selector_count == 0
     depends_on = [step.pipeline.create_cloudtrail_trail]
-    pipeline   = local.aws_pipeline_put_cloudtrail_trail_event_selectors
+    pipeline   = aws.pipeline.put_cloudtrail_trail_event_selector
     args = {
       region          = param.region
       trail_name      = param.resource_name

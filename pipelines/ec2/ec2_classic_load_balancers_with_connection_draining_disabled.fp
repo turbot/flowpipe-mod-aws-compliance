@@ -253,7 +253,7 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == "verbose"
@@ -266,7 +266,7 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
           label        = "Enable Connection Draining"
           value        = "enable_connection_draining"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_modify_elb_attributes
+          pipeline_ref = aws.pipeline.modify_elb_attributes
           pipeline_args = {
             load_balancer_name = param.name
             region             = param.region

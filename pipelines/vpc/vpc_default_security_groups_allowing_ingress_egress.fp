@@ -258,7 +258,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -271,7 +271,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
           label        = "Revoke Security Group Rule"
           value        = "revoke_security_group_rule"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_revoke_vpc_security_group_ingress
+          pipeline_ref = aws.pipeline.revoke_vpc_security_group_ingress
           pipeline_args = {
             group_id               = param.group_id
             security_group_rule_id = param.security_group_rule_id

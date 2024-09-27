@@ -279,7 +279,7 @@ pipeline "correct_one_cloudtrail_trail_with_multi_region_read_write_disabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -339,7 +339,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
   }
 
   step "pipeline" "create_s3_bucket" {
-    pipeline = local.aws_pipeline_create_s3_bucket
+    pipeline = aws.pipeline.create_s3_bucket
     args = {
       region = "us-east-1"
       cred   = param.cred
@@ -349,7 +349,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
 
   step "pipeline" "put_s3_bucket_policy" {
     depends_on = [step.pipeline.create_s3_bucket]
-    pipeline   = local.aws_pipeline_put_s3_bucket_policy
+    pipeline   = aws.pipeline.put_s3_bucket_policy
     args = {
       region = "us-east-1"
       cred   = param.cred
@@ -360,7 +360,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
 
   step "pipeline" "create_cloudtrail_trail" {
     depends_on = [step.pipeline.create_s3_bucket, step.pipeline.put_s3_bucket_policy]
-    pipeline   = local.aws_pipeline_create_cloudtrail_trail
+    pipeline   = aws.pipeline.create_cloudtrail_trail
     args = {
       region                        = "us-east-1"
       name                          = param.trail_name
@@ -374,7 +374,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
 
   step "pipeline" "set_event_selectors" {
     depends_on = [step.pipeline.create_cloudtrail_trail]
-    pipeline   = local.aws_pipeline_put_cloudtrail_trail_event_selectors
+    pipeline   = aws.pipeline.put_cloudtrail_trail_event_selector
     args = {
       region          = "us-east-1"
       trail_name      = param.trail_name

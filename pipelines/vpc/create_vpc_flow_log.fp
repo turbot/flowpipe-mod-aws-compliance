@@ -203,7 +203,7 @@ pipeline "create_vpc_flowlog" {
   }
 
   step "pipeline" "create_vpc_flow_logs" {
-    pipeline  = local.aws_pipeline_create_vpc_flow_logs
+    pipeline  = aws.pipeline.create_vpc_flow_logs
     args = {
       region = param.region
       cred   = param.cred

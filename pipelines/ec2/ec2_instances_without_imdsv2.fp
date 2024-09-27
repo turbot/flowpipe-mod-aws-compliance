@@ -254,7 +254,7 @@ pipeline "correct_one_ec2_instance_without_imdsv2" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -267,7 +267,7 @@ pipeline "correct_one_ec2_instance_without_imdsv2" {
           label        = "Update Instance to IMDSv2"
           value        = "update_instance_to_imdsv2"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_modify_ec2_instance_metadata_options
+          pipeline_ref = aws.pipeline.modify_ec2_instance_metadata_options
           pipeline_args = {
             instance_id = param.instance_id
             http_tokens = "required",

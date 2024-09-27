@@ -269,7 +269,7 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -282,7 +282,7 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
           label        = "Detach Network Interface"
           value        = "detach_network_interface"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_detach_network_interface
+          pipeline_ref = aws.pipeline.detach_network_interface
           pipeline_args = {
             attachment_id = param.attachment_id,
             region        = param.region,

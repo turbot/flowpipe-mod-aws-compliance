@@ -274,7 +274,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -334,7 +334,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
   }
 
   step "pipeline" "create_s3_bucket" {
-    pipeline = local.aws_pipeline_create_s3_bucket
+    pipeline = aws.pipeline.create_s3_bucket
     args = {
       region = param.region
       cred   = param.cred
@@ -344,7 +344,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
 
   step "pipeline" "put_s3_bucket_policy" {
     depends_on = [step.pipeline.create_s3_bucket]
-    pipeline   = local.aws_pipeline_put_s3_bucket_policy
+    pipeline   = aws.pipeline.put_s3_bucket_policy
     args = {
       region = param.region
       cred   = param.cred
@@ -355,7 +355,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
 
   step "pipeline" "update_cloudtrail_trail" {
     depends_on = [step.pipeline.create_s3_bucket, step.pipeline.put_s3_bucket_policy]
-    pipeline   = local.aws_pipeline_update_cloudtrail_trail
+    pipeline   = aws.pipeline.update_cloudtrail_trail
     args = {
       region         = param.region
       trail_name     = param.trail_name
@@ -366,7 +366,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
 
   step "pipeline" "put_s3_bucket_logging" {
     depends_on = [step.pipeline.create_s3_bucket, step.pipeline.put_s3_bucket_policy, step.pipeline.update_cloudtrail_trail]
-    pipeline   = local.aws_pipeline_put_s3_bucket_logging
+    pipeline   = aws.pipeline.put_s3_bucket_logging
     args = {
       cred                  = param.cred
       region                = param.region

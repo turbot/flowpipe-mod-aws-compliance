@@ -226,7 +226,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == "verbose"
@@ -239,7 +239,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           label        = "Enable with Default Standards"
           value        = "enable_with_default_standards"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_enable_security_hub
+          pipeline_ref = aws.pipeline.enable_security_hub
           pipeline_args = {
             region                   = param.region
             enable_default_standards = true
@@ -252,7 +252,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           label        = "Enable without Default Standards"
           value        = "enable_without_default_standards"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_enable_security_hub
+          pipeline_ref = aws.pipeline.enable_security_hub
           pipeline_args = {
             region                   = param.region
             enable_default_standards = false

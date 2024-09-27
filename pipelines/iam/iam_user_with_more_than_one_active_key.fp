@@ -260,7 +260,7 @@ pipeline "correct_one_extra_iam_user_active_key" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -273,7 +273,7 @@ pipeline "correct_one_extra_iam_user_active_key" {
           label        = "Delete Access Key"
           value        = "delete_access_key"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_delete_iam_access_key
+          pipeline_ref = aws.pipeline.delete_iam_access_key
           pipeline_args = {
             access_key_id = param.access_key_id
 						user_name  = param.user_name

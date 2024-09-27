@@ -269,7 +269,7 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -282,7 +282,7 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
           label        = "Enable Default Encryption"
           value        = "enable_default_encryption"
           style        = local.style_alert
-          pipeline_ref = local.aws_pipeline_put_s3_bucket_encryption
+          pipeline_ref = aws.pipeline.put_s3_bucket_encryption
           pipeline_args = {
             bucket_name        = param.bucket_name
             kms_master_key_id  = param.kms_master_key_id
