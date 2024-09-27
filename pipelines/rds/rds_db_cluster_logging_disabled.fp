@@ -138,7 +138,7 @@ pipeline "correct_rds_db_cluster_if_logging_disabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} RDS DB clusters if logging is disabled."
   }

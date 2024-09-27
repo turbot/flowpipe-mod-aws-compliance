@@ -163,7 +163,7 @@ pipeline "detach_iam_entities_with_cloudshell_fullaccess_policy" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} IAM entities with the CloudShellFullAccess policy attached."
   }

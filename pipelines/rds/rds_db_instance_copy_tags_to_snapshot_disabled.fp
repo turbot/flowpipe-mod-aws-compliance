@@ -140,7 +140,7 @@ pipeline "correct_rds_db_instance_if_copy_tags_to_snapshot_disabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} RDS DB instance if copy tags to snapshot disabled."
   }

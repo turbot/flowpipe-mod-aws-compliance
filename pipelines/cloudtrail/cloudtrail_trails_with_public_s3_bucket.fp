@@ -196,7 +196,7 @@ pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} CloudTrail trail(s) with public S3 bucket."
   }

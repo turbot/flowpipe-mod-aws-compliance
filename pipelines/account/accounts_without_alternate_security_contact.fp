@@ -215,7 +215,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == "info"
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} account(s) without alternate security contact."
   }
@@ -330,7 +330,7 @@ pipeline "correct_one_account_without_alternate_security_contact" {
           pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
-            send     = param.notification_level == "verbose"
+            send     = param.notification_level == local.level_info
             text     = "Skipped account ${param.title}."
           }
           success_msg = ""

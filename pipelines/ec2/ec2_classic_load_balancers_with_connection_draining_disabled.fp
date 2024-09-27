@@ -161,7 +161,7 @@ pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" 
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == "verbose"
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} EC2 classic load balancer(s) with connection draining disabled."
   }
@@ -256,7 +256,7 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
           pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
-            send     = param.notification_level == "verbose"
+            send     = param.notification_level == local.level_info
             text     = "Skipped EC2 classic load balancer ${param.title}."
           }
           success_msg = "Skipped EC2 classic load balancer ${param.title} with connection draining disabled."

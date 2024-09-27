@@ -197,7 +197,7 @@ pipeline "correct_vpc_networks_allowing_ingress_to_remote_server_administration_
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} VPC network ACLs allowing ingress to remote network server administration ports."
   }

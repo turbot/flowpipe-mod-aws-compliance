@@ -144,7 +144,7 @@ pipeline "deactivate_iam_user_unused_credentials_90" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} IAM user credentials that have been unused for 90 days."
   }

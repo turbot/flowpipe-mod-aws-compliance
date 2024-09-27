@@ -142,7 +142,7 @@ pipeline "enable_iam_accessanalyzer_analyzer" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} IAM Access Analyzers that are disabled."
   }

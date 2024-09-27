@@ -19,7 +19,7 @@ locals {
     cis_v300_4_13 = {pipeline = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_route_table_changes, additional_args = {}}
     cis_v300_4_14 = {pipeline = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes, additional_args = {}}
     cis_v300_4_15 = {pipeline = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_organization_changes, additional_args = {}}
-    cis_v300_4_16 = {pipeline = pipeline.detect_and_correct_regions_with_security_hub_disabled, additional_args = {}}
+    cis_v300_4_16 = {pipeline = pipeline.detect_and_correct_security_hub_disabled_in_regions, additional_args = {}}
   }
 }
 

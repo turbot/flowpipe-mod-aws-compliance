@@ -155,7 +155,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} default VPC Security group(s) allowing both ingress and egress traffic. Default security groups often come with overly permissive rules, which can lead to security vulnerabilities by allowing unauthorized traffic to and from your instances.."
   }

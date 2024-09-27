@@ -193,7 +193,7 @@ pipeline "detach_iam_entities_with_policy_star_star" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} IAM entities with the `iam_policy_star_star` policy attached."
   }

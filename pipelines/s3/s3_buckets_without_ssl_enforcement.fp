@@ -178,7 +178,7 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == "info"
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} S3 bucket(s) without SSL enforcement."
   }

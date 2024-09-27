@@ -164,7 +164,7 @@ pipeline "delete_extra_iam_user_active_keys" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} extra IAM user active keys."
   }

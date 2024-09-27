@@ -162,7 +162,7 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == "verbose"
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} KMS key(s) with rotation disabled."
   }
@@ -259,7 +259,7 @@ pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
           pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
-            send     = param.notification_level == "verbose"
+            send     = param.notification_level == local.level_info
             text     = "Skipped enabling rotation for KMS key ${param.title}."
           }
           success_msg = ""

@@ -184,7 +184,7 @@ pipeline "create_vpc_flowlog" {
 
   param "vpc_id" {
     type  = string
-    description = "The VPC ID"
+    description = "The VPC ID."
   }
 
   step "pipeline" "create_cloudwatch_log_group" {

@@ -166,7 +166,7 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} EC2 Instance(s) with multiple ENIs."
   }

@@ -164,7 +164,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} VPC Security groups allowing ingress to port 22 from 0.0.0.0/0. Allowing unrestricted SSH access is a significant security risk because it exposes your instances to potential brute-force attacks and unauthorized access from any IP address."
   }

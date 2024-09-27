@@ -186,7 +186,7 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} CloudTrail trail(s) without multi-region read/write enabled."
   }

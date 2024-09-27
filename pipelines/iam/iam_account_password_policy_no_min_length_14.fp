@@ -134,7 +134,7 @@ pipeline "correct_iam_account_password_policy_no_min_length_14" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} IAM account password policies with no minimum length of 14."
   }

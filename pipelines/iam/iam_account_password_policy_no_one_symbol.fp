@@ -134,7 +134,7 @@ pipeline "correct_iam_account_password_policy_no_one_symbol" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} IAM account password policies with no requirement for at least one symbol."
   }

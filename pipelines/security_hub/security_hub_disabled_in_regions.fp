@@ -1,7 +1,7 @@
 locals {
-  regions_with_security_hub_disabled_query = <<-EOQ
+  security_hub_disabled_in_regions_query = <<-EOQ
     select
-      concat('[', r.name, '/', r.account_id, ']') as title,
+      concat('[', r.account_id, '/', r.name, ']') as title,
       r._ctx ->> 'connection_name' as cred,
       r.name as region
     from
@@ -14,29 +14,53 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_regions_with_security_hub_disabled" {
+variable "security_hub_disabled_in_regions_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "security_hub_disabled_in_regions_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "security_hub_disabled_in_regions_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "security_hub_disabled_in_regions_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "enable_with_default_standards", "enable_without_default_standards"]
+}
+
+trigger "query" "detect_and_correct_security_hub_disabled_in_regions" {
   title       = "Detect & correct Security Hub disabled in regions"
-  description = "Detects regions with Security Hub disabled and runs your chosen action."
-  // // documentation = file("./securityhub/docs/detect_and_correct_regions_with_security_hub_disabled_trigger.md")
+  description = "Detect regions with Security Hub disabled and then skip or enable Security Hub."
+  // // documentation = file("./securityhub/docs/detect_and_correct_security_hub_disabled_in_regions_trigger.md")
   // tags          = merge(local.securityhub_common_tags, { class = "unused" })
 
-  enabled  = var.regions_with_security_hub_disabled_trigger_enabled
-  schedule = var.regions_with_security_hub_disabled_trigger_schedule
+  enabled  = var.security_hub_disabled_in_regions_trigger_enabled
+  schedule = var.security_hub_disabled_in_regions_trigger_schedule
   database = var.database
-  sql      = local.regions_with_security_hub_disabled_query
+  sql      = local.security_hub_disabled_in_regions_query
 
   capture "insert" {
-    pipeline = pipeline.correct_regions_with_security_hub_disabled
+    pipeline = pipeline.correct_security_hub_disabled_in_regions
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_regions_with_security_hub_disabled" {
-  title       = "Detect & correct regions with Security Hub disabled"
-  description = "Detects regions with Security Hub disabled and runs your chosen action."
-  // // documentation = file("./securityhub/docs/detect_and_correct_regions_with_security_hub_disabled.md")
+pipeline "detect_and_correct_security_hub_disabled_in_regions" {
+  title       = "Detect & correct Security Hub disabled in regions"
+  description = "Detect regions with Security Hub disabled and then skip or enable Security Hub."
+  // // documentation = file("./securityhub/docs/detect_and_correct_security_hub_disabled_in_regions.md")
   // tags          = merge(local.securityhub_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -66,22 +90,22 @@ pipeline "detect_and_correct_regions_with_security_hub_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.regions_with_security_hub_disabled_default_action
+    default     = var.security_hub_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.regions_with_security_hub_disabled_enabled_actions
+    default     = var.security_hub_disabled_in_regions_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.regions_with_security_hub_disabled_query
+    sql      = local.security_hub_disabled_in_regions_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_regions_with_security_hub_disabled
+    pipeline = pipeline.correct_security_hub_disabled_in_regions
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -93,10 +117,10 @@ pipeline "detect_and_correct_regions_with_security_hub_disabled" {
   }
 }
 
-pipeline "correct_regions_with_security_hub_disabled" {
+pipeline "correct_security_hub_disabled_in_regions" {
   title       = "Correct regions with Security Hub disabled"
-  description = "Executes corrective actions on regions with Security Hub disabled."
-  // // documentation = file("./securityhub/docs/correct_regions_with_security_hub_disabled_.md")
+  description = "Enable Security Hub in regions with Security Hub disabled."
+  // // documentation = file("./securityhub/docs/correct_security_hub_disabled_in_regions_.md")
   // tags          = merge(local.securityhub_common_tags, { class = "unused" })
 
   param "items" {
@@ -128,19 +152,19 @@ pipeline "correct_regions_with_security_hub_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.regions_with_security_hub_disabled_default_action
+    default     = var.security_hub_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.regions_with_security_hub_disabled_enabled_actions
+    default     = var.security_hub_disabled_in_regions_enabled_actions
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == "verbose"
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} unused Security Hub disableds."
+    text     = "Detected ${length(param.items)} region(s) with Security Hub disabled."
   }
 
   step "pipeline" "correct_item" {
@@ -162,7 +186,7 @@ pipeline "correct_regions_with_security_hub_disabled" {
 
 pipeline "correct_one_region_with_security_hub_disabled" {
   title       = "Correct one region with Security Hub disabled"
-  description = "Runs corrective action on a single regions with Security Hub disabled."
+  description = "Enable Security Hub in a single region with Security Hub disabled."
   // // documentation = file("./securityhub/docs/correct_one_region_with_security_hub_disabled_.md")
   // tags          = merge(local.securityhub_common_tags, { class = "unused" })
 
@@ -170,7 +194,6 @@ pipeline "correct_one_region_with_security_hub_disabled" {
     type        = string
     description = local.description_title
   }
-
 
   param "region" {
     type        = string
@@ -203,13 +226,13 @@ pipeline "correct_one_region_with_security_hub_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.regions_with_security_hub_disabled_default_action
+    default     = var.security_hub_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.regions_with_security_hub_disabled_enabled_actions
+    default     = var.security_hub_disabled_in_regions_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -218,7 +241,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected Security Hub disabled ${param.title} for region enabled."
+      detect_msg         = "Detected ${param.title} with Security Hub disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -229,11 +252,11 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
-            send     = param.notification_level == "verbose"
-            text     = "Skipped Security Hub disabled ${param.title}."
+            send     = param.notification_level == local.level_info
+            text     = "Skipped ${param.title} with Security Hub disabled."
           }
-          success_msg = "Skipped Security Hub disabled ${param.title} for region enabled."
-          error_msg   = "Error skipping Security Hub disabled ${param.title} for region enabled."
+          success_msg = ""
+          error_msg   = ""
         },
         "enable_with_default_standards" = {
           label        = "Enable with Default Standards"
@@ -245,8 +268,8 @@ pipeline "correct_one_region_with_security_hub_disabled" {
             enable_default_standards = true
             cred                     = param.cred
           }
-          success_msg = "Enabled SecurityHub with default standards in region ${param.title}."
-          error_msg   = "Error enabling SecurityHub with default standards in region ${param.title}."
+          success_msg = "Enabled Security Hub with default standards in region ${param.title}."
+          error_msg   = "Error enabling Security Hub with default standards in region ${param.title}."
         },
         "enable_without_default_standards" = {
           label        = "Enable without Default Standards"
@@ -258,34 +281,10 @@ pipeline "correct_one_region_with_security_hub_disabled" {
             enable_default_standards = false
             cred                     = param.cred
           }
-          success_msg = "Enabled SecurityHub without default standards in region ${param.title}."
-          error_msg   = "Error enabling SecurityHub without default standards in region ${param.title}."
+          success_msg = "Enabled Security Hub without default standards in region ${param.title}."
+          error_msg   = "Error enabling Security Hub without default standards in region ${param.title}."
         }
       }
     }
   }
-}
-
-variable "regions_with_security_hub_disabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "regions_with_security_hub_disabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "regions_with_security_hub_disabled_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "regions_with_security_hub_disabled_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "enable_with_default_standards", "enable_without_default_standards"]
 }

@@ -160,7 +160,7 @@ pipeline "correct_vpcs_without_flow_logs" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} VPCs without flow logs."
   }

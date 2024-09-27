@@ -162,7 +162,7 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} API Gateway rest API stage(s) with X-Ray tracing disabled."
   }

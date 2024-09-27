@@ -165,7 +165,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_console_authen
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for console authentication failure."
   }

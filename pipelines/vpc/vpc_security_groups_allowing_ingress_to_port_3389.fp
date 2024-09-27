@@ -203,7 +203,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} VPC security group rule(s) allowing ingress to port 3389 from 0.0.0.0/0 or ::/0."
   }

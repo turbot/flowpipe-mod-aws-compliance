@@ -170,7 +170,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} VPC Security groups allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from either 0.0.0.0/0 (IPv4) or ::/0 (IPv6). This poses a critical security risk as it exposes your instances to potential unauthorized access from any IP address on the internet, over both IPv4 and IPv6."
   }

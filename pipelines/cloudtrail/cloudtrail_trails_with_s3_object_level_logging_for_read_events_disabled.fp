@@ -191,7 +191,7 @@ pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} CloudTrail trail(s) with S3 object level logging for read events disabled."
   }

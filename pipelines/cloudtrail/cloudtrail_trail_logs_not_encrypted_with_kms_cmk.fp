@@ -182,7 +182,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == "verbose"
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
     text     = "Detected ${length(param.items)} CloudTrail trail log(s) not encrypted with KMS CMK."
   }
@@ -296,7 +296,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
           pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
-            send     = param.notification_level == "verbose"
+            send     = param.notification_level == local.level_info
             text     = "Skipped CloudTrail logs ${param.title} not encrypted with KMS CMK."
           }
           success_msg = "Skipped CloudTrail logs ${param.title} not encrypted with KMS CMK."

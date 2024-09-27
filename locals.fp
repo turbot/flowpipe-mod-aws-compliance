@@ -31,8 +31,6 @@ locals {
   description_region           = "AWS Region of the resource(s)."
   description_resource         = "The name of the resource"
   description_title            = "Title of the resource, to be used as a display name."
-  description_trigger_enabled  = "If true, the trigger is enabled."
-  description_trigger_schedule = "If the trigger is enabled, run it on this schedule."
 }
 
 // Pipeline References

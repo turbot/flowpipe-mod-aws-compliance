@@ -165,9 +165,9 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_del
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
+    if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for disable or delete CMK ."
+    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for disable or delete CMK."
   }
 
   step "transform" "items_by_id" {
@@ -192,7 +192,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_del
 
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk" {
   title         = "Correct one CloudWatch log group without metric filter for disable or delete CMK "
-  description   = "Runs corrective action on a CloudWatch log group without metric filter for disable or delete CMK ."
+  description   = "Runs corrective action on a CloudWatch log group without metric filter for disable or delete CMK."
   // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk.md")
   tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
 
