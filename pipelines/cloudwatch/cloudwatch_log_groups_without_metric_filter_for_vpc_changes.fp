@@ -42,11 +42,119 @@ locals {
   EOQ
 }
 
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_actions" {
+  type        = list(string)
+  description = " The list of enabled actions approvers can select."
+  default     = ["skip", "enable_vpc_changes_metric_filter"]
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_log_group_name" {
+  type        = string
+  description = "The name of the log group to create."
+  default     = "log_group_name_33"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_region" {
+  type        = string
+  description = "The region to create the log group in."
+  default     = "us-east-1"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_name" {
+  type        = string
+  description = "The name of the metric filter."
+  default     = "VPCChangesMetric"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_role_name" {
+  type        = string
+  description = "The name of the IAM role to create."
+  default     = "VPCChangesMetricrRole"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_s3_bucket_name" {
+  type        = string
+  description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
+  default     = "vpcchangemetrics3bucket"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_name" {
+  type        = string
+  description = "The name of the metric."
+  default     = "VPCChangeMetrics"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_namespace" {
+  type        = string
+  description = "The namespace of the metric."
+  default     = "CISBenchmark"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_queue_name" {
+  type        = string
+  description = "The name of the SQS queue."
+  default     = "flowpipeVPCChanges"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_value" {
+  type        = string
+  description = "The value to publish to the metric."
+  default     = "1"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_pattern" {
+  type        = string
+  description = "The filter pattern for the metric filter."
+  default     = "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_sns_topic_name" {
+  type        = string
+  description = "The name of the Amazon SNS topic to create."
+  default     = "vpc_changes_metric_topic"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_alarm_name" {
+  type        = string
+  description = "The name of the CloudWatch alarm."
+  default     = "vpc_changes_alarm"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trail_name" {
+  type        = string
+  description = "The name of the CloudTrail trail."
+  default     = "VPCChangesMetricTrail"
+}
+
+variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_protocol" {
+  type        = string
+  description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
+  default     = "SQS"
+}
+
 trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
-  title         = "Detect & correct CloudWatch log groups etric filter for VPC changes"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for VPC changes and runs your chosen action."
+  title       = "Detect & correct CloudWatch log groups etric filter for VPC changes"
+  description = "Detects CloudWatch log groups that do not have a metric filter for VPC changes and runs your chosen action."
   // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger.md")
-  tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
+  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   enabled  = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_enabled
   schedule = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_schedule
@@ -62,15 +170,99 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 }
 
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
-  title         = "Detect & correct CloudWatch log groups etric filter for VPC changes"
-  description   = "Detects CloudWatch log groups that do not have a metric filter for VPC changes and runs your chosen action."
+  title       = "Detect & correct CloudWatch log groups etric filter for VPC changes"
+  description = "Detects CloudWatch log groups that do not have a metric filter for VPC changes and runs your chosen action."
   // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
-  tags          = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
     description = local.description_database
     default     = var.database
+  }
+
+  param "region" {
+    type        = string
+    description = local.description_region
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_region
+  }
+
+  param "log_group_name" {
+    type        = string
+    description = "The name of the log group to create."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_log_group_name
+  }
+
+  param "filter_name" {
+    type        = string
+    description = "The name of the metric filter."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_name
+  }
+
+  param "role_name" {
+    type        = string
+    description = "The name of the IAM role to create."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_role_name
+  }
+
+  param "trail_name" {
+    type        = string
+    description = "The name of the CloudTrail trail."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trail_name
+  }
+
+  param "s3_bucket_name" {
+    type        = string
+    description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_s3_bucket_name
+  }
+
+  param "metric_name" {
+    type        = string
+    description = "The name of the metric."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_name
+  }
+
+  param "metric_namespace" {
+    type        = string
+    description = "The namespace of the metric."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_namespace
+  }
+
+  param "metric_value" {
+    type        = string
+    description = "The value to publish to the metric."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_value
+  }
+
+  param "filter_pattern" {
+    type        = string
+    description = "The filter pattern for the metric filter."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_pattern
+  }
+
+  param "sns_topic_name" {
+    type        = string
+    description = "The name of the Amazon SNS topic to create."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_sns_topic_name
+  }
+
+  param "queue_name" {
+    type        = string
+    description = "The name of the SQS queue."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_queue_name
+  }
+
+  param "protocol" {
+    type        = string
+    description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_protocol
+  }
+
+  param "alarm_name" {
+    type        = string
+    description = "The name of the CloudWatch alarm."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_alarm_name
   }
 
   param "notifier" {
@@ -112,6 +304,19 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc
     pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes
     args = {
       items              = step.query.detect.rows
+      region             = param.region
+      log_group_name     = param.log_group_name
+      filter_name        = param.filter_name
+      role_name          = param.role_name
+      trail_name         = param.trail_name
+      s3_bucket_name     = param.s3_bucket_name
+      metric_name        = param.metric_name
+      metric_namespace   = param.metric_namespace
+      queue_name         = param.queue_name
+      metric_value       = param.metric_value
+      filter_pattern     = param.filter_pattern
+      sns_topic_name     = param.sns_topic_name
+      alarm_name         = param.alarm_name
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -122,17 +327,101 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc
 }
 
 pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
-  title         = "Correct CloudWatch log groups etric filter for VPC changes"
-  description   = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for VPC changes."
+  title       = "Correct CloudWatch log groups etric filter for VPC changes"
+  description = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for VPC changes."
   // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
-  tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
+  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
-      title      = string
-      cred       = string
+      title = string
+      cred  = string
     }))
     description = local.description_items
+  }
+
+  param "region" {
+    type        = string
+    description = local.description_region
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_region
+  }
+
+  param "log_group_name" {
+    type        = string
+    description = "The name of the log group to create."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_log_group_name
+  }
+
+  param "filter_name" {
+    type        = string
+    description = "The name of the metric filter."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_name
+  }
+
+  param "role_name" {
+    type        = string
+    description = "The name of the IAM role to create."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_role_name
+  }
+
+  param "trail_name" {
+    type        = string
+    description = "The name of the CloudTrail trail."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trail_name
+  }
+
+  param "s3_bucket_name" {
+    type        = string
+    description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_s3_bucket_name
+  }
+
+  param "metric_name" {
+    type        = string
+    description = "The name of the metric."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_name
+  }
+
+  param "metric_namespace" {
+    type        = string
+    description = "The namespace of the metric."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_namespace
+  }
+
+  param "metric_value" {
+    type        = string
+    description = "The value to publish to the metric."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_value
+  }
+
+  param "filter_pattern" {
+    type        = string
+    description = "The filter pattern for the metric filter."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_pattern
+  }
+
+  param "sns_topic_name" {
+    type        = string
+    description = "The name of the Amazon SNS topic to create."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_sns_topic_name
+  }
+
+  param "queue_name" {
+    type        = string
+    description = "The name of the SQS queue."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_queue_name
+  }
+
+  param "protocol" {
+    type        = string
+    description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_protocol
+  }
+
+  param "alarm_name" {
+    type        = string
+    description = "The name of the CloudWatch alarm."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_alarm_name
   }
 
   param "notifier" {
@@ -182,6 +471,19 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
     args = {
       title              = each.value.title
       cred               = each.value.cred
+      region             = param.region
+      log_group_name     = param.log_group_name
+      filter_name        = param.filter_name
+      role_name          = param.role_name
+      trail_name         = param.trail_name
+      s3_bucket_name     = param.s3_bucket_name
+      metric_name        = param.metric_name
+      metric_namespace   = param.metric_namespace
+      queue_name         = param.queue_name
+      metric_value       = param.metric_value
+      filter_pattern     = param.filter_pattern
+      sns_topic_name     = param.sns_topic_name
+      alarm_name         = param.alarm_name
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -192,10 +494,10 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
 }
 
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
-  title         = "Correct one CloudWatch log group etric filter for VPC changes"
-  description   = "Runs corrective action on a CloudWatch log group etric filter for VPC changes."
+  title       = "Correct one CloudWatch log group etric filter for VPC changes"
+  description = "Runs corrective action on a CloudWatch log group etric filter for VPC changes."
   // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
-  tags          = merge(local.cloudwatch_common_tags, { class = "unused" })
+  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   param "title" {
     type        = string
@@ -205,6 +507,90 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_change
   param "cred" {
     type        = string
     description = local.description_credential
+  }
+
+  param "region" {
+    type        = string
+    description = local.description_region
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_region
+  }
+
+  param "log_group_name" {
+    type        = string
+    description = "The name of the log group to create."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_log_group_name
+  }
+
+  param "filter_name" {
+    type        = string
+    description = "The name of the metric filter."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_name
+  }
+
+  param "role_name" {
+    type        = string
+    description = "The name of the IAM role to create."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_role_name
+  }
+
+  param "trail_name" {
+    type        = string
+    description = "The name of the CloudTrail trail."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trail_name
+  }
+
+  param "s3_bucket_name" {
+    type        = string
+    description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_s3_bucket_name
+  }
+
+  param "metric_name" {
+    type        = string
+    description = "The name of the metric."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_name
+  }
+
+  param "metric_namespace" {
+    type        = string
+    description = "The namespace of the metric."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_namespace
+  }
+
+  param "metric_value" {
+    type        = string
+    description = "The value to publish to the metric."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_value
+  }
+
+  param "filter_pattern" {
+    type        = string
+    description = "The filter pattern for the metric filter."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_pattern
+  }
+
+  param "sns_topic_name" {
+    type        = string
+    description = "The name of the Amazon SNS topic to create."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_sns_topic_name
+  }
+
+  param "queue_name" {
+    type        = string
+    description = "The name of the SQS queue."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_queue_name
+  }
+
+  param "protocol" {
+    type        = string
+    description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_protocol
+  }
+
+  param "alarm_name" {
+    type        = string
+    description = "The name of the CloudWatch alarm."
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_alarm_name
   }
 
   param "notifier" {
@@ -267,84 +653,83 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_change
           pipeline_ref = pipeline.create_cloudwatch_metric_filter_vpc_changes
           pipeline_args = {
             cred             = param.cred
-            region           = "us-east-1"
-            log_group_name   = "log_group_name_33"
-            filter_name      = "VPCChangesMetric"
-            role_name        = "VPCChangesMetricrRole"
-            trail_name       = "VPCChangesMetricTrail"
-            s3_bucket_name   = "vpcchangemetrics3bucket"
-            metric_name      = "VPCChangeMetrics"
-            metric_namespace = "CISBenchmark"
-            queue_name       = "flowpipeVPCChanges"
-            metric_value     = "1"
-            filter_pattern   = "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }"
-            sns_topic_name = "vpc_changes_metric_topic"
-            protocol       = "SQS"
-            alarm_name     = "vpc_changes_alarm"
+            region           = param.region
+            log_group_name   = param.log_group_name
+            filter_name      = param.filter_name
+            role_name        = param.role_name
+            trail_name       = param.trail_name
+            s3_bucket_name   = param.s3_bucket_name
+            metric_name      = param.metric_name
+            metric_namespace = param.metric_namespace
+            queue_name       = param.queue_name
+            metric_value     = param.metric_value
+            filter_pattern   = param.filter_pattern
+            sns_topic_name   = param.sns_topic_name
+            alarm_name       = param.alarm_name
             assume_role_policy_document = jsonencode({
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "cloudtrail.amazonaws.com"
+              "Version" : "2012-10-17",
+              "Statement" : [
+                {
+                  "Effect" : "Allow",
+                  "Principal" : {
+                    "Service" : "cloudtrail.amazonaws.com"
+                  },
+                  "Action" : "sts:AssumeRole"
+                }
+              ]
+            })
+            bucket_policy = jsonencode({
+              "Version" : "2012-10-17",
+              "Statement" : [
+                {
+                  "Sid" : "AWSCloudTrailAclCheck20150319",
+                  "Effect" : "Allow",
+                  "Principal" : {
+                    "Service" : "cloudtrail.amazonaws.com"
+                  },
+                  "Action" : "s3:GetBucketAcl",
+                  "Resource" : "arn:aws:s3:::vpcchangemetrics3bucket"
                 },
-                "Action": "sts:AssumeRole"
-              }
-            ]
-          })
-          bucket_policy = jsonencode({
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Sid": "AWSCloudTrailAclCheck20150319",
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "cloudtrail.amazonaws.com"
-                },
-                "Action": "s3:GetBucketAcl",
-                "Resource": "arn:aws:s3:::vpcchangemetrics3bucket"
-              },
-              {
-                "Sid": "AWSCloudTrailWrite20150319",
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "cloudtrail.amazonaws.com"
-                },
-                "Action": "s3:PutObject",
-                "Resource": "arn:aws:s3:::vpcchangemetrics3bucket/AWSLogs/533793682495/*",
-                "Condition": {
-                  "StringEquals": {
-                    "s3:x-amz-acl": "bucket-owner-full-control"
+                {
+                  "Sid" : "AWSCloudTrailWrite20150319",
+                  "Effect" : "Allow",
+                  "Principal" : {
+                    "Service" : "cloudtrail.amazonaws.com"
+                  },
+                  "Action" : "s3:PutObject",
+                  "Resource" : "arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.title}/*",
+                  "Condition" : {
+                    "StringEquals" : {
+                      "s3:x-amz-acl" : "bucket-owner-full-control"
+                    }
                   }
                 }
-              }
-            ]
-          })
-          cloudtrail_policy_document = jsonencode({
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Sid": "AWSCloudTrailCreateLogStream2014110",
-                "Effect": "Allow",
-                "Action": [
-                  "logs:CreateLogStream"
-                ],
-                "Resource": [
-                  "arn:aws:logs:*"
-                ]
-              },
-              {
-                "Sid": "AWSCloudTrailPutLogEvents20141101",
-                "Effect": "Allow",
-                "Action": [
-                  "logs:PutLogEvents"
-                ],
-                "Resource": [
-                  "arn:aws:logs:*"
-                ]
-              }
-            ]
+              ]
+            })
+            cloudtrail_policy_document = jsonencode({
+              "Version" : "2012-10-17",
+              "Statement" : [
+                {
+                  "Sid" : "AWSCloudTrailCreateLogStream2014110",
+                  "Effect" : "Allow",
+                  "Action" : [
+                    "logs:CreateLogStream"
+                  ],
+                  "Resource" : [
+                    "arn:aws:logs:*"
+                  ]
+                },
+                {
+                  "Sid" : "AWSCloudTrailPutLogEvents20141101",
+                  "Effect" : "Allow",
+                  "Action" : [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource" : [
+                    "arn:aws:logs:*"
+                  ]
+                }
+              ]
             })
           }
           success_msg = "Enabled VPC changes metric filter for account ${param.title}."
@@ -354,32 +739,6 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_change
     }
   }
 }
-
-
-variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "cloudwatch_log_groups_without_metric_filter_for_vpc_changes_default_actions" {
-  type        = list(string)
-  description = " The list of enabled actions approvers can select."
-  default     = ["skip", "enable_vpc_changes_metric_filter"]
-}
-
 
 pipeline "create_cloudwatch_metric_filter_vpc_changes" {
   title       = "Create CloudTrail with CloudWatch Logging"
@@ -394,36 +753,37 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
   param "region" {
     type        = string
     description = local.description_region
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_region
   }
 
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = "log_group_name_33"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_log_group_name
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = "VPCChangesMetric"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_name
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = "VPCChangesMetricrRole"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_role_name
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = "VPCChangesMetricTrail"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_trail_name
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = "vpcchangemetrics3bucket"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_s3_bucket_name
   }
 
   param "acl" {
@@ -435,63 +795,63 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = "VPCChangeMetrics"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_name
   }
 
   param "metric_namespace" {
     type        = string
     description = "The namespace of the metric."
-    default     = "CISBenchmark"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_namespace
   }
 
   param "metric_value" {
     type        = string
     description = "The value to publish to the metric."
-    default     = "1"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_metric_value
   }
 
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     = "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_filter_pattern
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = "vpc_changes_metric_topic"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_sns_topic_name
   }
 
   param "queue_name" {
     type        = string
     description = "The name of the SQS queue."
-    default     = "flowpipeVPCChanges"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_queue_name
   }
 
   param "protocol" {
     type        = string
     description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
-    default     = "SQS"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_protocol
   }
 
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = "vpc_changes_alarm"
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_vpc_changes_alarm_name
   }
 
   param "assume_role_policy_document" {
     type        = string
     description = "The trust relationship policy document that grants an entity permission to assume the role. A JSON policy that has been converted to a string."
     default = jsonencode({
-      "Version": "2012-10-17",
-      "Statement": [
+      "Version" : "2012-10-17",
+      "Statement" : [
         {
-          "Effect": "Allow",
-          "Principal": {
-            "Service": "cloudtrail.amazonaws.com"
+          "Effect" : "Allow",
+          "Principal" : {
+            "Service" : "cloudtrail.amazonaws.com"
           },
-          "Action": "sts:AssumeRole"
+          "Action" : "sts:AssumeRole"
         }
       ]
     })
@@ -501,28 +861,28 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
     type        = string
     description = "The S3 bucket policy for CloudTrail."
     default = jsonencode({
-      "Version": "2012-10-17",
-      "Statement": [
+      "Version" : "2012-10-17",
+      "Statement" : [
         {
-          "Sid": "AWSCloudTrailAclCheck20150319",
-          "Effect": "Allow",
-          "Principal": {
-            "Service": "cloudtrail.amazonaws.com"
+          "Sid" : "AWSCloudTrailAclCheck20150319",
+          "Effect" : "Allow",
+          "Principal" : {
+            "Service" : "cloudtrail.amazonaws.com"
           },
-          "Action": "s3:GetBucketAcl",
-          "Resource": "arn:aws:s3:::vpcchangemetrics3bucket"
+          "Action" : "s3:GetBucketAcl",
+          "Resource" : "arn:aws:s3:::vpcchangemetrics3bucket"
         },
         {
-          "Sid": "AWSCloudTrailWrite20150319",
-          "Effect": "Allow",
-          "Principal": {
-            "Service": "cloudtrail.amazonaws.com"
+          "Sid" : "AWSCloudTrailWrite20150319",
+          "Effect" : "Allow",
+          "Principal" : {
+            "Service" : "cloudtrail.amazonaws.com"
           },
-          "Action": "s3:PutObject",
-          "Resource": "arn:aws:s3:::vpcchangemetrics3bucket/AWSLogs/533793682495/*",
-          "Condition": {
-            "StringEquals": {
-              "s3:x-amz-acl": "bucket-owner-full-control"
+          "Action" : "s3:PutObject",
+          "Resource" : "arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.title}/*",
+          "Condition" : {
+            "StringEquals" : {
+              "s3:x-amz-acl" : "bucket-owner-full-control"
             }
           }
         }
@@ -534,29 +894,29 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
     type        = string
     description = "The policy document that grants permissions for CloudTrail to write to CloudWatch logs."
     default = jsonencode({
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Sid": "AWSCloudTrailCreateLogStream2014110",
-				"Effect": "Allow",
-				"Action": [
-					"logs:CreateLogStream"
-				],
-				"Resource": [
-					"arn:aws:logs:*"
-				]
-			},
-			{
-				"Sid": "AWSCloudTrailPutLogEvents20141101",
-				"Effect": "Allow",
-				"Action": [
-					"logs:PutLogEvents"
-				],
-				"Resource": [
-					"arn:aws:logs:*"
-				]
-			}
-		]
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Sid" : "AWSCloudTrailCreateLogStream2014110",
+          "Effect" : "Allow",
+          "Action" : [
+            "logs:CreateLogStream"
+          ],
+          "Resource" : [
+            "arn:aws:logs:*"
+          ]
+        },
+        {
+          "Sid" : "AWSCloudTrailPutLogEvents20141101",
+          "Effect" : "Allow",
+          "Action" : [
+            "logs:PutLogEvents"
+          ],
+          "Resource" : [
+            "arn:aws:logs:*"
+          ]
+        }
+      ]
     })
   }
 
@@ -570,9 +930,9 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
     env = credential.aws[param.cred].env
   }
 
- step "container" "create_iam_policy" {
+  step "container" "create_iam_policy" {
     depends_on = [step.container.create_iam_role]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "create-policy",
       "--policy-name", param.role_name,
@@ -583,8 +943,8 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "query" "get_iam_role_arn" {
     depends_on = [step.container.create_iam_role]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         arn
       from
@@ -596,8 +956,8 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "query" "get_iam_policy_arn" {
     depends_on = [step.container.create_iam_policy]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         arn
       from
@@ -609,18 +969,18 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "attach_policy_to_role" {
     depends_on = [step.query.get_iam_policy_arn]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "attach-role-policy",
       "--role-name", param.role_name,
       "--policy-arn", step.query.get_iam_policy_arn.rows[0].arn,
-      ]
+    ]
     env = credential.aws[param.cred].env
   }
 
   step "container" "create_log_group" {
     depends_on = [step.container.attach_policy_to_role]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = concat(
       ["logs", "create-log-group"],
       ["--log-group-name", param.log_group_name],
@@ -631,7 +991,7 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "create_s3_bucket" {
     depends_on = [step.container.create_log_group]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = concat(
       ["s3api", "create-bucket"],
       ["--bucket", param.s3_bucket_name],
@@ -643,7 +1003,7 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "set_bucket_policy" {
     depends_on = [step.container.create_s3_bucket]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "s3api", "put-bucket-policy",
       "--bucket", param.s3_bucket_name,
@@ -654,8 +1014,8 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "query" "get_log_group_arn" {
     depends_on = [step.container.create_log_group]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         arn
       from
@@ -667,7 +1027,7 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "create_trail" {
     depends_on = [step.query.get_log_group_arn]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = concat(
       ["cloudtrail", "create-trail"],
       ["--name", param.trail_name],
@@ -683,7 +1043,7 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "start_cloudtrail_trail_logging" {
     depends_on = [step.container.create_trail]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = ["cloudtrail", "start-logging", "--name", param.trail_name]
 
@@ -692,7 +1052,7 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "set_metric_filter" {
     depends_on = [step.container.start_cloudtrail_trail_logging]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = concat(
       [
@@ -701,9 +1061,9 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
         "--filter-name", param.filter_name,
         "--metric-transformations",
         jsonencode([{
-          "metricName": param.metric_name,
-          "metricNamespace": param.metric_namespace,
-          "metricValue": param.metric_value
+          "metricName" : param.metric_name,
+          "metricNamespace" : param.metric_namespace,
+          "metricValue" : param.metric_value
         }]),
         "--filter-pattern", param.filter_pattern
       ]
@@ -714,7 +1074,7 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "create_sns_topic" {
     depends_on = [step.container.set_metric_filter]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = concat(
       ["sns", "create-topic"],
@@ -724,10 +1084,10 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
   }
 
- step "query" "get_sns_topic_arn" {
-  depends_on = [step.container.create_sns_topic]
-    database = var.database
-    sql = <<-EOQ
+  step "query" "get_sns_topic_arn" {
+    depends_on = [step.container.create_sns_topic]
+    database   = var.database
+    sql        = <<-EOQ
       select
         topic_arn
       from
@@ -740,7 +1100,7 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "create_sqs_queue" {
     depends_on = [step.query.get_sns_topic_arn]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = concat(
       ["sqs", "create-queue"],
@@ -752,8 +1112,8 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "query" "get_sqs_queue_arn" {
     depends_on = [step.container.create_sqs_queue]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         queue_arn
       from
@@ -766,7 +1126,7 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "subscribe_to_sns_topic" {
     depends_on = [step.query.get_sqs_queue_arn]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = ["sns", "subscribe",
       "--topic-arn", step.query.get_sns_topic_arn.rows[0].topic_arn,
@@ -780,7 +1140,7 @@ pipeline "create_cloudwatch_metric_filter_vpc_changes" {
 
   step "container" "create_alarm" {
     depends_on = [step.container.subscribe_to_sns_topic]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = concat(
       [
