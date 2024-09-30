@@ -67,12 +67,6 @@ variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_ac
   default     = ["skip", "enable_iam_policy_changes_metric_filter"]
 }
 
-variable "queue_name" {
-  type        = string
-  description = "The name of the SQS queue."
-  default     = "flowpipeIAMChangesMetricQueue"
-}
-
 variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_log_group_name" {
   type        = string
   description = "The name of the log group to create."
