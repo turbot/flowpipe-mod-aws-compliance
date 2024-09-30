@@ -870,7 +870,7 @@ pipeline "create_cloudwatch_metric_filter_console_authentication_failure" {
             "Service" : "cloudtrail.amazonaws.com"
           },
           "Action" : "s3:GetBucketAcl",
-          "Resource" : "arn:aws:s3:::${param.s3_bucket_name}"
+          "Resource" : "arn:aws:s3:::consoleauthenticationfailuremetrics3bucket"
         },
         {
           "Sid" : "AWSCloudTrailWrite20150319",
@@ -879,7 +879,7 @@ pipeline "create_cloudwatch_metric_filter_console_authentication_failure" {
             "Service" : "cloudtrail.amazonaws.com"
           },
           "Action" : "s3:PutObject",
-          "Resource" : "arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.title}/*",
+          "Resource" : "arn:aws:s3:::consoleauthenticationfailuremetrics3bucket/AWSLogs/your_account_id/*",
           "Condition" : {
             "StringEquals" : {
               "s3:x-amz-acl" : "bucket-owner-full-control"

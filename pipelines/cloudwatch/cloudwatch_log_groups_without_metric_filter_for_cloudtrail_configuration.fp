@@ -152,7 +152,7 @@ variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configurati
 trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Detect & correct CloudWatch log groups without metric filter for CloudTrail configuration"
   description = "Detects CloudWatch log groups that do not have a metric filter for CloudTrail Configuration and runs your chosen action."
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  tags        = merge(local.cloudwatch_common_tags, { class = "unused" })
 
   enabled  = var.cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_trigger_enabled
   schedule = var.cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_trigger_schedule
@@ -171,7 +171,7 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Detect & correct CloudWatch log groups without metric filter for CloudTrail configuration"
   description = "Detects CloudWatch log groups that do not have a metric filter for CloudTrail Configuration and runs your chosen action."
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
+  tags        = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
 
   param "region" {
     type        = string
@@ -302,6 +302,20 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_clo
     pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration
     args = {
       items              = step.query.detect.rows
+      region             = param.region
+      log_group_name     = param.log_group_name
+      filter_name        = param.filter_name
+      role_name          = param.role_name
+      trail_name         = param.trail_name
+      s3_bucket_name     = param.s3_bucket_name
+      metric_name        = param.metric_name
+      metric_namespace   = param.metric_namespace
+      metric_value       = param.metric_value
+      filter_pattern     = param.filter_pattern
+      sns_topic_name     = param.sns_topic_name
+      queue_name         = param.queue_name
+      protocol           = param.protocol
+      alarm_name         = param.alarm_name
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -466,7 +480,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_con
       metric_namespace   = param.metric_namespace
       metric_value       = param.metric_value
       filter_pattern     = param.filter_pattern
-      sns_topic_name    = param.sns_topic_name
+      sns_topic_name     = param.sns_topic_name
       queue_name         = param.queue_name
       protocol           = param.protocol
       alarm_name         = param.alarm_name
@@ -675,7 +689,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_cloudtrail
                     "Service" : "cloudtrail.amazonaws.com"
                   },
                   "Action" : "s3:GetBucketAcl",
-                  "Resource" : "arn:aws:s3:::cloudtrailconfigurationmetrics3bucket"
+                  "Resource" : "arn:aws:s3:::${param.s3_bucket_name}"
                 },
                 {
                   "Sid" : "AWSCloudTrailWrite20150319",
@@ -684,7 +698,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_cloudtrail
                     "Service" : "cloudtrail.amazonaws.com"
                   },
                   "Action" : "s3:PutObject",
-                  "Resource" : "arn:aws:s3:::cloudtrailconfigurationmetrics3bucket/AWSLogs/533793682495/*",
+                  "Resource" : "arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.title}/*",
                   "Condition" : {
                     "StringEquals" : {
                       "s3:x-amz-acl" : "bucket-owner-full-control"
@@ -865,7 +879,7 @@ pipeline "create_cloudwatch_metric_filter_cloudtrail_configuration" {
             "Service" : "cloudtrail.amazonaws.com"
           },
           "Action" : "s3:PutObject",
-          "Resource" : "arn:aws:s3:::cloudtrailconfigurationmetrics3bucket/AWSLogs/533793682495/*",
+          "Resource" : "arn:aws:s3:::cloudtrailconfigurationmetrics3bucket/AWSLogs/your_account_id/*",
           "Condition" : {
             "StringEquals" : {
               "s3:x-amz-acl" : "bucket-owner-full-control"

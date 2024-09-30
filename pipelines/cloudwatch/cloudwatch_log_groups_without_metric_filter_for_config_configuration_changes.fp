@@ -690,7 +690,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_config_con
                     "Service" : "cloudtrail.amazonaws.com"
                   },
                   "Action" : "s3:GetBucketAcl",
-                  "Resource" : "arn:aws:s3:::configconfigurationchangemetrics3bucket"
+                  "Resource" : "arn:aws:s3:::${param.s3_bucket_name}"
                 },
                 {
                   "Sid" : "AWSCloudTrailWrite20150319",
@@ -699,7 +699,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_config_con
                     "Service" : "cloudtrail.amazonaws.com"
                   },
                   "Action" : "s3:PutObject",
-                  "Resource" : "arn:aws:s3:::configconfigurationchangemetrics3bucket/AWSLogs/533793682495/*",
+                  "Resource" : "arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.title}/*",
                   "Condition" : {
                     "StringEquals" : {
                       "s3:x-amz-acl" : "bucket-owner-full-control"
@@ -881,7 +881,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
             "Service" : "cloudtrail.amazonaws.com"
           },
           "Action" : "s3:PutObject",
-          "Resource" : "arn:aws:s3:::configconfigurationchangemetrics3bucket/AWSLogs/533793682495/*",
+          "Resource" : "arn:aws:s3:::configconfigurationchangemetrics3bucket/AWSLogs/your_account_id/*",
           "Condition" : {
             "StringEquals" : {
               "s3:x-amz-acl" : "bucket-owner-full-control"

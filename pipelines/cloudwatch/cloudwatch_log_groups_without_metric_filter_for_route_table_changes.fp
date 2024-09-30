@@ -842,81 +842,16 @@ pipeline "create_cloudwatch_metric_filter_route_table_changes" {
   param "assume_role_policy_document" {
     type        = string
     description = "The trust relationship policy document that grants an entity permission to assume the role. A JSON policy that has been converted to a string."
-    default = jsonencode({
-      "Version" : "2012-10-17",
-      "Statement" : [
-        {
-          "Effect" : "Allow",
-          "Principal" : {
-            "Service" : "cloudtrail.amazonaws.com"
-          },
-          "Action" : "sts:AssumeRole"
-        }
-      ]
-    })
   }
 
   param "bucket_policy" {
     type        = string
     description = "The S3 bucket policy for CloudTrail."
-    default = jsonencode({
-      "Version" : "2012-10-17",
-      "Statement" : [
-        {
-          "Sid" : "AWSCloudTrailAclCheck20150319",
-          "Effect" : "Allow",
-          "Principal" : {
-            "Service" : "cloudtrail.amazonaws.com"
-          },
-          "Action" : "s3:GetBucketAcl",
-          "Resource" : "arn:aws:s3:::${param.s3_bucket_name}"
-        },
-        {
-          "Sid" : "AWSCloudTrailWrite20150319",
-          "Effect" : "Allow",
-          "Principal" : {
-            "Service" : "cloudtrail.amazonaws.com"
-          },
-          "Action" : "s3:PutObject",
-          "Resource" : "arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.title}/*",
-          "Condition" : {
-            "StringEquals" : {
-              "s3:x-amz-acl" : "bucket-owner-full-control"
-            }
-          }
-        }
-      ]
-    })
   }
 
   param "cloudtrail_policy_document" {
     type        = string
     description = "The policy document that grants permissions for CloudTrail to write to CloudWatch logs."
-    default = jsonencode({
-      "Version" : "2012-10-17",
-      "Statement" : [
-        {
-          "Sid" : "AWSCloudTrailCreateLogStream2014110",
-          "Effect" : "Allow",
-          "Action" : [
-            "logs:CreateLogStream"
-          ],
-          "Resource" : [
-            "arn:aws:logs:*"
-          ]
-        },
-        {
-          "Sid" : "AWSCloudTrailPutLogEvents20141101",
-          "Effect" : "Allow",
-          "Action" : [
-            "logs:PutLogEvents"
-          ],
-          "Resource" : [
-            "arn:aws:logs:*"
-          ]
-        }
-      ]
-    })
   }
 
   step "container" "create_iam_role" {
