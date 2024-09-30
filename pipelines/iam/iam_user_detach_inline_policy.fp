@@ -1,5 +1,4 @@
 locals {
-
   iam_user_inline_policies_query = <<-EOQ
      select
 			concat(i ->> 'PolicyName', ' [', account_id, ']') as title,

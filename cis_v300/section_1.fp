@@ -8,19 +8,19 @@ locals {
     cis_v300_1_5  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.5 is a manual control."}}
     cis_v300_1_6  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.6 is a manual control."}}
     cis_v300_1_7  = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.7 is a manual control."}}
-    cis_v300_1_8  = {pipeline = pipeline.detect_and_correct_iam_account_password_policy_no_min_length_14, additional_args = {}}
-    cis_v300_1_9  = {pipeline = pipeline.detect_and_correct_iam_account_password_policy_no_policy_reuse_24, additional_args = {}}
+    cis_v300_1_8  = {pipeline = pipeline.detect_and_correct_iam_accounts_password_policy_without_min_length_14, additional_args = {}}
+    cis_v300_1_9  = {pipeline = pipeline.detect_and_correct_iam_accounts_password_policy_without_password_reuse_24, additional_args = {}}
     cis_v300_1_10 = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.10 is a manual control."}}
     cis_v300_1_11 = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.11 is a manual control."}}
-    cis_v300_1_12 = {pipeline = pipeline.detect_and_deactivate_iam_user_unused_credentials_45, additional_args = {}}
+    cis_v300_1_12 = {pipeline = pipeline.detect_and_correct_iam_users_with_unused_credential_45_days, additional_args = {}}
     cis_v300_1_13 = {pipeline = pipeline.detect_and_delete_extra_iam_user_active_keys, additional_args = {}}
-    cis_v300_1_14 = {pipeline = pipeline.detect_and_deactivate_iam_user_unused_credentials_90, additional_args = {}}
+    cis_v300_1_14 = {pipeline = pipeline.detect_and_deactivate_iam_users_with_unused_credential_90_days, additional_args = {}}
     cis_v300_1_15 = {pipeline = pipeline.detect_and_delete_iam_user_inline_policies, additional_args = {}}
     cis_v300_1_16 = {pipeline = pipeline.detect_and_detach_iam_entities_with_policy_star_star, additional_args = {}}
     cis_v300_1_17 = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.17 is a manual control."}}
     cis_v300_1_18 = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.18 is a manual control."}}
     cis_v300_1_19 = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.19 is a manual control."}}
-    cis_v300_1_20 = {pipeline = pipeline.detect_and_enable_iam_accessanalyzer_analyzer_disabled, additional_args = {}}
+    cis_v300_1_20 = {pipeline = pipeline.detect_and_correct_iam_access_analyzer_disabled_in_regions, additional_args = {}}
     cis_v300_1_21 = {pipeline = pipeline.manual_control, additional_args = {message = "CIS v3.0.0 1.21 is a manual control."}}
     cis_v300_1_22 = {pipeline = pipeline.detect_and_detach_iam_entities_with_cloudshell_fullaccess_policy, additional_args = {}}
   }
