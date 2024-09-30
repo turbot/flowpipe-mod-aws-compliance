@@ -1,6 +1,6 @@
 # AWS Compliance Mod for Flowpipe
 
-Pipelines to detect and remediate misconfigurations in AWS resources, ensuring compliance with CIS benchmarks.
+Pipelines to detect and remediate misconfigurations in AWS resources.
 
 ## Documentation
 
