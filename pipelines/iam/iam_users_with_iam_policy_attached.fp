@@ -1,5 +1,5 @@
 locals {
-  iam_users_with_policy_query = <<-EOQ
+  iam_users_with_iam_policy_attached_query = <<-EOQ
 		select
 			concat(name, ' [', account_id, ']') as title,
 			jsonb_array_elements_text(attached_policy_arns) as policy_arn,
@@ -9,32 +9,55 @@ locals {
 		from
 			aws_iam_user
 		where
-			attached_policy_arns is not null;
+			attached_policy_arns is not null
+      and name = 'flowpipe-user-dummy';
   EOQ
 }
 
-trigger "query" "detect_and_detach_iam_user_policy" {
-  title         = "Detect & correct IAM User Policy"
-  description   = "Detects IAM users with a specific policy attached and detaches that policy."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+variable "iam_users_with_iam_policy_attached_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
 
-  enabled  = var.iam_user_policy_trigger_enabled
-  schedule = var.iam_user_policy_trigger_schedule
+variable "iam_users_with_iam_policy_attached_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "iam_users_with_iam_policy_attached_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "iam_users_with_iam_policy_attached_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "detach_iam_policy"]
+}
+
+trigger "query" "detect_and_correct_iam_users_with_iam_policy_attached" {
+  title         = "Detect & correct IAM users with IAM policy attached"
+  description   = "Detects IAM users with a specific policy attached and detaches that policy."
+
+  enabled  = var.iam_users_with_iam_policy_attached_trigger_enabled
+  schedule = var.iam_users_with_iam_policy_attached_trigger_schedule
   database = var.database
-  sql      = local.iam_users_with_policy_query
+  sql      = local.iam_users_with_iam_policy_attached_query
 
   capture "insert" {
-    pipeline = pipeline.detach_iam_user_policy
+    pipeline = pipeline.correct_iam_users_with_iam_policy_attached
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_detach_iam_user_policy" {
-  title         = "Detect & correct IAM User Policy"
+pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
+  title         = "Detect & correct IAM users with IAM policy attached"
   description   = "Detects IAM users with a specific policy attached and detaches that policy."
-  tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 
   param "database" {
     type        = string
@@ -63,22 +86,22 @@ pipeline "detect_and_detach_iam_user_policy" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_user_policy_default_action
+    default     = var.iam_users_with_iam_policy_attached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_user_policy_enabled_actions
+    default     = var.iam_users_with_iam_policy_attached_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_users_with_policy_query
+    sql      = local.iam_users_with_iam_policy_attached_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.detach_iam_user_policy
+    pipeline = pipeline.correct_iam_users_with_iam_policy_attached
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -90,10 +113,9 @@ pipeline "detect_and_detach_iam_user_policy" {
   }
 }
 
-pipeline "detach_iam_user_policy" {
-  title         = "Detach IAM User Policy"
-  description   = "Runs corrective action to detach a specific IAM policy from users."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+pipeline "correct_iam_users_with_iam_policy_attached" {
+  title         = "Correct IAM users with IAM policy attached"
+  description   = "Detaches IAM policies from IAM users with IAM policy attached."
 
   param "items" {
     type = list(object({
@@ -127,19 +149,19 @@ pipeline "detach_iam_user_policy" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_user_policy_default_action
+    default     = var.iam_users_with_iam_policy_attached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_user_policy_enabled_actions
+    default     = var.iam_users_with_iam_policy_attached_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM users with the specified policy attached."
+    text     = "Detected ${length(param.items)} IAM user(s) with the specified policy attached."
   }
 
   step "transform" "items_by_id" {
@@ -149,7 +171,7 @@ pipeline "detach_iam_user_policy" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.detach_policy_from_one_iam_user
+    pipeline        = pipeline.correct_one_iam_user_with_iam_policy_attached
     args = {
       title              = each.value.title
       user_name          = each.value.user_name
@@ -165,10 +187,9 @@ pipeline "detach_iam_user_policy" {
   }
 }
 
-pipeline "detach_policy_from_one_iam_user" {
+pipeline "correct_one_iam_user_with_iam_policy_attached" {
   title         = "Detach Policy from One IAM User"
-  description   = "Runs corrective action to detach a specific IAM policy from one user."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+  description   = "Detaches IAM policies from a IAM user with IAM policy attached."
 
   param "title" {
     type        = string
@@ -216,13 +237,13 @@ pipeline "detach_policy_from_one_iam_user" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_user_policy_default_action
+    default     = var.iam_users_with_iam_policy_attached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_user_policy_enabled_actions
+    default     = var.iam_users_with_iam_policy_attached_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -248,17 +269,17 @@ pipeline "detach_policy_from_one_iam_user" {
           success_msg = ""
           error_msg   = ""
         },
-        "detach_policy" = {
-          label        = "Detach Policy"
-          value        = "detach_policy"
+        "detach_iam_policy" = {
+          label        = "Detach IAM policy"
+          value        = "detach_iam_policy"
           style        = local.style_alert
-          pipeline_ref = pipeline.aws_pipeline_detach_iam_user_policy
+          pipeline_ref = pipeline.detach_iam_users_with_iam_policy_attached
           pipeline_args = {
             user_name  = param.user_name
             policy_arn = param.policy_arn
             cred       = param.cred
           }
-          success_msg = "Detached policy from IAM user ${param.title}."
+          success_msg = "Detached IAM policy from IAM user ${param.title}."
           error_msg   = "Error detaching policy from IAM user ${param.title}."
         }
       }
@@ -266,7 +287,7 @@ pipeline "detach_policy_from_one_iam_user" {
   }
 }
 
-pipeline "aws_pipeline_detach_iam_user_policy" {
+pipeline "detach_iam_users_with_iam_policy_attached" {
   title       = "Detach IAM User Policy"
   description = "Detaches the specified managed policy from the specified IAM user."
 
@@ -286,7 +307,7 @@ pipeline "aws_pipeline_detach_iam_user_policy" {
     description = "The Amazon Resource Name (ARN) of the IAM policy you want to detach."
   }
 
-  step "container" "detach_user_policy" {
+  step "container" "detach_iam_user_policy" {
     image = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "detach-user-policy",
@@ -296,28 +317,4 @@ pipeline "aws_pipeline_detach_iam_user_policy" {
 
     env = credential.aws[param.cred].env
   }
-}
-
-variable "iam_user_policy_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "iam_user_policy_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "iam_user_policy_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "iam_user_policy_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "detach_policy"]
 }

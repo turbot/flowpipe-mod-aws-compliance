@@ -9,7 +9,7 @@ locals {
       left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
     where
       r.opt_in_status <> 'not-opted-in'
-      and aa.arn is null limit 1;
+      and aa.arn is null;
   EOQ
 }
 

@@ -24,7 +24,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_numbe
   }
 
   step "query" "get_password_policy" {
-		depends_on = [step.query.get_account_id]
+	  depends_on = [step.query.get_account_id]
     database = var.database
     sql = <<-EOQ
       select
@@ -60,21 +60,19 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_numbe
   }
 
   step "container" "set_password_policy_require_numbers" {
-
     if = length(step.query.get_password_policy_without_number_requirement.rows) == 0
     image = "public.ecr.aws/aws-cli/aws-cli"
-
 
     cmd = concat(
       ["iam", "update-account-password-policy"],
       ["--minimum-password-length", tostring(step.query.get_password_policy.rows[0].minimum_password_length)],
-			step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
-			["--no-require-numbers"],
+      step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
+      ["--no-require-numbers"],
       step.query.get_password_policy.rows[0].require_lowercase_characters ? ["--require-lowercase-characters"] : ["--no-require-lowercase-characters"],
-			step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
-			step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
-			step.query.get_password_policy.rows[0].max_password_age != null ? ["--max-password-age",  tostring(step.query.get_password_policy.rows[0].max_password_age)] : [],
-			step.query.get_password_policy.rows[0].password_reuse_prevention != null ? ["--password-reuse-prevention",  tostring(step.query.get_password_policy.rows[0].password_reuse_prevention)] : []
+      step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
+      step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
+      step.query.get_password_policy.rows[0].max_password_age != null ? ["--max-password-age",  tostring(step.query.get_password_policy.rows[0].max_password_age)] : [],
+      step.query.get_password_policy.rows[0].password_reuse_prevention != null ? ["--password-reuse-prevention",  tostring(step.query.get_password_policy.rows[0].password_reuse_prevention)] : []
     )
 
     env = credential.aws[param.cred].env

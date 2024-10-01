@@ -1,41 +1,61 @@
 locals {
-  iam_user_inline_policies_query = <<-EOQ
-     select
-			concat(i ->> 'PolicyName', ' [', account_id, ']') as title,
+  iam_users_with_inline_policy_query = <<-EOQ
+    select
+      concat(i ->> 'PolicyName', ' [', account_id, ']') as title,
       i ->> 'PolicyName' as inline_policy_name,
-			name as user_name,
+      name as user_name,
       account_id,
       _ctx ->> 'connection_name' as cred
-		from
-			aws_iam_user,
+    from
+      aws_iam_user,
       jsonb_array_elements(inline_policies) as i;
   EOQ
 }
 
-trigger "query" "detect_and_delete_iam_user_inline_policies" {
-  title         = "Detect & correct IAM User Inline Policies"
-  description   = "Detects IAM user inline policies and deletes them."
-  // // documentation = file("./iam/docs/detect_and_delete_iam_user_inline_policies_trigger.md")
-  tags          = merge(local.iam_common_tags, { class = "security" })
+variable "iam_users_with_inline_policy_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
 
-  enabled  = var.iam_user_inline_policies_trigger_enabled
-  schedule = var.iam_user_inline_policies_trigger_schedule
+variable "iam_users_with_inline_policy_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "iam_users_with_inline_policy_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "iam_users_with_inline_policy_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "delete_inline_policy"]
+}
+
+trigger "query" "detect_and_correct_iam_users_with_inline_policy" {
+  title         = "Detect & correct IAM users with inline policy"
+  description   = "Detects IAM user with inline policy and deletes them."
+
+  enabled  = var.iam_users_with_inline_policy_trigger_enabled
+  schedule = var.iam_users_with_inline_policy_trigger_schedule
   database = var.database
-  sql      = local.iam_user_inline_policies_query
+  sql      = local.iam_users_with_inline_policy_query
 
   capture "insert" {
-    pipeline = pipeline.delete_iam_user_inline_policies
+    pipeline = pipeline.correct_iam_users_with_inline_policy
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_delete_iam_user_inline_policies" {
-  title         = "Detect & correct IAM User Inline Policies"
-  description   = "Detects IAM user inline policies and deletes them."
-  // // documentation = file("./iam/docs/detect_and_delete_iam_user_inline_policies.md")
-  tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
+pipeline "detect_and_correct_iam_users_with_inline_policy" {
+  title         = "Detect & correct IAM users with inline policy"
+  description   = "Detects IAM user inline policy and deletes them."
 
   param "database" {
     type        = string
@@ -64,22 +84,22 @@ pipeline "detect_and_delete_iam_user_inline_policies" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_user_inline_policies_default_action
+    default     = var.iam_users_with_inline_policy_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_user_inline_policies_enabled_actions
+    default     = var.iam_users_with_inline_policy_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_user_inline_policies_query
+    sql      = local.iam_users_with_inline_policy_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.delete_iam_user_inline_policies
+    pipeline = pipeline.correct_iam_users_with_inline_policy
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -91,11 +111,9 @@ pipeline "detect_and_delete_iam_user_inline_policies" {
   }
 }
 
-pipeline "delete_iam_user_inline_policies" {
-  title         = "Delete IAM User Inline Policies"
-  description   = "Runs corrective action to delete IAM user inline policies."
-  // // documentation = file("./iam/docs/delete_iam_user_inline_policies.md")
-  tags          = merge(local.iam_common_tags, { class = "security" })
+pipeline "correct_iam_users_with_inline_policy" {
+  title         = "Delete IAM user inline policy"
+  description   = "Runs corrective action to delete IAM user inline policy."
 
   param "items" {
     type = list(object({
@@ -128,19 +146,19 @@ pipeline "delete_iam_user_inline_policies" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_user_inline_policies_default_action
+    default     = var.iam_users_with_inline_policy_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_user_inline_policies_enabled_actions
+    default     = var.iam_users_with_inline_policy_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM user inline policies."
+    text     = "Detected ${length(param.items)} IAM users inline policies."
   }
 
   step "transform" "items_by_id" {
@@ -150,11 +168,11 @@ pipeline "delete_iam_user_inline_policies" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_user_inline_policy
+    pipeline        = pipeline.correct_one_iam_users_with_inline_policy
     args = {
       title              = each.value.title
       user_name          = each.value.user_name
-      inline_policy_name        = each.value.inline_policy_name
+      inline_policy_name = each.value.inline_policy_name
       cred               = each.value.cred
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -165,11 +183,9 @@ pipeline "delete_iam_user_inline_policies" {
   }
 }
 
-pipeline "correct_one_iam_user_inline_policy" {
-  title         = "Correct one IAM User Inline Policy"
+pipeline "correct_one_iam_users_with_inline_policy" {
+  title         = "Correct one IAM user with inline policy"
   description   = "Runs corrective action to delete one IAM user inline policy."
-  // // documentation = file("./iam/docs/correct_one_iam_user_inline_policy.md")
-  tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "title" {
     type        = string
@@ -212,13 +228,13 @@ pipeline "correct_one_iam_user_inline_policy" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_user_inline_policies_default_action
+    default     = var.iam_users_with_inline_policy_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_user_inline_policies_enabled_actions
+    default     = var.iam_users_with_inline_policy_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -227,7 +243,7 @@ pipeline "correct_one_iam_user_inline_policy" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM user inline policy ${param.title}."
+      detect_msg         = "Detected IAM user ${param.user_name} inline policy ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -239,7 +255,7 @@ pipeline "correct_one_iam_user_inline_policy" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM user inline policy ${param.title}."
+            text     = "Skipped IAM user ${param.user_name} inline policy ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
@@ -250,40 +266,16 @@ pipeline "correct_one_iam_user_inline_policy" {
           style        = local.style_alert
           pipeline_ref = pipeline.delete_user_inline_policy
           pipeline_args = {
-            user_name    = param.user_name
+            user_name           = param.user_name
             inline_policy_name  = param.inline_policy_name
-            cred         = param.cred
+            cred                = param.cred
           }
-          success_msg = "Deleted IAM user inline policy ${param.title}."
-          error_msg   = "Error deleting IAM user inline policy ${param.title}."
+          success_msg = "Deleted IAM user ${param.user_name} inline policy ${param.title}."
+          error_msg   = "Error deleting IAM user ${param.user_name} inline policy ${param.title}."
         }
       }
     }
   }
-}
-
-variable "iam_user_inline_policies_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "iam_user_inline_policies_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "iam_user_inline_policies_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "iam_user_inline_policies_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "delete_inline_policy"]
 }
 
 pipeline "delete_user_inline_policy" {

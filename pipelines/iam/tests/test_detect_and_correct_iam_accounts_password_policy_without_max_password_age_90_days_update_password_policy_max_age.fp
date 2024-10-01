@@ -12,7 +12,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_max_passw
     default     = "default"
   }
 
- step "query" "get_account_id" {
+  step "query" "get_account_id" {
 		database = var.database
     sql = <<-EOQ
       select
@@ -54,8 +54,8 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_max_passw
         aws_iam_account_password_policy
       where
         (max_password_age < 90
-      	or max_password_age is null)
-				and account_id = '${step.query.get_account_id.rows[0].account_id}'
+        or max_password_age is null)
+        and account_id = '${step.query.get_account_id.rows[0].account_id}'
     EOQ
   }
 
