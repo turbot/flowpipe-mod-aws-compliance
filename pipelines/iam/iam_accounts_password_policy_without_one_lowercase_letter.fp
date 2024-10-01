@@ -255,7 +255,7 @@ pipeline "correct_one_iam_account_password_policy_without_one_lowercase_letter" 
           label        = "Update Password Policy Require Lowercase"
           value        = "update_password_policy_require_lowercase"
           style        = local.style_alert
-          pipeline_ref = aws.pipeline.update_iam_account_password_policy
+          pipeline_ref = pipeline.update_iam_account_password_policy_lowercase_letter
           pipeline_args = {
             require_lowercase_characters = true
             cred                        = param.cred
@@ -268,3 +268,58 @@ pipeline "correct_one_iam_account_password_policy_without_one_lowercase_letter" 
   }
 }
 
+pipeline "update_iam_account_password_policy_lowercase_letter" {
+  title       = "Update IAM account password policy lowercase letter requirement"
+  description = "Updates the account password policy lowercase letter requirement for the AWS account."
+
+  param "cred" {
+    type        = string
+    description = local.description_credential
+    default     = "default"
+  }
+
+  param "require_lowercase_characters" {
+    type        = bool
+    description = "Specifies whether to require lowercase characters in the password."
+    optional    = true
+  }
+
+  step "query" "get_password_policy" {
+    database = var.database
+    sql = <<-EOQ
+      select
+        account_id,
+        minimum_password_length,
+        require_symbols,
+        require_numbers,
+        require_uppercase_characters,
+        require_lowercase_characters,
+        allow_users_to_change_password,
+        max_password_age,
+        password_reuse_prevention
+      from
+        aws_iam_account_password_policy
+      where
+        _ctx ->> 'connection_name' = '${param.cred}'
+    EOQ
+  }
+
+  step "container" "update_iam_account_password_policy" {
+    depends_on = [step.query.get_password_policy]
+    image = "public.ecr.aws/aws-cli/aws-cli"
+
+    cmd = concat(
+      ["iam", "update-account-password-policy"],
+      ["--minimum-password-length", tostring(step.query.get_password_policy.rows[0].minimum_password_length)],
+			step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
+			step.query.get_password_policy.rows[0].require_numbers ? ["--require-numbers"] : ["--no-require-numbers"],
+      ["--require-lowercase-characters"],
+			step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
+			step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
+			step.query.get_password_policy.rows[0].max_password_age != null ? ["--max-password-age",  tostring(step.query.get_password_policy.rows[0].max_password_age)] : [],
+			step.query.get_password_policy.rows[0].password_reuse_prevention != null ? ["--password-reuse-prevention",  tostring(step.query.get_password_policy.rows[0].password_reuse_prevention)] : []
+    )
+
+    env = credential.aws[param.cred].env
+  }
+}

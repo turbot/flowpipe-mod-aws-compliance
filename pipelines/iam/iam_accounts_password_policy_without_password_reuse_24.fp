@@ -37,9 +37,8 @@ variable "iam_accounts_password_policy_without_password_reuse_24_enabled_actions
 }
 
 trigger "query" "detect_and_correct_iam_accounts_password_policy_without_password_reuse_24" {
-  title         = "Detect & correct IAM Account Password Policy No Policy Reuse 24"
-  description   = "Detects IAM account password policies that do not enforce a password reuse prevention policy of 24 and updates them."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+  title         = "Detect & correct IAM accounts password policy without password reuse 24"
+  description   = "Detects IAM accounts password policy that do not enforce a password reuse prevention policy of 24 and updates them."
 
   enabled  = var.iam_accounts_password_policy_without_password_reuse_24_trigger_enabled
   schedule = var.iam_accounts_password_policy_without_password_reuse_24_trigger_schedule
@@ -55,9 +54,8 @@ trigger "query" "detect_and_correct_iam_accounts_password_policy_without_passwor
 }
 
 pipeline "detect_and_correct_iam_accounts_password_policy_without_password_reuse_24" {
-  title         = "Detect & correct IAM Account Password Policy No Policy Reuse 24"
-  description   = "Detects IAM account password policies that do not enforce a password reuse prevention policy of 24 and updates them."
-  tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
+  title         = "Detect & correct IAM accounts password policy without password reuse 24"
+  description   = "Detects IAM accounts password policy that do not enforce a password reuse prevention policy of 24 and updates them."
 
   param "database" {
     type        = string
@@ -114,8 +112,8 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_password_reuse
 }
 
 pipeline "correct_iam_accounts_password_policy_without_password_reuse_24" {
-  title         = "Correct IAM Account Password Policy No Policy Reuse 24"
-  description   = "Runs corrective action on a collection of IAM account password policies that do not enforce a password reuse prevention policy of 24."
+  title         = "Correct IAM accounts password policy without password reuse 24"
+  description   = "Runs corrective action on a collection of IAM accounts password policy that do not enforce a password reuse prevention policy of 24."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "items" {
@@ -160,7 +158,7 @@ pipeline "correct_iam_accounts_password_policy_without_password_reuse_24" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM account password policies with no password reuse prevention policy of 24."
+    text     = "Detected ${length(param.items)} IAM account(s) password policy with no password reuse prevention policy of 24."
   }
 
   step "transform" "items_by_id" {
@@ -185,8 +183,8 @@ pipeline "correct_iam_accounts_password_policy_without_password_reuse_24" {
 }
 
 pipeline "correct_one_iam_accounts_password_policy_without_password_reuse_24" {
-  title         = "Correct one IAM Account Password Policy No Policy Reuse 24"
-  description   = "Runs corrective action to update one IAM account password policy to enforce a password reuse prevention policy of 24."
+  title         = "Correct IAM account password policy without password reuse 24"
+  description   = "Runs corrective action on a IAM account password policy that do not enforce a password reuse prevention policy of 24."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "title" {
@@ -240,7 +238,7 @@ pipeline "correct_one_iam_accounts_password_policy_without_password_reuse_24" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM account password policy with no password reuse prevention policy of 24 for ${param.title}."
+      detect_msg         = "Detected IAM account ${param.title} password policy with no password reuse prevention policy of 24."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -261,7 +259,7 @@ pipeline "correct_one_iam_accounts_password_policy_without_password_reuse_24" {
           label        = "Update Password Policy Reuse Prevention"
           value        = "update_password_policy_reuse_prevention"
           style        = local.style_alert
-          pipeline_ref = aws.pipeline.update_iam_account_password_policy
+          pipeline_ref = pipeline.update_iam_account_password_policy_password_reuse
           pipeline_args = {
             password_reuse_prevention = 24
             cred                     = param.cred
@@ -271,5 +269,60 @@ pipeline "correct_one_iam_accounts_password_policy_without_password_reuse_24" {
         }
       }
     }
+  }
+}
+
+pipeline "update_iam_account_password_policy_password_reuse" {
+  title       = "Update IAM account password policy password reuse"
+  description = "Updates the account password policy password reuse for the AWS account."
+
+  param "cred" {
+    type        = string
+    description = local.description_credential
+    default     = "default"
+  }
+
+  param "password_reuse_prevention" {
+    type        = number
+    description = "Prevents the reuse of the specified number of previous passwords."
+  }
+
+  step "query" "get_password_policy" {
+    database = var.database
+    sql = <<-EOQ
+      select
+        account_id,
+        minimum_password_length,
+        require_symbols,
+        require_numbers,
+        require_uppercase_characters,
+        require_lowercase_characters,
+        allow_users_to_change_password,
+        max_password_age,
+        password_reuse_prevention
+      from
+        aws_iam_account_password_policy
+      where
+        _ctx ->> 'connection_name' = '${param.cred}'
+    EOQ
+  }
+
+  step "container" "update_iam_account_password_policy" {
+    depends_on = [step.query.get_password_policy]
+    image = "public.ecr.aws/aws-cli/aws-cli"
+
+    cmd = concat(
+      ["iam", "update-account-password-policy"],
+      ["--minimum-password-length", tostring(step.query.get_password_policy.rows[0].minimum_password_length)],
+			step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
+			step.query.get_password_policy.rows[0].require_numbers ? ["--require-numbers"] : ["--no-require-numbers"],
+      step.query.get_password_policy.rows[0].require_lowercase_characters ? ["--require-lowercase-characters"] : ["--no-require-lowercase-characters"],
+      step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
+			step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
+			step.query.get_password_policy.rows[0].max_password_age != null ? ["--max-password-age",  tostring(step.query.get_password_policy.rows[0].max_password_age)] : [],
+			["--password-reuse-prevention",  tostring(param.password_reuse_prevention)]
+    )
+
+    env = credential.aws[param.cred].env
   }
 }

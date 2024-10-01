@@ -157,7 +157,7 @@ pipeline "correct_iam_accounts_password_policy_without_min_length_14" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM account password policies with no minimum length of 14."
+    text     = "Detected ${length(param.items)} IAM account(s) password policy with no minimum length of 14 requirement."
   }
 
   step "pipeline" "correct_item" {
@@ -253,7 +253,7 @@ pipeline "correct_one_iam_accounts_password_policy_without_min_length_14" {
           label        = "Update Password Policy"
           value        = "update_password_policy_min_length"
           style        = local.style_alert
-          pipeline_ref = aws.pipeline.update_iam_account_password_policy
+          pipeline_ref = pipeline.update_iam_account_password_policy_min_length
           pipeline_args = {
             minimum_password_length = 14
             cred                   = param.cred
@@ -263,5 +263,60 @@ pipeline "correct_one_iam_accounts_password_policy_without_min_length_14" {
         }
       }
     }
+  }
+}
+
+pipeline "update_iam_account_password_policy_min_length" {
+  title       = "Update IAM account password policy minimumn length"
+  description = "Updates the account password policy minimumn length for the AWS account."
+
+  param "cred" {
+    type        = string
+   description  = local.description_credential
+    default     = "default"
+  }
+
+  param "minimum_password_length" {
+    type        = number
+    description = "The minimum length of the password."
+  }
+
+  step "query" "get_password_policy" {
+    database = var.database
+    sql = <<-EOQ
+      select
+        account_id,
+        minimum_password_length,
+        require_symbols,
+        require_numbers,
+        require_uppercase_characters,
+        require_lowercase_characters,
+        allow_users_to_change_password,
+        max_password_age,
+        password_reuse_prevention
+      from
+        aws_iam_account_password_policy
+      where
+        _ctx ->> 'connection_name' = '${param.cred}'
+    EOQ
+  }
+
+  step "container" "update_iam_account_password_policy" {
+    depends_on = [step.query.get_password_policy]
+    image = "public.ecr.aws/aws-cli/aws-cli"
+
+    cmd = concat(
+      ["iam", "update-account-password-policy"],
+      ["--minimum-password-length", tostring(param.minimum_password_length)],
+			step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
+			step.query.get_password_policy.rows[0].require_numbers ? ["--require-numbers"] : ["--no-require-numbers"],
+			step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
+			step.query.get_password_policy.rows[0].require_lowercase_characters ? ["--require-lowercase-characters"] : ["--no-require-lowercase-characters"],
+			step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
+			step.query.get_password_policy.rows[0].max_password_age != null ? ["--max-password-age",  tostring(step.query.get_password_policy.rows[0].max_password_age)] : [],
+			step.query.get_password_policy.rows[0].password_reuse_prevention != null ? ["--password-reuse-prevention",  tostring(step.query.get_password_policy.rows[0].password_reuse_prevention)] : []
+    )
+
+    env = credential.aws[param.cred].env
   }
 }
