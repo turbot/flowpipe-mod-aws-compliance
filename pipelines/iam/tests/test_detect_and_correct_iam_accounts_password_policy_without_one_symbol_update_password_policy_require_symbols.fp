@@ -24,7 +24,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_symbo
   }
 
   step "query" "get_password_policy" {
-		depends_on = [step.query.get_account_id]
+    depends_on = [step.query.get_account_id]
     database = var.database
     sql = <<-EOQ
       select
