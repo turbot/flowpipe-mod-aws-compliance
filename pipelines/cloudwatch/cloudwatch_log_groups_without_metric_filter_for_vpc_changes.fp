@@ -1,33 +1,67 @@
 locals {
   cloudwatch_log_groups_without_metric_filter_for_vpc_changes_query = <<-EOQ
-    with filter_data as (
+    with trails as (
       select
         trail.account_id,
         trail.name as trail_name,
         trail.is_logging,
-        split_part(trail.log_group_arn, ':', 7) as log_group_name,
-        filter.name as filter_name,
-        action_arn as topic_arn,
-        alarm.metric_name,
-        alarm.name as alarm_name,
-        subscription.subscription_arn,
-        filter.filter_pattern
+        split_part(trail.log_group_arn, ':', 7) as log_group_name
       from
         aws_cloudtrail_trail as trail,
-        jsonb_array_elements(trail.event_selectors) as se,
-        aws_cloudwatch_log_metric_filter as filter,
-        aws_cloudwatch_alarm as alarm,
-        jsonb_array_elements_text(alarm.alarm_actions) as action_arn,
-        aws_sns_topic_subscription as subscription
+        jsonb_array_elements(trail.event_selectors) as se
       where
         trail.is_multi_region_trail is true
         and trail.is_logging
         and se ->> 'ReadWriteType' = 'All'
         and trail.log_group_arn is not null
-        and filter.log_group_name = split_part(trail.log_group_arn, ':', 7)
-        and filter.filter_pattern ~ '\s*\$\.eventName\s*=\s*CreateVpc.+\$\.eventName\s*=\s*DeleteVpc.+\$\.eventName\s*=\s*ModifyVpcAttribute.+\$\.eventName\s*=\s*AcceptVpcPeeringConnection.+\$\.eventName\s*=\s*CreateVpcPeeringConnection.+\$\.eventName\s*=\s*DeleteVpcPeeringConnection.+\$\.eventName\s*=\s*RejectVpcPeeringConnection.+\$\.eventName\s*=\s*AttachClassicLinkVpc.+\$\.eventName\s*=\s*DetachClassicLinkVpc.+\$\.eventName\s*=\s*DisableVpcClassicLink.+\$\.eventName\s*=\s*EnableVpcClassicLink'
-        and alarm.metric_name = filter.metric_transformation_name
-        and subscription.topic_arn = action_arn
+      order by
+        trail_name
+    ),
+    alarms as (
+      select
+        metric_name,
+        action_arn as topic_arn
+      from
+        aws_cloudwatch_alarm,
+        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn
+      order by
+        metric_name
+    ),
+    topic_subscriptions as (
+      select
+        subscription_arn,
+        topic_arn
+      from
+        aws_sns_topic_subscription
+      order by
+        subscription_arn
+    ),
+    metric_filters as (
+      select
+        filter.name as filter_name,
+        filter_pattern,
+        log_group_name,
+        metric_transformation_name
+      from
+        aws_cloudwatch_log_metric_filter as filter
+      where
+        filter.filter_pattern ~ '\s*\$\.eventName\s*=\s*CreateVpc.+\$\.eventName\s*=\s*DeleteVpc.+\$\.eventName\s*=\s*ModifyVpcAttribute.+\$\.eventName\s*=\s*AcceptVpcPeeringConnection.+\$\.eventName\s*=\s*CreateVpcPeeringConnection.+\$\.eventName\s*=\s*DeleteVpcPeeringConnection.+\$\.eventName\s*=\s*RejectVpcPeeringConnection.+\$\.eventName\s*=\s*AttachClassicLinkVpc.+\$\.eventName\s*=\s*DetachClassicLinkVpc.+\$\.eventName\s*=\s*DisableVpcClassicLink.+\$\.eventName\s*=\s*EnableVpcClassicLink'
+      order by
+        filter_name
+    ),
+    filter_data as (
+      select
+        t.account_id,
+        t.trail_name,
+        f.filter_name
+      from
+        trails as t
+      join
+        metric_filters as f on f.log_group_name = t.log_group_name
+      join
+        alarms as alarm on alarm.metric_name = f.metric_transformation_name
+      join
+        topic_subscriptions as subscription on subscription.topic_arn = alarm.topic_arn
     )
     select
       a.account_id as title,
@@ -38,7 +72,7 @@ locals {
       aws_account as a
       left join filter_data as f on a.account_id = f.account_id
     where
-      f.trail_name is null
+      f.trail_name is null;
   EOQ
 }
 
