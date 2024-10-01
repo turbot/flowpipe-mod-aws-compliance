@@ -38,17 +38,16 @@ variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions" {
 }
 
 //TODO: Fix the default values of the following variables
-variable "cloudtrail_policy_name" {
+variable "cloudtrail_kms_key_policy_name" {
   type        = string
   description = "The name of the policy to use for encryption."
   default     = "default"
 }
 
-variable "cloudtrail_policy" {
+variable "cloudtrail_kms_key_policy" {
   type        = string
   description = "The policy to use for encryption."
-  // default     = "{\"Sid\": \"Allow CloudTrail to encrypt event data store\",\"Effect\": \"Allow\", \"Principal\": {\"Service\": \"cloudtrail.amazonaws.com\"},\"Action\": [\"kms:GenerateDataKey\",\"kms:Decrypt\"],\"Resource\": \"*\"}"
-  default = ""
+  default     = "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"Allow CloudTrail to use the key\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"cloudtrail.amazonaws.com\"}, \"Action\": [\"kms:Decrypt\", \"kms:GenerateDataKey*\"], \"Resource\": \"*\"}, {\"Sid\": \"Allow root user full access\", \"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::${trimspace(step.container.get_aws_account_id.stdout)}:root\"}, \"Action\": \"kms:*\", \"Resource\": \"*\"}]}"
 }
 
 variable "cloudtrail_cmk_key_id" {
@@ -267,16 +266,16 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
     default     = var.cloudtrail_cmk_key_id
   }
 
-  param "cloudtrail_policy_name" {
+  param "cloudtrail_kms_key_policy_name" {
     type        = string
     description = "The name of the policy to use for encryption."
-    default     = var.cloudtrail_policy_name
+    default     = var.cloudtrail_kms_key_policy_name
   }
 
-  param "cloudtrail_policy" {
+  param "cloudtrail_kms_key_policy" {
     type        = string
     description = "The policy to use for encryption."
-    default     = var.cloudtrail_policy
+    default     = var.cloudtrail_kms_key_policy
   }
 
   step "pipeline" "respond" {
@@ -311,8 +310,8 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
             key_id      = param.cloudtrail_cmk_key_id
             region      = param.region
             trail_name  = param.name
-            policy_name = param.cloudtrail_policy_name
-            policy      = param.cloudtrail_policy
+            policy_name = param.cloudtrail_kms_key_policy_name
+            policy      = param.cloudtrail_kms_key_policy
             cred        = param.cred
           }
           success_msg = "Encrypted CloudTrail logs ${param.title}."
