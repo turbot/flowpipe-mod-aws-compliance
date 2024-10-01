@@ -300,7 +300,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.revoke_vpc_security_group_ingress
           pipeline_args = {
-            group_id               = param.group_id
+            security_group_id      = param.group_id
             security_group_rule_id = param.security_group_rule_id
             region                 = param.region
             cred                   = param.cred
