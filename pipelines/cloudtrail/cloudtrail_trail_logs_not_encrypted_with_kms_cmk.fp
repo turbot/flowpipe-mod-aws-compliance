@@ -47,7 +47,7 @@ variable "cloudtrail_kms_key_policy_name" {
 variable "cloudtrail_kms_key_policy" {
   type        = string
   description = "The policy to use for encryption."
-  default     = "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"Allow CloudTrail to use the key\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"cloudtrail.amazonaws.com\"}, \"Action\": [\"kms:Decrypt\", \"kms:GenerateDataKey*\"], \"Resource\": \"*\"}, {\"Sid\": \"Allow root user full access\", \"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::${trimspace(step.container.get_aws_account_id.stdout)}:root\"}, \"Action\": \"kms:*\", \"Resource\": \"*\"}]}"
+  default     = "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"Allow CloudTrail to use the key\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"cloudtrail.amazonaws.com\"}, \"Action\": [\"kms:Decrypt\", \"kms:GenerateDataKey*\"], \"Resource\": \"*\"}, {\"Sid\": \"Allow root user full access\", \"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::your_account_id:root\"}, \"Action\": \"kms:*\", \"Resource\": \"*\"}]}"
 }
 
 variable "cloudtrail_cmk_key_id" {
