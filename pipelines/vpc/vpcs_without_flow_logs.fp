@@ -36,9 +36,8 @@ locals {
 
 trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
   title         = "Detect & correct VPCs without flow logs"
-  description   = "Detects VPCs without flow logs and runs your chosen action."
+  description   = "Detect VPCs without flow logs and then skip or create flow logs."
   // documentation = file("./vpc/docs/detect_and_correct_vpcs_without_flow_logs_trigger.md")
-  tags          = merge(local.vpc_common_tags, { class = "unused" })
 
   enabled  = var.vpcs_without_flow_logs_trigger_enabled
   schedule = var.vpcs_without_flow_logs_trigger_schedule
@@ -55,9 +54,8 @@ trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
 
 pipeline "detect_and_correct_vpcs_without_flow_logs" {
   title         = "Detect & correct VPCs without flow logs"
-  description   = "Detects VPCs without flow logs and runs your chosen action."
+  description   = "Detect VPCs without flow logs and then skip or create flow logs."
   // documentation = file("./vpc/docs/detect_and_correct_vpcs_without_flow_logs.md")
-  tags          = merge(local.vpc_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -117,7 +115,6 @@ pipeline "correct_vpcs_without_flow_logs" {
   title         = "Correct VPCs without flow logs"
   description   = "Runs corrective action on a collection of VPCs without flow logs."
   // documentation = file("./vpc/docs/correct_vpcs_without_flow_logs.md")
-  tags          = merge(local.vpc_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -189,7 +186,7 @@ pipeline "correct_vpcs_without_flow_logs" {
 
 pipeline "correct_one_vpc_without_flowlog" {
   title         = "Correct one VPC without flow log"
-  description   = "Runs corrective action on a VPC without flow log."
+  description   = "Create a flow log on a VPC without flow log."
   // documentation = file("./vpc/docs/correct_one_vpc_without_flow_log.md")
   tags          = merge(local.vpc_common_tags, { class = "unused" })
 

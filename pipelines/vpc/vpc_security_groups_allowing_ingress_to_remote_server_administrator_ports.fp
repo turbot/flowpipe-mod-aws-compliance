@@ -30,7 +30,7 @@ locals {
         )
     )
     select
-      concat(sg.group_id, ' [', sg.region, '/', sg.account_id, ']') as title,
+      concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
       sg.group_id as group_id,
       bad_rules.security_group_rule_id as security_group_rule_id,
       sg.region as region,
@@ -43,11 +43,34 @@ locals {
   EOQ
 }
 
+variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_default_action" {
+  type        = string
+  default     = "notify"
+  description = "The default action to use when there are no approvers."
+}
+
+variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "revoke_security_group_rule"]
+}
+
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports" {
   title         = "Detect & correct VPC Security groups allowing ingress to remote server administration ports"
-  description   = "Detects Security group rules that allow ingress from 0.0.0.0/0 to remote server administration ports."
+  description   = "Detect Security group rules that allow ingress from 0.0.0.0/0 to remote server administration ports and then skip or revoke the security group rules."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_trigger.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
 
   enabled  = var.vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_trigger_enabled
   schedule = var.vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_trigger_schedule
@@ -64,9 +87,8 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remo
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports" {
   title         = "Detect & correct VPC Security groups allowing ingress to remote server administration ports"
-  description   = "Detects Security groups that allow risky ingress rules and suggests corrective actions."
+  description   = "Detect Security group rules that allow ingress from 0.0.0.0/0 to remote server administration ports and then skip or revoke the security group rules."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports.md")
-  tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })
 
   param "database" {
     type        = string
@@ -124,9 +146,8 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_serv
 
 pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports" {
   title         = "Correct VPC Security groups allowing ingress to remote server administration ports"
-  description   = "Modifies Security group entries to restrict access to remote server administration ports."
+  description   = "Revoke Security group rules that allow ingress from 0.0.0.0/0 to remote server administration ports."
   // // documentation = file("./vpc/docs/correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
 
   param "items" {
     type = list(object({
@@ -172,16 +193,11 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} VPC Security groups allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from either 0.0.0.0/0 (IPv4) or ::/0 (IPv6). This poses a critical security risk as it exposes your instances to potential unauthorized access from any IP address on the internet, over both IPv4 and IPv6."
-  }
-
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.group_id => row }
-
+    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from either 0.0.0.0/0 (IPv4) or ::/0 (IPv6). This poses a critical security risk as it exposes your instances to potential unauthorized access from any IP address on the internet, over both IPv4 and IPv6."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : item.group_id => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports
     args = {
@@ -201,9 +217,8 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
 
 pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports" {
   title         = "Correct one VPC Security group allowing ingress to remote server administration ports"
-  description   = "Correct a specific Security group entry to restrict improper access."
+  description   = "Revoke a VPC security group rule that allow ingress from 0.0.0.0/0 to remote server administration ports."
   // // documentation = file("./vpc/docs/correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
 
   param "title" {
     type        = string
@@ -283,9 +298,9 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
           success_msg = ""
           error_msg   = ""
         },
-        "delete_defective_security_group_rule" = {
-          label        = "Delete Security Group Rule"
-          value        = "delete_defective_security_group_rule"
+        "revoke_security_group_rule" = {
+          label        = "Revoke Security Group Rule"
+          value        = "revoke_security_group_rule"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.revoke_vpc_security_group_ingress
           pipeline_args = {
@@ -294,7 +309,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
             region                 = param.region
             cred                   = param.cred
           }
-          success_msg = "Deleted defective rule from security group ${param.title}."
+          success_msg = "Deleted rule from security group ${param.title}."
           error_msg   = "Error deleting defective rule from security group ${param.title}."
         }
       }
@@ -302,26 +317,3 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
   }
 }
 
-variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_default_action" {
-  type        = string
-  default     = "notify"
-  description = "The default action to use when there are no approvers."
-}
-
-variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "delete_defective_security_group_rule"]
-}

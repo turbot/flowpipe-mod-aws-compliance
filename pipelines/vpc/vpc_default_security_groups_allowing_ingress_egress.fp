@@ -1,3 +1,4 @@
+// TODO: discuss the naming and descriptions
 locals {
   vpc_default_security_groups_allowing_ingress_egress_query = <<-EOQ
     with ingress_and_egress_rules as (
@@ -14,7 +15,7 @@ locals {
         group_name = 'default'
       )
     select
-      concat(sg.group_id, ' [', sg.region, '/', sg.account_id, ']') as title,
+      concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
       sg.group_id as group_id,
       ingress_and_egress_rules.security_group_rule_id as security_group_rule_id,
       sg.region as region,
@@ -28,9 +29,34 @@ locals {
   EOQ
 }
 
+variable "vpc_default_security_groups_allowing_ingress_egress_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "vpc_default_security_groups_allowing_ingress_egress_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "vpc_default_security_groups_allowing_ingress_egress_default_action" {
+  type        = string
+  default     = "notify"
+  description = "The default action to use when there are no approvers."
+}
+
+variable "vpc_default_security_groups_allowing_ingress_egress_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "revoke_security_group_rule"]
+}
+
+
 trigger "query" "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress" {
   title         = "Detect & correct default VPC Security groups allowing ingress egress"
-  description   = "Detects default Security group rules that allow both incoming and outgoing internet traffic."
+  description   = "Detect default Security group rules that allow both incoming and outgoing internet traffic and then skip or revoke the security group rule."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_default_security_groups_allowing_ingress_egress_trigger.md")
   tags          = merge(local.vpc_common_tags, { class = "security" })
 
@@ -49,7 +75,7 @@ trigger "query" "detect_and_correct_vpc_default_security_groups_allowing_ingress
 
 pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress" {
   title         = "Detect & correct default VPC Security groups allowing ingress egress"
-  description   = "Detects default Security groups that allow both incoming and outgoing internet traffic and suggests corrective actions."
+  description   = "Detect default Security groups that allow both incoming and outgoing internet traffic and then skip or revoke the security group rule."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_default_security_groups_allowing_ingress_egress.md")
   tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })
 
@@ -109,9 +135,8 @@ pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress
 
 pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
   title         = "Correct default VPC Security groups allowing ingress egress"
-  description   = "Correct default Security group rules to restrict incoming and outgoing internet traffic."
+  description   = "Revoke security group rule from the default security group to restrict incoming and outgoing internet traffic."
   // // documentation = file("./vpc/docs/correct_vpc_default_security_groups_allowing_ingress_egress.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
 
   param "items" {
     type = list(object({
@@ -157,15 +182,11 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} default VPC Security group(s) allowing both ingress and egress traffic. Default security groups often come with overly permissive rules, which can lead to security vulnerabilities by allowing unauthorized traffic to and from your instances.."
-  }
-
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.security_group_rule_id => row }
+    text     = "Detected ${length(param.items)} default VPC Security group(s) allowing both ingress and egress traffic."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : item.security_group_rule_id => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_vpc_security_group_allowing_ingress_egress
     args = {
@@ -185,9 +206,8 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
 
 pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
   title         = "Correct one default VPC Security group allowing ingress egress"
-  description   = "Correct a specific Security group entry to restrict ingress and egress."
+  description   = "Revoke the security group rule from the default security group Security group entry to restrict ingress and egress."
   // // documentation = file("./vpc/docs/correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
 
   param "title" {
     type        = string
@@ -262,7 +282,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped default VPC security group ${param.title} with rules."
+            text     = "Skipped default VPC security group ${param.title} with ingress and egress rules."
           }
           success_msg = ""
           error_msg   = ""
@@ -278,34 +298,10 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
             region                 = param.region
             cred                   = param.cred
           }
-          success_msg = "Deleted defective rule from security group ${param.title}."
-          error_msg   = "Error deleting defective rule from security group ${param.title}."
+          success_msg = "Revoked security group rule ${param.title} allowing ingress egress."
+          error_msg   = "Error revoking security group rule ${param.title} allowing ingress egress."
         }
       }
     }
   }
-}
-
-variable "vpc_default_security_groups_allowing_ingress_egress_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "vpc_default_security_groups_allowing_ingress_egress_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "vpc_default_security_groups_allowing_ingress_egress_default_action" {
-  type        = string
-  default     = "notify"
-  description = "The default action to use when there are no approvers."
-}
-
-variable "vpc_default_security_groups_allowing_ingress_egress_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "revoke_security_group_rule"]
 }

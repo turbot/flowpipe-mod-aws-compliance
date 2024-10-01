@@ -73,7 +73,7 @@ variable "vpc_security_groups_allowing_ingress_to_port_3389_enabled_actions" {
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" {
   title         = "Detect & correct VPC security groups allowing ingress to port 3389"
-  description   = "Detects security group rules that allow ingress from 0.0.0.0/0 to port 3389."
+  description   = "Detect security group rules that allow ingress from 0.0.0.0/0 to port 3389 and then skip or revoke security group rule."
   // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389_trigger.md")
   tags          = merge(local.vpc_common_tags, { class = "security" })
 
@@ -92,7 +92,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" {
   title         = "Detect & correct VPC security groups allowing ingress to port 3389"
-  description   = "Detects security groups that allow risky ingress rules and suggests corrective actions."
+  description   = "Detect security group rules that allow ingress from 0.0.0.0/0 to port 3389 and then skip or revoke security group rule."
   // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389.md")
   tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })
 
@@ -152,9 +152,8 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" 
 
 pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
   title         = "Correct VPC security groups allowing ingress to port 3389"
-  description   = "Modifies security group entries to restrict access to port 3389."
+  description   = "Revoke VPC security group rule entries to restrict access to port 3389 from 0.0.0.0/0 or ::/0."
   // documentation = file("./vpc/docs/correct_vpc_security_groups_allowing_ingress_to_port_3389.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
 
   param "items" {
     type = list(object({
@@ -208,13 +207,8 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
     text     = "Detected ${length(param.items)} VPC security group rule(s) allowing ingress to port 3389 from 0.0.0.0/0 or ::/0."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.security_group_rule_id => row }
-
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : item.security_group_rule_id => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_vpc_security_group_allowing_ingress_to_port_3389
     args = {
@@ -239,9 +233,8 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
 
 pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
   title         = "Correct one VPC security group allowing ingress to port 3389"
-  description   = "Correct a specific security group entry to restrict improper access."
+  description   = "Revoke a VPC security group rule allowing ingress to port 3389 from 0.0.0.0/0 or ::/0."
   // documentation = file("./vpc/docs/correct_one_vpc_security_group_allowing_ingress_to_port_3389.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
 
   param "title" {
     type        = string

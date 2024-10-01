@@ -59,7 +59,7 @@ variable "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disable
 
 variable "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_default_actions" {
   type        = list(string)
-  description = " The list of enabled actions approvers can select."
+  description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_s3_object_level_logging_for_read_events"]
 }
 

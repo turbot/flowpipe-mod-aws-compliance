@@ -58,16 +58,16 @@ variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabl
   default     = "notify"
 }
 
-variable "cloudtrail_trail_home_region_for_write_event" {
-  type        = string
-  description = "The AWS region ID to create the multi regional trail."
-  default     = "us-east-1"
-}
-
 variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_default_actions" {
   type        = list(string)
   description = " The list of enabled actions approvers can select."
   default     = ["skip", "enable_s3_object_level_logging_for_write_events"]
+}
+
+variable "cloudtrail_trail_home_region_for_write_event" {
+  type        = string
+  description = "The AWS region ID to create the multi regional trail."
+  default     = "us-east-1"
 }
 
 
