@@ -1,6 +1,6 @@
-pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" {
-  title       = "Test Detect and Correct VPC Security Groups Allowing Ingress to port 3389 - Revoke security group rule"
-  description = "Test the  Revoke security group rule action for VPC Default Security Group Allowing Ingress to port 3389."
+pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administrator_ports_ipv4" {
+  title       = "Test Detect and Correct VPC Security Group Allowing Ingress to remote server administrator ports IPv4"
+  description = "Test the  Revoke security group rule action for VPC Security Group rules Allowing Ingress to remote server administrator ports IPv4."
 
   param "cred" {
     type        = string
@@ -36,8 +36,8 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3
 
     cmd = [
       "ec2", "create-security-group",
-      "--group-name", "ssh-security-group",
-      "--description", "Security group allowing SSH access",
+      "--group-name", "flowpipe-security-group",
+      "--description", "Security group for custom rules",
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
@@ -45,19 +45,48 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3
     depends_on = [step.container.create_vpc]
   }
 
-  step "container" "add_ingress_rule" {
+  step "container" "allow_all_traffic" {
+    image = "public.ecr.aws/aws-cli/aws-cli"
+
+    cmd = [
+      "ec2", "authorize-security-group-ingress",
+      "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId,
+      "--protocol", "-1",          # Allow all traffic
+      "--cidr", "0.0.0.0/0"
+    ]
+
+    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    depends_on = [step.container.create_security_group]
+  }
+
+  step "container" "allow_ssh" {
     image = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
       "ec2", "authorize-security-group-ingress",
       "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId,
       "--protocol", "tcp",
-      "--port", "3389",
+      "--port", "22",               # Allow SSH (port 22)
       "--cidr", "0.0.0.0/0"
     ]
 
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
-    depends_on = [step.container.create_security_group]
+    depends_on = [step.container.allow_all_traffic]
+  }
+
+  step "container" "allow_rdp" {
+    image = "public.ecr.aws/aws-cli/aws-cli"
+
+    cmd = [
+      "ec2", "authorize-security-group-ingress",
+      "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId,
+      "--protocol", "tcp",
+      "--port", "3389",            # Allow RDP (port 3389)
+      "--cidr", "0.0.0.0/0"
+    ]
+
+    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    depends_on = [step.container.allow_ssh]
   }
 
   step "transform" "get_security_group_id" {
@@ -75,72 +104,74 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3
 	}
 
   step "query" "get_security_group_details" {
-    depends_on = [step.container.add_ingress_rule]
+    depends_on = [step.container.allow_rdp]
     database = var.database
     sql      = <<-EOQ
-      with ingress_rdp_rules as (
+      with bad_rules as (
         select
           group_id,
           security_group_rule_id,
-          ip_protocol,
-          from_port,
-          to_port,
-          coalesce(cidr_ipv4::text, '') as cidr_ipv4,
-          coalesce(cidr_ipv6::text, '') as cidr_ipv6,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred
+          _ctx ->> 'connection_name' as cred    
         from
           aws_vpc_security_group_rule
         where
           type = 'ingress'
-          and (cidr_ipv4 = '0.0.0.0/0' or cidr_ipv6 = '::/0')
           and (
-            (
-              ip_protocol = '-1'
-              and from_port is null
-            )
-            or (
-              from_port <= 3389
-              and to_port >= 3389
-            )
+            cidr_ipv4 = '0.0.0.0/0'
+          )
+          and (
+          ( ip_protocol = '-1'      -- all traffic
+          and from_port is null
+          )
+          or (
+            from_port >= 22
+            and to_port <= 22
+          )
+          or (
+            from_port >= 3389
+            and to_port <= 3389
           )
       )
+    ),
+    security_groups as (
       select
-        concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
-        sg.group_id as group_id,
-        ingress_rdp_rules.security_group_rule_id as security_group_rule_id,
-        sg.region as region,
-        ingress_rdp_rules.ip_protocol as ip_protocol,
-        ingress_rdp_rules.from_port as from_port,
-        ingress_rdp_rules.to_port as to_port,
-        ingress_rdp_rules.cidr_ipv4 as cidr_ipv4,
-        ingress_rdp_rules.cidr_ipv6 as cidr_ipv6,
-        sg._ctx ->> 'connection_name' as cred
+        arn,
+        region,
+        account_id,
+        group_id,
+        _ctx
       from
-        aws_vpc_security_group as sg
-        left join ingress_rdp_rules on ingress_rdp_rules.group_id = sg.group_id
-      where
-        sg.group_id = '${step.transform.get_security_group_id.value}'
-        and ingress_rdp_rules.group_id is not null;
+        aws_vpc_security_group
+      order by
+        group_id
+    )
+    select
+      concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
+      sg.group_id as group_id,
+      bad_rules.security_group_rule_id as security_group_rule_id,
+      sg.region as region,
+      sg._ctx ->> 'connection_name' as cred
+    from
+      security_groups as sg
+      left join bad_rules on bad_rules.group_id = sg.group_id
+    where
+      sg.group_id = '${step.transform.get_security_group_id.value}'
+      and bad_rules.group_id is not null;
     EOQ
   }
 
   step "pipeline" "correct_item" {
     for_each        = { for item in step.query.get_security_group_details.rows : item.security_group_rule_id => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_vpc_security_group_allowing_ingress_to_port_3389
+    pipeline        = pipeline.correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports_ipv4
     args = {
       title                  = each.value.title
       group_id               = each.value.group_id
       security_group_rule_id = each.value.security_group_rule_id
       region                 = each.value.region
       cred                   = each.value.cred
-      ip_protocol            = each.value.ip_protocol
-      to_port                = each.value.to_port
-      from_port              = each.value.from_port
-      cidr_ipv4              = each.value.cidr_ipv4
-      cidr_ipv6              = each.value.cidr_ipv6
       approvers              = []
       default_action         = "revoke_security_group_rule"
       enabled_actions        = ["revoke_security_group_rule"]
@@ -156,51 +187,58 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3
     depends_on = [step.pipeline.correct_item]
     database = var.database
     sql      = <<-EOQ
-      with ingress_rdp_rules as (
+      with bad_rules as (
         select
           group_id,
           security_group_rule_id,
-          ip_protocol,
-          from_port,
-          to_port,
-          coalesce(cidr_ipv4::text, '') as cidr_ipv4,
-          coalesce(cidr_ipv6::text, '') as cidr_ipv6,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred
+          _ctx ->> 'connection_name' as cred    
         from
           aws_vpc_security_group_rule
         where
           type = 'ingress'
-          and (cidr_ipv4 = '0.0.0.0/0' or cidr_ipv6 = '::/0')
           and (
-            (
-              ip_protocol = '-1'
-              and from_port is null
-            )
-            or (
-              from_port <= 3389
-              and to_port >= 3389
-            )
+            cidr_ipv4 = '0.0.0.0/0'
+          )
+          and (
+          ( ip_protocol = '-1'      -- all traffic
+          and from_port is null
+          )
+          or (
+            from_port >= 22
+            and to_port <= 22
+          )
+          or (
+            from_port >= 3389
+            and to_port <= 3389
           )
       )
+    ),
+    security_groups as (
       select
-        concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
-        sg.group_id as group_id,
-        ingress_rdp_rules.security_group_rule_id as security_group_rule_id,
-        sg.region as region,
-        ingress_rdp_rules.ip_protocol as ip_protocol,
-        ingress_rdp_rules.from_port as from_port,
-        ingress_rdp_rules.to_port as to_port,
-        ingress_rdp_rules.cidr_ipv4 as cidr_ipv4,
-        ingress_rdp_rules.cidr_ipv6 as cidr_ipv6,
-        sg._ctx ->> 'connection_name' as cred
+        arn,
+        region,
+        account_id,
+        group_id,
+        _ctx
       from
-        aws_vpc_security_group as sg
-        left join ingress_rdp_rules on ingress_rdp_rules.group_id = sg.group_id
-      where
-        sg.group_id = '${step.transform.get_security_group_id.value}'
-        and ingress_rdp_rules.group_id is not null;
+        aws_vpc_security_group
+      order by
+        group_id
+    )
+    select
+      concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
+      sg.group_id as group_id,
+      bad_rules.security_group_rule_id as security_group_rule_id,
+      sg.region as region,
+      sg._ctx ->> 'connection_name' as cred
+    from
+      security_groups as sg
+      left join bad_rules on bad_rules.group_id = sg.group_id
+    where
+      sg.group_id = '${step.transform.get_security_group_id.value}'
+      and bad_rules.group_id is not null;
     EOQ
   }
 
@@ -213,7 +251,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3
     value       = length(step.query.get_security_group_details_after_remediation.rows) == 0 ? "pass" : "fail"
   }
 
- step "container" "delete_security_group" {
+  step "container" "delete_security_group" {
     image = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
@@ -222,7 +260,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3
     ]
 
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
-    depends_on = [step.query.get_security_group_details_after_remediation]
+    depends_on = [step.container.allow_rdp]
   }
 
   step "container" "delete_vpc" {
@@ -237,19 +275,10 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3
     depends_on = [step.container.delete_security_group]
   }
 
-  output "vpc_info" {
-    description = "Details about the created VPC."
-    value       = jsondecode(step.container.create_vpc.stdout).Vpc
-  }
-
-  output "security_group_info" {
-    description = "Details about the created security group."
-    value       = jsondecode(step.container.create_security_group.stdout).GroupId
-  }
-
-  output "deletion_status" {
-    description = "Status of resource deletion."
+  output "status" {
+    description = "VPC, security group, and rules have been created and deleted successfully."
     value       = format("VPC %s and Security Group %s have been deleted.", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId, jsondecode(step.container.create_security_group.stdout).GroupId)
   }
+
 }
 
