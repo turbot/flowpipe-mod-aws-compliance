@@ -119,4 +119,4 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_
       "get_password_policy_after_detection" = length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
     }
   }
-  }
+}

@@ -13,7 +13,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_min_lengt
   }
 
   step "query" "get_account_id" {
-	  database = var.database
+    database = var.database
     sql = <<-EOQ
       select
         account_id
@@ -75,7 +75,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_min_lengt
     )
 
     env = credential.aws[param.cred].env
-	}
+  }
 
   step "pipeline" "run_detection" {
     depends_on = [step.container.set_password_policy_length_7]
