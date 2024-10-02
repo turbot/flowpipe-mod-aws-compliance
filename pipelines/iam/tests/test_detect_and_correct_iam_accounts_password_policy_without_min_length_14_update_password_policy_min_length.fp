@@ -77,13 +77,8 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_min_lengt
     env = credential.aws[param.cred].env
 	}
 
-  step "sleep" "sleep_100_seconds" {
-    depends_on = [ step.container.set_password_policy_length_7 ]
-    duration   = "100s"
-  }
-
   step "pipeline" "run_detection" {
-    depends_on = [step.sleep.sleep_100_seconds]
+    depends_on = [step.container.set_password_policy_length_7]
     pipeline = pipeline.detect_and_correct_iam_accounts_password_policy_without_min_length_14
     args = {
       approvers       = []
@@ -92,13 +87,8 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_min_lengt
     }
   }
 
-  step "sleep" "sleep_30_seconds" {
-    depends_on = [ step.pipeline.run_detection ]
-    duration   = "30s"
-  }
-
   step "query" "get_password_policy_after_detection" {
-    depends_on = [step.sleep.sleep_30_seconds]
+    depends_on = [step.pipeline.run_detection]
     database = var.database
     sql = <<-EOQ
       select
@@ -108,7 +98,14 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_min_lengt
         aws_iam_account_password_policy
       where
         minimum_password_length = 14
-        and account_id = '${step.query.get_account_id.rows[0].account_id}';
+        and max_password_age = '${step.query.get_password_policy.rows[0].max_password_age}'
+        and require_symbols = '${step.query.get_password_policy.rows[0].require_symbols}'
+        and require_numbers = '${step.query.get_password_policy.rows[0].require_numbers}'
+        and require_uppercase_characters = '${step.query.get_password_policy.rows[0].require_uppercase_characters}'
+        and require_lowercase_characters = '${step.query.get_password_policy.rows[0].require_lowercase_characters}'
+        and allow_users_to_change_password = '${step.query.get_password_policy.rows[0].allow_users_to_change_password}'
+        and password_reuse_prevention = '${step.query.get_password_policy.rows[0].password_reuse_prevention}'
+        and account_id = '${step.query.get_password_policy.rows[0].account_id}';
     EOQ
   }
 

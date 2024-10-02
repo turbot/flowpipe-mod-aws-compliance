@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_max_passw
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
+    default     = "aws"
   }
 
   step "query" "get_account_id" {
@@ -77,13 +77,8 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_max_passw
     env = credential.aws[param.cred].env
 	}
 
-  step "sleep" "sleep_100_seconds" {
-    depends_on = [ step.container.set_password_max_age_60_days ]
-    duration   = "100s"
-  }
-
   step "pipeline" "run_detection" {
-    depends_on = [step.sleep.sleep_100_seconds]
+    depends_on = [step.container.set_password_max_age_60_days]
     pipeline = pipeline.detect_and_correct_iam_accounts_password_policy_without_max_password_age_90_days
     args = {
       approvers       = []
@@ -92,13 +87,8 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_max_passw
     }
   }
 
-  step "sleep" "sleep_30_seconds" {
-    depends_on = [ step.pipeline.run_detection ]
-    duration   = "30s"
-  }
-
   step "query" "get_password_policy_after_detection" {
-    depends_on = [step.sleep.sleep_30_seconds]
+    depends_on = [step.pipeline.run_detection]
     database = var.database
     sql = <<-EOQ
       select
@@ -107,7 +97,14 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_max_passw
         aws_iam_account_password_policy
       where
         max_password_age = 90
-        and account_id = '${step.query.get_account_id.rows[0].account_id}';
+        and minimum_password_length = '${step.query.get_password_policy.rows[0].minimum_password_length}'
+        and require_symbols = '${step.query.get_password_policy.rows[0].require_symbols}'
+        and require_numbers = '${step.query.get_password_policy.rows[0].require_numbers}'
+        and require_uppercase_characters = '${step.query.get_password_policy.rows[0].require_uppercase_characters}'
+        and require_lowercase_characters = '${step.query.get_password_policy.rows[0].require_lowercase_characters}'
+        and allow_users_to_change_password = '${step.query.get_password_policy.rows[0].allow_users_to_change_password}'
+        and password_reuse_prevention = '${step.query.get_password_policy.rows[0].password_reuse_prevention}'
+        and account_id = '${step.query.get_password_policy.rows[0].account_id}';
     EOQ
   }
 
