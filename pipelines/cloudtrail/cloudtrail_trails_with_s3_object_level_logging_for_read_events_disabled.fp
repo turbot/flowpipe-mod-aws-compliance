@@ -1,6 +1,6 @@
 locals {
   cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_query = <<-EOQ
-   with s3_selectors as
+  with s3_selectors as
     (
       select
         t.name as trail_name,
@@ -64,10 +64,10 @@ variable "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disable
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
-  title         = "Detect & correct CloudTrail trails with S3 object level logging for read events disabled"
-  description   = "Detect CloudTrail trails where S3 object level logging for read events is disabled, and then either skip or enable the logging of S3 object read events."
+  title       = "Detect & correct CloudTrail trails with S3 object level logging for read events disabled"
+  description = "Detect CloudTrail trails where S3 object level logging for read events is disabled, and then either skip or enable the logging of S3 object read events."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_trigger.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   enabled  = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_trigger_enabled
   schedule = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_trigger_schedule
@@ -83,10 +83,10 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_level_loggi
 }
 
 pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
-  title         = "Detect & correct CloudTrail trails with S3 object level logging for read events disabled"
-  description   = "Detect CloudTrail trails where S3 object level logging for read events is disabled, and then either skip or enable the logging of S3 object read events."
+  title       = "Detect & correct CloudTrail trails with S3 object level logging for read events disabled"
+  description = "Detect CloudTrail trails where S3 object level logging for read events is disabled, and then either skip or enable the logging of S3 object read events."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -143,10 +143,10 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_
 }
 
 pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
-  title         = "Correct CloudTrail trails with S3 object level logging for read events disabled"
-  description   = "Runs corrective action on a collection of CloudTrail trails that have S3 object level logging for read events disabled."
+  title       = "Correct CloudTrail trails with S3 object level logging for read events disabled"
+  description = "Runs corrective action on a collection of CloudTrail trails that have S3 object level logging for read events disabled."
   // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -217,10 +217,10 @@ pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events
 }
 
 pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_read_events_disabled" {
-  title         = "Correct one CloudTrail trail with S3 object level logging for read events disabled"
-  description   = "Runs corrective action on a CloudTrail trail with S3 object level logging for read events disabled."
+  title       = "Correct one CloudTrail trail with S3 object level logging for read events disabled"
+  description = "Runs corrective action on a CloudTrail trail with S3 object level logging for read events disabled."
   // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_s3_object_level_logging_for_read_events_disabled.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "resource_name" {
     type        = string

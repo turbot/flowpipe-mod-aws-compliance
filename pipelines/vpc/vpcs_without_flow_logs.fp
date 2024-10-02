@@ -22,7 +22,7 @@ locals {
         resource_id
     )
     select
-      concat(v.vpc_id, ' [', v.region, '/', v.account_id, ']') as title,
+      concat(v.vpc_id, ' [', v.account_id, '/', v.region, ']') as title,
       v.vpc_id as vpc_id,
       v.region as region,
       v.cred as cred
@@ -32,6 +32,30 @@ locals {
     where
       f.resource_id is null;
   EOQ
+}
+
+variable "vpcs_without_flow_logs_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "vpcs_without_flow_logs_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "vpcs_without_flow_logs_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "vpcs_without_flow_logs_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "create_flow_log"]
 }
 
 trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
@@ -113,7 +137,7 @@ pipeline "detect_and_correct_vpcs_without_flow_logs" {
 
 pipeline "correct_vpcs_without_flow_logs" {
   title         = "Correct VPCs without flow logs"
-  description   = "Runs corrective action on a collection of VPCs without flow logs."
+  description   = "Create flow logs for a collection of VPCs without flow logs."
   // documentation = file("./vpc/docs/correct_vpcs_without_flow_logs.md")
 
   param "items" {
@@ -159,7 +183,7 @@ pipeline "correct_vpcs_without_flow_logs" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} VPCs without flow logs."
+    text     = "Detected ${length(param.items)} VPC(s) without flow log(s)."
   }
 
   step "transform" "items_by_id" {
@@ -186,7 +210,7 @@ pipeline "correct_vpcs_without_flow_logs" {
 
 pipeline "correct_one_vpc_without_flowlog" {
   title         = "Correct one VPC without flow log"
-  description   = "Create a flow log on a VPC without flow log."
+  description   = "Create a flow log for a VPC without flow log."
   // documentation = file("./vpc/docs/correct_one_vpc_without_flow_log.md")
   tags          = merge(local.vpc_common_tags, { class = "unused" })
 
@@ -281,26 +305,3 @@ pipeline "correct_one_vpc_without_flowlog" {
   }
 }
 
-variable "vpcs_without_flow_logs_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "vpcs_without_flow_logs_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "vpcs_without_flow_logs_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "vpcs_without_flow_logs_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "create_flow_log"]
-}

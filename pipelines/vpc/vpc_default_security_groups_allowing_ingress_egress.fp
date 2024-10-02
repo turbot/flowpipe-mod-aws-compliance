@@ -8,6 +8,7 @@ locals {
         security_group_rule_id,
         region,
         account_id,
+        is_egress,
         _ctx ->> 'connection_name' as cred    
       from
         aws_vpc_security_group_rule
@@ -16,6 +17,7 @@ locals {
       )
     select
       concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
+      case when ingress_and_egress_rules.is_egress then 'egress' else 'ingress' end as type,
       sg.group_id as group_id,
       ingress_and_egress_rules.security_group_rule_id as security_group_rule_id,
       sg.region as region,
@@ -58,7 +60,6 @@ trigger "query" "detect_and_correct_vpc_default_security_groups_allowing_ingress
   title         = "Detect & correct default VPC Security groups allowing ingress egress"
   description   = "Detect default Security group rules that allow both incoming and outgoing internet traffic and then skip or revoke the security group rule."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_default_security_groups_allowing_ingress_egress_trigger.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
 
   enabled  = var.vpc_default_security_groups_allowing_ingress_egress_trigger_enabled
   schedule = var.vpc_default_security_groups_allowing_ingress_egress_trigger_schedule
@@ -77,7 +78,6 @@ pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress
   title         = "Detect & correct default VPC Security groups allowing ingress egress"
   description   = "Detect default Security groups that allow both incoming and outgoing internet traffic and then skip or revoke the security group rule."
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_default_security_groups_allowing_ingress_egress.md")
-  tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })
 
   param "database" {
     type        = string
@@ -144,6 +144,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
       group_id               = string,
       security_group_rule_id = string,
       region                 = string,
+      type                   = string,
       cred                   = string
     }))
     description = local.description_items
@@ -193,6 +194,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
       title                  = each.value.title,
       group_id               = each.value.group_id,
       security_group_rule_id = each.value.security_group_rule_id
+      type                   = each.value.type
       region                 = each.value.region,
       cred                   = each.value.cred,
       notifier               = param.notifier,
@@ -222,6 +224,11 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
   param "security_group_rule_id" {
     type        = string
     description = "The ID of the Security group rule."
+  }
+
+  param "type" {
+    type        = string
+    description = "The type of the Security group rule (ingress or egress)."
   }
 
   param "region" {
@@ -270,7 +277,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected default VPC security group ${param.title} with ingress and egress rules."
+      detect_msg         = "Detected default VPC security group ${param.title} with security group rule ${param.security_group_rule_id} allowing ingress egress."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -282,7 +289,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped default VPC security group ${param.title} with ingress and egress rules."
+            text     = "Skipped default VPC security group ${param.title} with security group rule ${param.security_group_rule_id} allowing ingress and egress."
           }
           success_msg = ""
           error_msg   = ""
@@ -291,17 +298,72 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
           label        = "Revoke Security Group Rule"
           value        = "revoke_security_group_rule"
           style        = local.style_alert
-          pipeline_ref = aws.pipeline.revoke_vpc_security_group_ingress
+          pipeline_ref = pipeline.revoke_vpc_security_group_rule
           pipeline_args = {
-            group_id               = param.group_id
+            security_group_id      = param.group_id
             security_group_rule_id = param.security_group_rule_id
             region                 = param.region
             cred                   = param.cred
+            type                   = param.type
           }
-          success_msg = "Revoked security group rule ${param.title} allowing ingress egress."
-          error_msg   = "Error revoking security group rule ${param.title} allowing ingress egress."
+          success_msg = "Revoked security group rule ${param.security_group_rule_id} from security group ${param.title} allowing ingress egress."
+          error_msg   = "Error revoking security group rule ${param.security_group_rule_id} from security group ${param.title} allowing ingress egress."
         }
       }
     }
   }
 }
+
+pipeline "revoke_vpc_security_group_rule" {
+  title       = "Revoke VPC Security Group Rule"
+  description = "Removes the specified inbound (ingress) or outbound (egress) rules from a security group."
+
+  param "region" {
+    type        = string
+    description = local.description_region
+  }
+
+  param "cred" {
+    type        = string
+    description = local.description_credential
+    default     = "default"
+  }
+
+  param "security_group_id" {
+    type        = string
+    description = "The ID of the security group."
+  }
+
+  param "security_group_rule_id" {
+    type        = string
+    description = "The ID of the security group rule."
+  }
+
+  param "type" {
+    type        = string
+    description = "The type of the Security group rule (ingress or egress)."    
+  }
+
+  step "pipeline" "revoke_security_group_rule_ingress" {
+    if            = param.type == "ingress"
+    pipeline      = aws.pipeline.revoke_vpc_security_group_ingress
+    args = {
+      security_group_id      = param.security_group_id
+      security_group_rule_id = param.security_group_rule_id
+      region                 = param.region
+      cred                   = param.cred
+    }
+  }
+
+  step "pipeline" "revoke_security_group_rule_egress" {
+    if            = param.type == "egress"
+    pipeline      = aws.pipeline.revoke_vpc_security_group_egress
+    args = {
+      security_group_id      = param.security_group_id
+      security_group_rule_id = param.security_group_rule_id
+      region                 = param.region
+      cred                   = param.cred
+    }
+  }
+}
+

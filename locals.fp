@@ -33,4 +33,3 @@ locals {
   description_title            = "Title of the resource, to be used as a display name."
 }
 
-// Pipeline References
