@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_max_passw
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "aws"
+    default     = "default"
   }
 
   step "query" "get_account_id" {

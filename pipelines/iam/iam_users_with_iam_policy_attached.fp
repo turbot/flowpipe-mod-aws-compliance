@@ -9,8 +9,7 @@ locals {
 		from
 			aws_iam_user
 		where
-			attached_policy_arns is not null
-      and name = 'flowpipe-user-dummy';
+			attached_policy_arns is not null;
   EOQ
 }
 
@@ -164,12 +163,8 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
     text     = "Detected ${length(param.items)} IAM user(s) with the specified policy attached."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.policy_arn => row }
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for row in param.items : row.policy_arn => row }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_user_with_iam_policy_attached
     args = {

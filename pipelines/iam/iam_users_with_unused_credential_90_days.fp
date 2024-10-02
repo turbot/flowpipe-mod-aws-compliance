@@ -1,29 +1,63 @@
 locals {
   iam_users_with_unused_credential_90_days_query = <<-EOQ
+    with unused_access_keys as (
+      select
+        concat(u.name, ' [', u.account_id, ']') as title,
+        access_key_id,
+        u.name as user_name,
+        u.account_id as account_id,
+        u._ctx ->> 'connection_name' as cred
+      from
+        aws_iam_user as u
+        join aws_iam_access_key as k on u.name = k.user_name and u.account_id = k.account_id and access_key_last_used_date < (current_date - interval '90' day)
+    )
     select
       concat(u.name, ' [', u.account_id, ']') as title,
-      access_key_id,
+      coalesce(k.access_key_id, concat(u.name, '_not_unused')) as access_key_id,
       u.name as user_name,
       u._ctx ->> 'connection_name' as cred,
       case
         when
           r.password_enabled and r.password_last_used is null and r.password_last_changed < (current_date - interval '90' day)
-          OR r.password_enabled and r.password_last_used  < (current_date - interval '90' day) then true else false
-        end as password_disable
-      from
-        aws_iam_user as u
-        join aws_iam_access_key as k on u.name = k.user_name
-        join aws_iam_credential_report as r on r.user_name = u.name
-      where
-        access_key_last_used_date < (current_date - interval '90' day);
+          or r.password_enabled and r.password_last_used < (current_date - interval '90' day) then true else false
+      end as password_unused
+    from
+      aws_iam_user as u
+      left join unused_access_keys as k on k.user_name = u.name and u.account_id = k.account_id
+      left join aws_iam_credential_report as r on r.user_name = u.name and u.account_id = r.account_id
+    where
+      k.access_key_id is not null or (r.password_enabled and r.password_last_used is null and r.password_last_changed < (current_date - interval '90' day)
+      or r.password_enabled and r.password_last_used < (current_date - interval '90' day));
   EOQ
 }
 
-trigger "query" "detect_and_deactivate_iam_users_with_unused_credential_90_days" {
-  title         = "Detect & correct IAM User Unused Access Keys 90 Days"
-  description   = "Detects IAM user credentials that have been unused for 90 days and deactivates them."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+variable "iam_users_with_unused_credential_90_days_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
 
+variable "iam_users_with_unused_credential_90_days_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "iam_users_with_unused_credential_90_days_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "iam_users_with_unused_credential_90_days_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "deactivate_credential"]
+}
+
+trigger "query" "detect_and_deactivate_iam_users_with_unused_credential_90_days" {
+  title         = "Detect & correct IAM users with unused credential from 90 days or more"
+  description   = "Detects IAM users credential that have been unused for 90 days or more and deactivates them."
   enabled  = var.iam_users_with_unused_credential_90_days_trigger_enabled
   schedule = var.iam_users_with_unused_credential_90_days_trigger_schedule
   database = var.database
@@ -38,9 +72,8 @@ trigger "query" "detect_and_deactivate_iam_users_with_unused_credential_90_days"
 }
 
 pipeline "detect_and_deactivate_iam_users_with_unused_credential_90_days" {
-  title         = "Detect & correct IAM User Unused Access Keys 90 Days"
-  description   = "Detects IAM user credentials that have been unused for 90 days and deactivates them."
-  tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
+  title         = "Detect & correct IAM users with unused credential from 90 days or more"
+  description   = "Detects IAM users credential that have been unused for 90 days or more and deactivates them."
 
   param "database" {
     type        = string
@@ -97,18 +130,17 @@ pipeline "detect_and_deactivate_iam_users_with_unused_credential_90_days" {
 }
 
 pipeline "deactivate_iam_users_with_unused_credential_90_days" {
-  title         = "Deactivate IAM User Unused Access Keys 90 Days"
-  description   = "Runs corrective action to deactivate IAM user credentials that have been unused for 90 days."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+  title         = "Correct IAM users with unused credential from 90 days or more"
+  description   = "Runs corrective action to deactivate IAM users credential that have been unused for 90 days or more."
 
   param "items" {
     type = list(object({
-      title         = string
-      user_name     = string
-      account_id    = string
-      access_key_id = string
-			password_disable = bool
-      cred          = string
+      title           = string
+      user_name       = string
+      account_id      = string
+      access_key_id   = string
+			password_unused = bool
+      cred            = string
     }))
     description = local.description_items
   }
@@ -149,19 +181,15 @@ pipeline "deactivate_iam_users_with_unused_credential_90_days" {
     text     = "Detected ${length(param.items)} IAM user credentials that have been unused for 90 days."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.access_key_id => row }
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for row in param.items : row.access_key_id => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_user_unused_credential_90
+    pipeline        = pipeline.correct_one_iam_user_with_unused_credential_90_days
     args = {
       title              = each.value.title
       user_name          = each.value.user_name
       access_key_id      = each.value.access_key_id
-			password_disable   = each.value.password_disable
+			password_unused    = each.value.password_unused
       cred               = each.value.cred
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -172,11 +200,9 @@ pipeline "deactivate_iam_users_with_unused_credential_90_days" {
   }
 }
 
-
-pipeline "correct_one_iam_user_unused_credential_90" {
-  title         = "Correct One IAM User Unused Credential"
-  description   = "Runs corrective action to deactivate one IAM user credential that has been unused for 90 days."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+pipeline "correct_one_iam_user_with_unused_credential_90_days" {
+  title         = "Correct IAM user with unused credential from 90 days or more"
+  description   = "Runs corrective action to deactivate IAM user credential that have been unused for 90 days or more."
 
   param "title" {
     type        = string
@@ -188,7 +214,7 @@ pipeline "correct_one_iam_user_unused_credential_90" {
     description = "The name of the IAM user."
   }
 
-  param "password_disable" {
+  param "password_unused" {
     type        = bool
     description = "The name of the IAM user."
   }
@@ -239,7 +265,7 @@ pipeline "correct_one_iam_user_unused_credential_90" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM user credential for ${param.title} that has been unused for 90 days."
+      detect_msg         = "Detected IAM user ${param.title} credential that has been unused for 90 days."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -256,98 +282,21 @@ pipeline "correct_one_iam_user_unused_credential_90" {
           success_msg = ""
           error_msg   = ""
         },
-        "deactivate_access_key" = {
-          label        = "Deactivate Access Key"
-          value        = "deactivate_access_key"
+        "deactivate_credential" = {
+          label        = "Deactivate user credential"
+          value        = "deactivate_credential"
           style        = local.style_alert
           pipeline_ref = pipeline.deactivate_access_key_and_disable_console_access
           pipeline_args = {
-            user_name     = param.user_name
-						password_disable = param.password_disable
-            access_key_id = param.access_key_id
-            cred          = param.cred
+            user_name       = param.user_name
+						password_unused = param.password_unused
+            access_key_id   = param.access_key_id
+            cred            = param.cred
           }
-          success_msg = "Deactivated IAM user access keys ${param.title}."
-          error_msg   = "Error deactivating IAM user access keys ${param.title}."
+          success_msg = "Deactivated IAM user ${param.title} credential."
+          error_msg   = "Error deactivating IAM user ${param.title} credential."
         }
       }
     }
   }
 }
-
-
-variable "iam_users_with_unused_credential_90_days_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "iam_users_with_unused_credential_90_days_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "iam_users_with_unused_credential_90_days_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "iam_users_with_unused_credential_90_days_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "deactivate_access_key"]
-}
-
-
-// pipeline "deactivate_access_key_and_disable_console_access" {
-//   title       = "Deactivate Access Key and Disable Console Access"
-//   description = "Deactivates the IAM user's access key and disables console access by deleting the login profile."
-
-//   param "cred" {
-//     type        = string
-//     description = "The credentials to use for AWS CLI commands."
-//     default     = "default"
-//   }
-
-//   param "user_name" {
-//     type        = string
-//     description = "The name of the IAM user."
-//   }
-
-//   param "password_disable" {
-//     type        = bool
-//     description = "The name of the IAM user."
-//   }
-
-//   param "access_key_id" {
-//     type        = string
-//     description = "The access key ID of the IAM user."
-//   }
-
-//   step "container" "deactivate_access_key" {
-//     image = "public.ecr.aws/aws-cli/aws-cli"
-//     cmd = [
-//       "iam", "update-access-key",
-//       "--access-key-id", param.access_key_id,
-//       "--status", "Inactive",
-//       "--user-name", param.user_name
-//     ]
-
-//     env = credential.aws[param.cred].env
-//   }
-
-//   step "container" "delete_login_profile" {
-//     if = param.password_disable
-//     image = "public.ecr.aws/aws-cli/aws-cli"
-//     cmd = [
-//       "iam", "delete-login-profile",
-//       "--user-name", param.user_name
-//     ]
-
-//     env = credential.aws[param.cred].env
-//   }
-
-// }
-
