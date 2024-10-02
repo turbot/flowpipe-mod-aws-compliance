@@ -2,8 +2,7 @@ locals {
   accounts_without_alternate_security_contact_query = <<-EOQ
   with alternate_security_contact as (
     select
-      name,
-      account_id
+      count(name) as secutiry_contact_count
     from
       aws_account_alternate_contact
     where
@@ -27,8 +26,7 @@ locals {
     account as a,
     alternate_security_contact as c
   where
-    c.account_id = a.account_id
-    and c.name is null;
+    c.secutiry_contact_count <= 0;
   EOQ
 }
 
@@ -157,10 +155,16 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
     value       = length(step.query.detect.rows)
   }
 
+  param "cred" {
+    type        = string
+    description = local.description_credential
+  }
+
   step "pipeline" "respond" {
     pipeline = pipeline.correct_accounts_without_alternate_security_contact
     args = {
       items              = step.query.detect.rows
+      cred               = param.cred
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -180,8 +184,12 @@ pipeline "correct_accounts_without_alternate_security_contact" {
     type = list(object({
       account_id = string
       title      = string
-      cred       = string
     }))
+  }
+
+  param "cred" {
+    type        = string
+    description = local.description_credential
   }
 
   param "notifier" {
@@ -225,14 +233,14 @@ pipeline "correct_accounts_without_alternate_security_contact" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_account_without_alternate_security_contact
     args = {
-      title              = each.value.title
-      account_id         = each.value.account_id
-      cred               = each.value.cred
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
+      alternate_account_title = each.value.title
+      account_id              = each.value.account_id
+      cred                    = param.cred
+      notifier                = param.notifier
+      notification_level      = param.notification_level
+      approvers               = param.approvers
+      default_action          = param.default_action
+      enabled_actions         = param.enabled_actions
     }
   }
 }
@@ -319,7 +327,7 @@ pipeline "correct_one_account_without_alternate_security_contact" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected account ${param.title} without alternate security contact."
+      detect_msg         = "Detected account ${param.alternate_account_title} without alternate security contact."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -331,7 +339,7 @@ pipeline "correct_one_account_without_alternate_security_contact" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_info
-            text     = "Skipped account ${param.title}."
+            text     = "Skipped account ${param.alternate_account_title}."
           }
           success_msg = ""
           error_msg   = ""
@@ -344,14 +352,14 @@ pipeline "correct_one_account_without_alternate_security_contact" {
           pipeline_args = {
             name                   = param.alternate_account_name
             cred                   = param.cred
-            account_id             = param.account_id
+            // account_id             = param.account_id
             alternate_contact_type = "SECURITY"
             email_address          = param.email_address
             phone_number           = param.phone_number
             title                  = param.alternate_account_title
           }
-          success_msg = "Registered alternate security contact for account ${param.title}."
-          error_msg   = "Error registering alternate security contact for account ${param.title}."
+          success_msg = "Registered alternate security contact for account ${param.alternate_account_title}."
+          error_msg   = "Error registering alternate security contact for account ${param.alternate_account_title}."
         }
       }
     }
