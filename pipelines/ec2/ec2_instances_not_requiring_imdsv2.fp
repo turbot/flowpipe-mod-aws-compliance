@@ -1,5 +1,5 @@
 locals {
-  ec2_instances_without_imdsv2_query = <<-EOQ
+  ec2_instances_not_requiring_imdsv2_query = <<-EOQ
     select
       concat(instance_id, ' [', account_id, '/', region, ']') as title,
       instance_id,
@@ -12,54 +12,60 @@ locals {
   EOQ
 }
 
-variable "ec2_instances_without_imdsv2_trigger_enabled" {
+variable "ec2_instances_not_requiring_imdsv2_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
 }
 
-variable "ec2_instances_without_imdsv2_trigger_schedule" {
+variable "ec2_instances_not_requiring_imdsv2_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
 }
 
-variable "ec2_instances_without_imdsv2_default_action" {
+variable "ec2_instances_not_requiring_imdsv2_default_action" {
   type        = string
-  default     = "notify"
   description = "The default action to use when there are no approvers."
+  default     = "notify"
 }
 
-variable "ec2_instances_without_imdsv2_enabled_actions" {
+variable "ec2_instances_not_requiring_imdsv2_enabled_actions" {
   type        = list(string)
-  default     = ["skip", "update_instance_to_imdsv2"]
-  description = "The list of enabled actions to provide for selection."
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "disable_imdsv1"]
 }
 
+trigger "query" "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
+  title         = "Detect & correct EC2 instances not requiring IMDSv2"
+  description   = "Detect EC2 instances that do not require IMDSv2 and then skip or update instance to IMDSv2."
+  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_not_requiring_imdsv2_trigger.md")
+  tags          = local.ec2_common_tags
 
-trigger "query" "detect_and_correct_ec2_instances_without_imdsv2" {
-  title         = "Detect & correct EC2 instances without IMDSv2"
-  description   = "Detect EC2 instances without IMDSv2 and then skip or update instance to IMDSv2."
-  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_without_imdsv2_trigger.md")
-  tags          = merge(local.ec2_common_tags, { class = "security" })
-
-  enabled  = var.ec2_instances_without_imdsv2_trigger_enabled
-  schedule = var.ec2_instances_without_imdsv2_trigger_schedule
+  enabled  = var.ec2_instances_not_requiring_imdsv2_trigger_enabled
+  schedule = var.ec2_instances_not_requiring_imdsv2_trigger_schedule
   database = var.database
-  sql      = local.ec2_instances_without_imdsv2_query
+  sql      = local.ec2_instances_not_requiring_imdsv2_query
 
   capture "insert" {
-    pipeline = pipeline.correct_ec2_instances_without_imdsv2
+    pipeline = pipeline.correct_ec2_instances_not_requiring_imdsv2
     args = {
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_ec2_instances_not_requiring_imdsv2
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
-pipeline "detect_and_correct_ec2_instances_without_imdsv2" {
-  title         = "Detect & correct EC2 instances without IMDSv2"
-  description   = "Detect EC2 instances without IMDSv2 and then skip or update instance to IMDSv2."
-  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_without_imdsv2.md")
+pipeline "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
+  title         = "Detect & correct EC2 instances not requiring IMDSv2"
+  description   = "Detect EC2 instances that do not require IMDSv2 and then skip or update instance to IMDSv2."
+  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_not_requiring_imdsv2.md")
 
   param "database" {
     type        = string
@@ -88,22 +94,22 @@ pipeline "detect_and_correct_ec2_instances_without_imdsv2" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ec2_instances_without_imdsv2_default_action
+    default     = var.ec2_instances_not_requiring_imdsv2_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ec2_instances_without_imdsv2_enabled_actions
+    default     = var.ec2_instances_not_requiring_imdsv2_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.ec2_instances_without_imdsv2_query
+    sql      = local.ec2_instances_not_requiring_imdsv2_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_ec2_instances_without_imdsv2
+    pipeline = pipeline.correct_ec2_instances_not_requiring_imdsv2
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -115,10 +121,11 @@ pipeline "detect_and_correct_ec2_instances_without_imdsv2" {
   }
 }
 
-pipeline "correct_ec2_instances_without_imdsv2" {
-  title         = "Correct EC2 instances without IMDSv2"
-  description   = "Executes corrective actions on EC2 instances without IMDSv2."
-  // documentation = file("./ec2/docs/correct_ec2_instances_without_imdsv2.md")
+pipeline "correct_ec2_instances_not_requiring_imdsv2" {
+  title         = "Correct EC2 instances not requiring IMDSv2"
+  description   = "Executes corrective actions on EC2 instances not requiring IMDSv2."
+  // documentation = file("./ec2/docs/correct_ec2_instances_not_requiring_imdsv2.md")
+  tags          = merge(local.ec2_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -151,25 +158,25 @@ pipeline "correct_ec2_instances_without_imdsv2" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ec2_instances_without_imdsv2_default_action
+    default     = var.ec2_instances_not_requiring_imdsv2_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ec2_instances_without_imdsv2_enabled_actions
+    default     = var.ec2_instances_not_requiring_imdsv2_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} EC2 instance(s) without IMDSv2."
+    text     = "Detected ${length(param.items)} EC2 instance(s) not requiring IMDSv2."
   }
 
   step "pipeline" "correct_item" {
     for_each        = { for item in param.items : item.instance_id => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_ec2_instance_without_imdsv2
+    pipeline        = pipeline.correct_one_ec2_instance_not_requiring_imdsv2
     args = {
       title              = each.value.title,
       instance_id        = each.value.instance_id,
@@ -184,11 +191,11 @@ pipeline "correct_ec2_instances_without_imdsv2" {
   }
 }
 
-pipeline "correct_one_ec2_instance_without_imdsv2" {
+pipeline "correct_one_ec2_instance_not_requiring_imdsv2" {
   title         = "Correct one EC2 instance using IMDSv2"
   description   = "Runs corrective action on an EC2 instance to enable IMDSv2."
-  // documentation = file("./ec2/docs/correct_one_ec2_instance_without_imdsv2.md")
-  tags          = merge(local.ec2_common_tags, { class = "security" })
+  // documentation = file("./ec2/docs/correct_one_ec2_instance_not_requiring_imdsv2.md")
+  tags          = merge(local.ec2_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -231,13 +238,13 @@ pipeline "correct_one_ec2_instance_without_imdsv2" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ec2_instances_without_imdsv2_default_action
+    default     = var.ec2_instances_not_requiring_imdsv2_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ec2_instances_without_imdsv2_enabled_actions
+    default     = var.ec2_instances_not_requiring_imdsv2_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -246,7 +253,7 @@ pipeline "correct_one_ec2_instance_without_imdsv2" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected EC2 instance ${param.title} without IMDSv2."
+      detect_msg         = "Detected EC2 instance ${param.title} not requiring IMDSv2."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -258,14 +265,14 @@ pipeline "correct_one_ec2_instance_without_imdsv2" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped EC2 instance ${param.title} without IMDSv2."
+            text     = "Skipped EC2 instance ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "update_instance_to_imdsv2" = {
-          label        = "Update Instance to IMDSv2"
-          value        = "update_instance_to_imdsv2"
+        "disable_imdsv1" = {
+          label        = "Disable IMDSv1"
+          value        = "disable_imdsv1"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_ec2_instance_metadata_options
           pipeline_args = {
@@ -274,8 +281,8 @@ pipeline "correct_one_ec2_instance_without_imdsv2" {
             region      = param.region
             cred        = param.cred
           }
-          success_msg = "Updated EC2 instance ${param.title} to use IMDSv2."
-          error_msg   = "Error updating EC2 instance ${param.title} to IMDSv2."
+          success_msg = "Updated EC2 instance ${param.title} to require IMDSv2."
+          error_msg   = "Error updating EC2 instance ${param.title} to require IMDSv2."
         }
       }
     }
