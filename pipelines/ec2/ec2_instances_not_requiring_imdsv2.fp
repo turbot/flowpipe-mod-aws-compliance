@@ -38,7 +38,7 @@ variable "ec2_instances_not_requiring_imdsv2_enabled_actions" {
 
 trigger "query" "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
   title         = "Detect & correct EC2 instances not requiring IMDSv2"
-  description   = "Detect EC2 instances that do not require IMDSv2 and then skip or update instance to IMDSv2."
+  description   = "Detect EC2 instances that do not require IMDSv2 and then skip or disable IMDSv1."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_not_requiring_imdsv2_trigger.md")
   tags          = local.ec2_common_tags
 
@@ -64,7 +64,7 @@ trigger "query" "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
 
 pipeline "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
   title         = "Detect & correct EC2 instances not requiring IMDSv2"
-  description   = "Detect EC2 instances that do not require IMDSv2 and then skip or update instance to IMDSv2."
+  description   = "Detect EC2 instances that do not require IMDSv2 and then skip or disable IMDSv1."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_not_requiring_imdsv2.md")
 
   param "database" {
@@ -123,7 +123,7 @@ pipeline "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
 
 pipeline "correct_ec2_instances_not_requiring_imdsv2" {
   title         = "Correct EC2 instances not requiring IMDSv2"
-  description   = "Executes corrective actions on EC2 instances not requiring IMDSv2."
+  description   = "Disable IMDSv1 for EC2 instances that do not require IMDSv2."
   // documentation = file("./ec2/docs/correct_ec2_instances_not_requiring_imdsv2.md")
   tags          = merge(local.ec2_common_tags, { type = "internal" })
 
@@ -193,7 +193,7 @@ pipeline "correct_ec2_instances_not_requiring_imdsv2" {
 
 pipeline "correct_one_ec2_instance_not_requiring_imdsv2" {
   title         = "Correct one EC2 instance using IMDSv2"
-  description   = "Runs corrective action on an EC2 instance to enable IMDSv2."
+  description   = "Disable IMDSv1 for an EC2 instance that does not require IMDSv2."
   // documentation = file("./ec2/docs/correct_one_ec2_instance_not_requiring_imdsv2.md")
   tags          = merge(local.ec2_common_tags, { type = "internal" })
 
