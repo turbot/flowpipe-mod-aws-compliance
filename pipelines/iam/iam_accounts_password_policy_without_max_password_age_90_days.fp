@@ -170,7 +170,7 @@ pipeline "correct_iam_accounts_password_policy_without_max_password_age_90_days"
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.account_id => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_accounts_password_policy_without_max_password_age_90_days
+    pipeline        = pipeline.correct_one_iam_account_password_policy_without_max_password_age_90_days
     args = {
       title              = each.value.title
       account_id         = each.value.account_id
@@ -184,7 +184,7 @@ pipeline "correct_iam_accounts_password_policy_without_max_password_age_90_days"
   }
 }
 
-pipeline "correct_one_iam_accounts_password_policy_without_max_password_age_90_days" {
+pipeline "correct_one_iam_account_password_policy_without_max_password_age_90_days" {
   title         = "Correct IAM account password policy without maximum password age of 90 days"
   description   = "Update password policy to maximum password age of 90 days for a IAM account without maximum password age of 90 days."
 

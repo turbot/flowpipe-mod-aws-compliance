@@ -170,7 +170,7 @@ pipeline "correct_iam_accounts_password_policy_without_one_uppercase_letter" {
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.account_id => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_accounts_password_policy_without_one_uppercase_letter
+    pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_uppercase_letter
     args = {
       title              = each.value.title
       account_id         = each.value.account_id
@@ -184,7 +184,7 @@ pipeline "correct_iam_accounts_password_policy_without_one_uppercase_letter" {
   }
 }
 
-pipeline "correct_one_iam_accounts_password_policy_without_one_uppercase_letter" {
+pipeline "correct_one_iam_account_password_policy_without_one_uppercase_letter" {
   title         = "Correct IAM account password policy without requirement for any uppercase letter"
   description   = "Update password policy to at least one lowercase letter for acIAM account without requirement for any uppercase letter."
 

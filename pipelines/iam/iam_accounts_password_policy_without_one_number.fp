@@ -171,7 +171,7 @@ pipeline "correct_iam_accounts_password_policy_without_one_number" {
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.account_id => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_accounts_password_policy_without_one_number
+    pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_number
     args = {
       title              = each.value.title
       account_id         = each.value.account_id
@@ -185,7 +185,7 @@ pipeline "correct_iam_accounts_password_policy_without_one_number" {
   }
 }
 
-pipeline "correct_one_iam_accounts_password_policy_without_one_number" {
+pipeline "correct_one_iam_account_password_policy_without_one_number" {
   title         = "Correct IAM account password policy without requirement for any number"
   description   = "Update password policy to at least one number for a IAM account without requirement for any number."
   tags          = merge(local.iam_common_tags, { class = "security" })

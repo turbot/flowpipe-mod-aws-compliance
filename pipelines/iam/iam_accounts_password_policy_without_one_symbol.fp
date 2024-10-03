@@ -170,7 +170,7 @@ pipeline "correct_iam_accounts_password_policy_without_one_symbol" {
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.account_id => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_accounts_password_policy_without_one_symbol
+    pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_symbol
     args = {
       title              = each.value.title
       account_id         = each.value.account_id
@@ -184,7 +184,7 @@ pipeline "correct_iam_accounts_password_policy_without_one_symbol" {
   }
 }
 
-pipeline "correct_one_iam_accounts_password_policy_without_one_symbol" {
+pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
   title         = "Correct IAM account password policy without requirement for any symbol"
   description   = "Update password policy to at least one symbol for a IAM account without requirement for any symbol."
 

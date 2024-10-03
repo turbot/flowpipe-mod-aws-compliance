@@ -28,6 +28,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_numbe
     database = var.database
     sql = <<-EOQ
       select
+        account_id as title,
         account_id,
         minimum_password_length,
         require_symbols,
@@ -38,7 +39,8 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_numbe
         max_password_age,
         password_reuse_prevention,
         coalesce(max_password_age, 0) as effective_max_password_age,
-        coalesce(password_reuse_prevention, 0) as effective_password_reuse_prevention
+        coalesce(password_reuse_prevention, 0) as effective_password_reuse_prevention,
+        _ctx ->> 'connection_name' as cred
       from
         aws_iam_account_password_policy
       where
@@ -79,11 +81,16 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_numbe
 
   step "pipeline" "run_detection" {
     depends_on = [step.pipeline.disable_password_policy_require_number]
-    pipeline = pipeline.detect_and_correct_iam_accounts_password_policy_without_one_number
+    for_each        = { for item in step.query.get_password_policy.rows : item.account_id => item }
+    max_concurrency = var.max_concurrency
+    pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_number
     args = {
-      approvers       = []
-      default_action  = "update_password_policy_require_numbers"
-      enabled_actions = ["update_password_policy_require_numbers"]
+      title                  = each.value.title
+      account_id             = each.value.account_id
+      cred                   = each.value.cred
+      approvers              = []
+      default_action         = "update_password_policy_require_numbers"
+      enabled_actions        = ["update_password_policy_require_numbers"]
     }
   }
 

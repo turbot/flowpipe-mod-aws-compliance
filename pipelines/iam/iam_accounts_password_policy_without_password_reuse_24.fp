@@ -171,7 +171,7 @@ pipeline "correct_iam_accounts_password_policy_without_password_reuse_24" {
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.account_id => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_accounts_password_policy_without_password_reuse_24
+    pipeline        = pipeline.correct_one_iam_account_password_policy_without_password_reuse_24
     args = {
       title              = each.value.title
       account_id         = each.value.account_id
@@ -185,7 +185,7 @@ pipeline "correct_iam_accounts_password_policy_without_password_reuse_24" {
   }
 }
 
-pipeline "correct_one_iam_accounts_password_policy_without_password_reuse_24" {
+pipeline "correct_one_iam_account_password_policy_without_password_reuse_24" {
   title         = "Correct IAM account password policy without password reuse 24"
   description   = "Runs corrective action on a IAM account password policy that do not enforce a password reuse prevention policy of 24."
   tags          = merge(local.iam_common_tags, { class = "security" })
