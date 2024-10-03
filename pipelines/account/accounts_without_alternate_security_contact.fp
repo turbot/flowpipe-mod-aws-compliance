@@ -68,7 +68,7 @@ variable "accounts_without_alternate_security_contact_name" {
 }
 
 trigger "query" "detect_and_correct_accounts_without_alternate_security_contact" {
-  title         = "Detect & Correct Accounts Without Alternate Security Contact"
+  title         = "Detect & correct accounts without alternate security contact"
   description   = "Detect accounts without an alternate security contact and then add an alternate security contact."
   // documentation = file("./account/docs/detect_and_correct_accounts_without_alternate_security_contact_trigger.md")
   tags          = local.account_common_tags
@@ -208,7 +208,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
     pipeline        = pipeline.correct_one_account_without_alternate_security_contact
     args = {
       title                   = each.value.title
-      cred                    = param.cred
+      cred                    = each.value.cred
       notifier                = param.notifier
       notification_level      = param.notification_level
       approvers               = param.approvers

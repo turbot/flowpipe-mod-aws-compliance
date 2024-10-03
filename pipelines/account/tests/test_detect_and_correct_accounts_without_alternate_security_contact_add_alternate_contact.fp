@@ -1,103 +1,111 @@
-// pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_add_alternate_contact" {
-//   title       = "Test Detect & Correct Accounts Without Alternate Security Contact"
-//   description = "Test add the alternate security contact register action for accounts."
+// Need to cross check the step 'registered_alternative_security_contact' why it is not reslting back the details even thoung the resource is created
+pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_add_alternate_contact" {
+  title       = "Test detect & correct accounts without alternate security contact"
+  description = "Test add the alternate security contact register action for accounts."
 
-//   param "cred" {
-//     type        = string
-//     description = local.description_credential
-//     default     = "default"
-//   }
+  tags = {
+    type = "test"
+  }
 
-//   param "account_id" {
-//     type        = string
-//     description = "The AWS account ID."
-//     default     = "123456789012"
-//   }
+  param "cred" {
+    type        = string
+    description = local.description_credential
+    default     = "default"
+  }
 
-//   param "alternate_contact_type" {
-//     type        = string
-//     description = "The type of alternate contact (BILLING, OPERATIONS, SECURITY)."
-//     default     = "SECURITY"
-//   }
+  step "transform" "base_args" {
+    output "base_args" {
+      value = {
+        title                  = "Account alternative contact"
+        alternate_contact_type = "SECURITY"
+        email_address          = "tommy@gmail.com"
+        name                   = "test-fp-contact"
+        phone_number           = "9887263547"
+      }
+    }
+  }
 
-//   param "email_address" {
-//     type        = string
-//     description = "The email address of the alternate contact."
-//     default     = "tommy@gmail.com"
-//   }
+  step "query" "verify_register_alternative_security_contact" {
+    database = var.database
+    sql      = <<-EOQ
+      select
+        name,
+        title,
+        email_address,
+        phone_number,
+        contact_type
+      from
+        aws_account_alternate_contact
+      where
+        contact_type = 'SECURITY';
+    EOQ
 
-//   param "name" {
-//     type        = string
-//     description = "The name of the alternate contact."
-//     default     = "test-fp-contact"
-//   }
+    throw {
+      if      = length(result.rows) > 0
+      message = "The alternate security contact with name '${result.rows[0].name}' is already registered. Exiting the pipeline."
+    }
+  }
 
-//   param "phone_number" {
-//     type        = string
-//     description = "The phone number of the alternate contact."
-//     default     = "9887263547"
-//   }
+  step "pipeline" "run_detection" {
+    depends_on = [step.query.verify_register_alternative_security_contact]
+    pipeline   = pipeline.correct_one_account_without_alternate_security_contact
+    args = {
+      alternate_account_title = step.transform.base_args.output.base_args.title
+      title                   = step.transform.base_args.output.base_args.title
+      email_address           = step.transform.base_args.output.base_args.email_address
+      phone_number            = step.transform.base_args.output.base_args.phone_number
+      name                    = step.transform.base_args.output.base_args.name
+      cred                    = param.cred
+      approvers               = []
+      default_action          = "add_alternate_security_contact"
+      enabled_actions         = ["add_alternate_security_contact"]
+    }
+  }
 
-//   param "title" {
-//     type        = string
-//     description = "The title of the alternate contact."
-//     default     = "Account alternative contact"
-//   }
+  step "query" "registered_alternative_security_contact" {
+    depends_on = [step.pipeline.run_detection]
+    database   = var.database
+    sql        = <<-EOQ
+      select
+        name,
+        title,
+        email_address,
+        phone_number,
+        contact_type
+      from
+        aws_account_alternate_contact
+      where
+        contact_type = 'SECURITY';
+    EOQ
+  }
 
-//   step "transform" "base_args" {
-//     output "base_args" {
-//       value = {
-//         title                  = param.title
-//         cred                   = param.cred
-//         account_id             = param.account_id
-//         alternate_contact_type = param.alternate_contact_type
-//         email_address          = param.email_address
-//         name                   = param.name
-//         phone_number           = param.phone_number
-//       }
-//     }
-//   }
+  step "transform" "alternate_contact_registeration_is_matched" {
+    depends_on = [step.pipeline.run_detection, step.query.registered_alternative_security_contact]
+    output "match_output" {
+      value = (
+        step.transform.base_args.output.base_args.name == step.query.registered_alternative_security_contact.rows[0].name &&
+        step.transform.base_args.output.base_args.email_address == step.query.registered_alternative_security_contact.rows[0].email_address &&
+        step.transform.base_args.output.base_args.phone_number == step.query.registered_alternative_security_contact.rows[0].phone_number &&
+        step.transform.base_args.output.base_args.alternate_contact_type == step.query.registered_alternative_security_contact.rows[0].contact_type
+      )
+    }
+  }
 
-//   step "pipeline" "run_detection" {
-//     pipeline = pipeline.detect_and_correct_accounts_without_alternate_security_contact
-//     args = {
-//       cred                    = param.cred
-//       approvers               = []
-//       default_action          = "add_alternate_contact"
-//       enabled_actions         = ["add_alternate_contact"]
-//     }
-//   }
+  step "pipeline" "delete_register_alternative_security_contact" {
+    depends_on = [step.pipeline.run_detection, step.query.registered_alternative_security_contact]
 
-//   step "query" "verify_register_alternative_security_contact" {
-//     depends_on = [step.pipeline.run_detection]
-//     database   = var.database
-//     sql        = <<-EOQ
-//       select
-//         name,
-//         account_id
-//       from
-//         aws_account_alternate_contact
-//       where
-//         contact_type = 'SECURITY';
-//     EOQ
-//   }
+    pipeline = aws.pipeline.delete_alternate_contact
+    args = {
+      cred                   = param.cred
+      alternate_contact_type = "SECURITY"
+    }
+  }
 
-//   step "pipeline" "delete_register_alternative_security_contact" {
-//     depends_on = [step.query.verify_register_alternative_security_contact]
-
-//     pipeline = aws.pipeline.delete_alternate_contact
-//     args     = {
-//       alternate_contact_type = param.alternate_contact_type
-//     }
-//   }
-
-//   output "account_id" {
-//     description = "The ID of the account."
-//     value       = param.account_id
-//   }
-
-//   output "result_add_alternate_contact" {
-//     description = "Result of adding alternative security contact."
-//     value       = length(step.query.verify_register_alternative_security_contact.rows) == 1 ? "pass" : "fail: ${error_message(step.pipeline.run_detection)}"
-//   }
-// }
+  output "result_add_alternate_contact" {
+    description = "Test result for each step"
+    value = {
+      "registered_alternative_security_contact" = length(step.query.registered_alternative_security_contact.rows) == 1 ? "pass" : "fail"
+      "matched_register_contact" : step.transform.alternate_contact_registeration_is_matched.output.match_output ? "pass" : "fail"
+    }
+  }
+}
