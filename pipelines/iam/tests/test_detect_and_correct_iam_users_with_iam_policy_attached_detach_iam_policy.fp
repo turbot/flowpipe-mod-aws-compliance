@@ -147,12 +147,12 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
   output "test_results" {
     description = "Test results for each step."
     value = {
-      "create_iam_user"      = !is_error(step.pipeline.create_iam_user) ? "pass" : "fail: ${error_message(step.pipeline.create_iam_user)}"
-      "create_iam_policy" = !is_error(step.pipeline.create_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.create_iam_policy)}"
-      "get_iam_policy_arn" = length(step.query.get_iam_policy_arn.rows) == 1 ? "pass" : "fail: Row length is not 1"
-      "attach_user_policy" = !is_error(step.container.attach_user_policy) ? "pass" : "fail: ${error_message(step.container.attach_user_policy)}"
+      "create_iam_user"                  = !is_error(step.pipeline.create_iam_user) ? "pass" : "fail: ${error_message(step.pipeline.create_iam_user)}"
+      "create_iam_policy"                = !is_error(step.pipeline.create_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.create_iam_policy)}"
+      "get_iam_policy_arn"               = length(step.query.get_iam_policy_arn.rows) == 1 ? "pass" : "fail: Row length is not 1"
+      "attach_user_policy"               = !is_error(step.container.attach_user_policy) ? "pass" : "fail: ${error_message(step.container.attach_user_policy)}"
       "get_user_details_after_detection" = length(step.query.get_user_details_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
-      "delete_iam_user" = !is_error(step.pipeline.delete_iam_user) ? "pass" : "fail: ${error_message(step.pipeline.delete_iam_user)}"
+      "delete_iam_user"                  = !is_error(step.pipeline.delete_iam_user) ? "pass" : "fail: ${error_message(step.pipeline.delete_iam_user)}"
     }
   }
 }

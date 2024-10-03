@@ -8,7 +8,7 @@ locals {
       aws_iam_account_password_policy
     where
       require_numbers = false
-      or require_numbers is null
+      or require_numbers is null;
   EOQ
 }
 

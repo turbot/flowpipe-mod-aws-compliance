@@ -8,7 +8,7 @@ locals {
       aws_iam_account_password_policy
     where
       require_symbols = false
-      or require_symbols is null
+      or require_symbols is null;
   EOQ
 }
 

@@ -8,7 +8,7 @@ locals {
       aws_iam_account_password_policy
     where
       password_reuse_prevention < 24
-      or password_reuse_prevention is null
+      or password_reuse_prevention is null;
   EOQ
 }
 

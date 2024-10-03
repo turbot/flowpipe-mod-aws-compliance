@@ -77,25 +77,6 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_
     }
   }
 
-  // step "container" "set_password_reuse_10" {
-  //   if    = length(step.query.get_password_policy_without_password_reuse_24.rows) == 0
-  //   image = "public.ecr.aws/aws-cli/aws-cli"
-
-  //   cmd = concat(
-  //     ["iam", "update-account-password-policy"],
-  //     ["--minimum-password-length", tostring(step.query.get_password_policy.rows[0].minimum_password_length)],
-  //     step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
-  //     step.query.get_password_policy.rows[0].require_numbers ? ["--require-numbers"] : ["--no-require-numbers"],
-  //     step.query.get_password_policy.rows[0].require_lowercase_characters ? ["--require-lowercase-characters"] : ["--no-require-lowercase-characters"],
-  //     step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
-  //     step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
-  //     step.query.get_password_policy.rows[0].max_password_age != null ? ["--max-password-age",  tostring(step.query.get_password_policy.rows[0].max_password_age)] : [],
-  //     ["--password-reuse-prevention",  tostring(10)]
-  //   )
-
-  //   env = credential.aws[param.cred].env
-  // }
-
   step "pipeline" "run_detection" {
     depends_on = [step.pipeline.set_password_reuse_10]
     pipeline = pipeline.detect_and_correct_iam_accounts_password_policy_without_password_reuse_24
@@ -131,9 +112,9 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_
   output "test_results" {
     description = "Test results for each step."
     value = {
-      "get_account_id"      = !is_error(step.query.get_account_id.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_account_id)}"
-      "get_password_policy" = !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}"
-      "set_password_reuse_10" = !is_error(step.pipeline.set_password_reuse_10) ? "pass" : "fail: ${error_message(step.pipeline.set_password_reuse_10)}"
+      "get_account_id"                      = !is_error(step.query.get_account_id.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_account_id)}"
+      "get_password_policy"                 = !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}"
+      "set_password_reuse_10"               = !is_error(step.pipeline.set_password_reuse_10) ? "pass" : "fail: ${error_message(step.pipeline.set_password_reuse_10)}"
       "get_password_policy_after_detection" = length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
     }
   }

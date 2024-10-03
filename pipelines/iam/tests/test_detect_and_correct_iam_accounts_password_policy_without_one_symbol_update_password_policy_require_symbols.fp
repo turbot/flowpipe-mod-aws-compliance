@@ -111,10 +111,10 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_symbo
   output "test_results" {
     description = "Test results for each step."
     value = {
-      "get_account_id"      = !is_error(step.query.get_account_id.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_account_id)}"
-      "get_password_policy" = !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}"
+      "get_account_id"                         = !is_error(step.query.get_account_id.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_account_id)}"
+      "get_password_policy"                    = !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}"
       "disable_password_policy_require_symbol" = !is_error(step.pipeline.disable_password_policy_require_symbol) ? "pass" : "fail: ${error_message(step.pipeline.disable_password_policy_require_symbol)}"
-      "get_password_policy_after_detection" = length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
+      "get_password_policy_after_detection"    = length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
     }
   }
 }

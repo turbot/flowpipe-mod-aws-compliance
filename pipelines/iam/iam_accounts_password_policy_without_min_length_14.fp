@@ -8,7 +8,7 @@ locals {
       aws_iam_account_password_policy
     where
       minimum_password_length < 14
-      or minimum_password_length is null
+      or minimum_password_length is null;
   EOQ
 }
 

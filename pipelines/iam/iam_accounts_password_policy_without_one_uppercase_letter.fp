@@ -8,7 +8,7 @@ locals {
       aws_iam_account_password_policy
     where
       require_uppercase_characters = false
-      or require_uppercase_characters is null
+      or require_uppercase_characters is null;
   EOQ
 }
 
