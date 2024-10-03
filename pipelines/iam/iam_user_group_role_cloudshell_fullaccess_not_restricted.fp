@@ -269,13 +269,13 @@ pipeline "detach_cloudshell_fullaccess_policy_from_one_iam_entity" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_entities_with_policy_star_star_default_action
+    default     = var.iam_entities_with_cloudshell_fullaccess_policy_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_entities_with_policy_star_star_enabled_actions
+    default     = var.iam_entities_with_cloudshell_fullaccess_policy_enabled_actions
   }
 
   step "pipeline" "respond" {
