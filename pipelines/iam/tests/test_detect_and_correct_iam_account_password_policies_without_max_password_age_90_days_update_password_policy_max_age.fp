@@ -1,6 +1,6 @@
-pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_reuse_24_update_password_policy_reuse_prevention" {
-  title       = "Test detect and correct IAM account password policies without password reuse 24"
-  description = "Test setect_and_correct_iam_accounts_password_policy_without_password_reuse_24 pipeline."
+pipeline "test_detect_and_correct_iam_account_password_policies_without_max_password_age_90_days_update_password_policy_max_age" {
+  title       = "Test detect and correct IAM account password policies without max password age of 90 days"
+  description = "Test detect_and_correct_iam_account_password_policies_without_max_password_age_90_days pipeline."
 
   tags = {
     type = "test"
@@ -24,7 +24,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_
   }
 
   step "query" "get_password_policy" {
-    depends_on = [step.query.get_account_id]
+	  depends_on = [step.query.get_account_id]
     database = var.database
     sql = <<-EOQ
       select
@@ -48,7 +48,7 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_
     EOQ
   }
 
-  step "query" "get_password_policy_without_password_reuse_24" {
+  step "query" "get_password_policy_with_password_max_age_less_than_90_days" {
     depends_on = [step.query.get_password_policy]
     database = var.database
     sql = <<-EOQ
@@ -57,21 +57,21 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_
       from
         aws_iam_account_password_policy
       where
-        (password_reuse_prevention < 24
-        or password_reuse_prevention is null)
-        and account_id = '${step.query.get_account_id.rows[0].account_id}'
+        (max_password_age < 90
+        or max_password_age is null)
+        and account_id = '${step.query.get_account_id.rows[0].account_id}';
     EOQ
   }
 
-  step "pipeline" "set_password_reuse_10" {
-    if        = length(step.query.get_password_policy_without_password_reuse_24.rows) == 0
+  step "pipeline" "set_password_max_age_60_days" {
+    if        = length(step.query.get_password_policy_with_password_max_age_less_than_90_days.rows) == 0
     pipeline  = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
       cred                           = param.cred
-      max_password_age               = step.query.get_password_policy.rows[0].effective_max_password_age
+      max_password_age               = 60
       minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
-      password_reuse_prevention      = 10
+      password_reuse_prevention      = step.query.get_password_policy.rows[0].effective_password_reuse_prevention
       require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
       require_numbers                = step.query.get_password_policy.rows[0].require_numbers
       require_symbols                = step.query.get_password_policy.rows[0].require_symbols
@@ -80,17 +80,17 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.pipeline.set_password_reuse_10]
+    depends_on = [step.pipeline.set_password_max_age_60_days]
     for_each        = { for item in step.query.get_password_policy.rows : item.account_id => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_account_password_policy_without_password_reuse_24
+    pipeline        = pipeline.correct_one_iam_account_password_policy_without_max_password_age_90_days
     args = {
       title                  = each.value.title
       account_id             = each.value.account_id
       cred                   = each.value.cred
       approvers              = []
-      default_action         = "update_password_policy_reuse_prevention"
-      enabled_actions        = ["update_password_policy_reuse_prevention"]
+      default_action         = "update_password_policy_max_age"
+      enabled_actions        = ["update_password_policy_max_age"]
     }
   }
 
@@ -103,12 +103,11 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_
       from
         aws_iam_account_password_policy
       where
-        password_reuse_prevention = 24
-        and require_uppercase_characters = '${step.query.get_password_policy.rows[0].require_uppercase_characters}'
+        max_password_age = 90
+        and minimum_password_length = '${step.query.get_password_policy.rows[0].minimum_password_length}'
         and require_symbols = '${step.query.get_password_policy.rows[0].require_symbols}'
         and require_numbers = '${step.query.get_password_policy.rows[0].require_numbers}'
-        and minimum_password_length = '${step.query.get_password_policy.rows[0].minimum_password_length}'
-        and max_password_age = '${step.query.get_password_policy.rows[0].max_password_age}'
+        and require_uppercase_characters = '${step.query.get_password_policy.rows[0].require_uppercase_characters}'
         and require_lowercase_characters = '${step.query.get_password_policy.rows[0].require_lowercase_characters}'
         and allow_users_to_change_password = '${step.query.get_password_policy.rows[0].allow_users_to_change_password}'
         and password_reuse_prevention = '${step.query.get_password_policy.rows[0].password_reuse_prevention}'
@@ -116,12 +115,28 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_password_
     EOQ
   }
 
+  step "pipeline" "set_password_max_age_to_old_setting" {
+    depends_on = [step.query.get_password_policy_after_detection]
+    pipeline  = aws.pipeline.update_iam_account_password_policy
+    args = {
+      allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
+      cred                           = param.cred
+      max_password_age               = step.query.get_password_policy.rows[0].effective_max_password_age
+      minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
+      password_reuse_prevention      = step.query.get_password_policy.rows[0].effective_password_reuse_prevention
+      require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
+      require_numbers                = step.query.get_password_policy.rows[0].require_numbers
+      require_symbols                = step.query.get_password_policy.rows[0].require_symbols
+      require_uppercase_characters   = step.query.get_password_policy.rows[0].require_uppercase_characters
+    }
+  }
+
   output "test_results" {
     description = "Test results for each step."
     value = {
       "get_account_id"                      = !is_error(step.query.get_account_id.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_account_id)}"
       "get_password_policy"                 = !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}"
-      "set_password_reuse_10"               = !is_error(step.pipeline.set_password_reuse_10) ? "pass" : "fail: ${error_message(step.pipeline.set_password_reuse_10)}"
+      "set_password_max_age_60_days"        = !is_error(step.pipeline.set_password_max_age_60_days) ? "pass" : "fail: ${error_message(step.pipeline.set_password_max_age_60_days)}"
       "get_password_policy_after_detection" = length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
     }
   }

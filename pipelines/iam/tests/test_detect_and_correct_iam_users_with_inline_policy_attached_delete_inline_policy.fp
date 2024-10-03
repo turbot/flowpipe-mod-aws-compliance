@@ -15,13 +15,13 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
   param "user_name" {
     type        = string
     description = "The name of the user."
-    default     = "flowpipe-user-dummy"
+    default     = "flowpipe-user-${uuid()}"
   }
 
   param "policy_name" {
     type        = string
     description = "The name of the inline policy."
-    default     = "flowpipe-policy-dummy"
+    default     = "flowpipe-policy-${uuid()}"
   }
 
   param "policy_document" {
@@ -74,13 +74,47 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
     env = credential.aws[param.cred].env
   }
 
-  step "pipeline" "run_detection" {
+  // step "pipeline" "run_detection" {
+  //   depends_on = [step.container.attach_inline_policy]
+  //   pipeline = pipeline.detect_and_correct_iam_users_with_inline_policy_attached
+  //   args = {
+  //     approvers       = []
+  //     default_action  = "delete_inline_policy"
+  //     enabled_actions = ["delete_inline_policy"]
+  //   }
+  // }
+
+ step "query" "get_iam_users_with_inline_policy_attached" {
     depends_on = [step.container.attach_inline_policy]
-    pipeline = pipeline.detect_and_correct_iam_users_with_inline_policy_attached
+    database   = var.database
+    sql        = <<-EOQ
+      select
+        concat(i ->> 'PolicyName', ' [', account_id, ']') as title,
+        i ->> 'PolicyName' as inline_policy_name,
+        name as user_name,
+        account_id,
+        _ctx ->> 'connection_name' as cred
+      from
+        aws_iam_user,
+        jsonb_array_elements(inline_policies) as i
+      where
+        name = '${param.user_name}';
+    EOQ
+  }
+
+  step "pipeline" "run_detection" {
+    depends_on = [step.query.get_iam_users_with_inline_policy_attached]
+    for_each        = { for item in step.query.get_iam_users_with_inline_policy_attached.rows : item.title => item }
+    max_concurrency = var.max_concurrency
+    pipeline        = pipeline.correct_one_iam_users_with_inline_policy_attached
     args = {
-      approvers       = []
-      default_action  = "delete_inline_policy"
-      enabled_actions = ["delete_inline_policy"]
+      title                  = each.value.title
+      user_name              = each.value.user_name
+      inline_policy_name     = each.value.inline_policy_name
+      cred                   = each.value.cred
+      approvers              = []
+      default_action         = "delete_inline_policy"
+      enabled_actions        = ["delete_inline_policy"]
     }
   }
 

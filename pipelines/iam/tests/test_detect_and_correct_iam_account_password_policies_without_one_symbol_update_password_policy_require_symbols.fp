@@ -1,6 +1,6 @@
-pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_symbol_update_password_policy_require_symbols" {
+pipeline "test_detect_and_correct_iam_account_password_policies_without_one_symbol_update_password_policy_require_symbols" {
   title       = "Test detect and correct IAM account password policies without one symbol requirement"
-  description = "Test detect_and_correct_iam_accounts_password_policy_without_one_symbol pipeline."
+  description = "Test detect_and_correct_iam_account_password_policies_without_one_symbol pipeline."
 
   tags = {
     type = "test"
@@ -113,6 +113,22 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_symbo
         and password_reuse_prevention = '${step.query.get_password_policy.rows[0].password_reuse_prevention}'
         and account_id = '${step.query.get_password_policy.rows[0].account_id}';
     EOQ
+  }
+
+  step "pipeline" "set_password_policy_require_symbol_to_old_setting" {
+    depends_on = [step.query.get_password_policy_after_detection]
+    pipeline   = aws.pipeline.update_iam_account_password_policy
+    args = {
+      allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
+      cred                           = param.cred
+      max_password_age               = step.query.get_password_policy.rows[0].effective_max_password_age
+      minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
+      password_reuse_prevention      = step.query.get_password_policy.rows[0].effective_password_reuse_prevention
+      require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
+      require_numbers                = step.query.get_password_policy.rows[0].require_numbers
+      require_symbols                = step.query.get_password_policy.rows[0].require_symbols
+      require_uppercase_characters   = step.query.get_password_policy.rows[0].require_uppercase_characters
+    }
   }
 
   output "test_results" {
