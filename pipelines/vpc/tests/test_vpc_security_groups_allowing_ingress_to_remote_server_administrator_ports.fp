@@ -309,10 +309,5 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_security_group]
   }
-
-  output "status" {
-    description = "VPC, security group, and rules for both IPv4 and IPv6 have been created and deleted successfully."
-    value       = format("VPC %s and Security Group %s with both IPv4 and IPv6 have been deleted.", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId, jsondecode(step.container.create_security_group.stdout).GroupId)
-  }
 }
 

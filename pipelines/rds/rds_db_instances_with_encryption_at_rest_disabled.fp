@@ -19,9 +19,33 @@ locals {
   EOQ
 }
 
+variable "rds_db_instance_without_encryption_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "rds_db_instance_without_encryption_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "rds_db_instance_without_encryption_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "rds_db_instance_without_encryption_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "enable_encryption_at_rest"]
+}
+
  trigger "query" "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
   title         = "Detect & correct RDS DB instances with encryption at rest disabled"
-  description   = "Detects RDS DB instances with encryption at rest disabled and runs your chosen action."
+  description   = "Detect RDS DB instances with encryption at rest disabled and then skip or enable encryption."
   tags          = merge(local.rds_common_tags, { class = "security" })
 
   enabled  = var.rds_db_instance_without_encryption_trigger_enabled
@@ -35,11 +59,18 @@ locals {
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_rds_db_instances_with_encryption_at_rest_disabled
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
   title         = "Detect & correct RDS DB instances with encryption at rest disabled"
-  description   = "Detects RDS DB instances with encryption at rest disabled and runs your chosen action."
+  description   = "Detect RDS DB instances with encryption at rest disabled and then skip or enable encryption."
   tags          = merge(local.rds_common_tags, { class = "security", type = "featured" })
 
   param "database" {
@@ -98,7 +129,7 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
 
 pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
   title         = "Correct RDS DB instances with encryption at rest disabled"
-  description   = "Runs corrective action on a collection of RDS DB instances with encryption at rest disabled."
+  description   = "Enable encryption at rest on a collection of RDS DB instances with encryption at rest disabled."
   tags          = merge(local.rds_common_tags, { class = "security" })
 
   param "items" {
@@ -149,18 +180,14 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
     text     = "Detected ${length(param.items)} RDS DB instance(s) with encryption at rest disabled."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.db_instance_identifier => row }
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : item.db_instance_identifier => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_rds_db_instance_with_encryption_at_rest_disabled
     args = {
       title                   = each.value.title
       db_instance_identifier  = each.value.db_instance_identifier
-      snapshot_identifier    = each.value.snapshot_identifier
+      snapshot_identifier     = each.value.snapshot_identifier
       aws_managed_kms_key_arn = each.value.aws_managed_kms_key_arn
       region                  = each.value.region
       cred                    = each.value.cred
@@ -175,7 +202,7 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
 
 pipeline "correct_one_rds_db_instance_with_encryption_at_rest_disabled" {
   title         = "Correct one RDS DB instance with encryption at rest disabled"
-  description   = "Runs corrective action on an RDS DB instances with encryption at rest disabled enabled."
+  description   = "Enable encryption at rest on an RDS DB instances with encryption at rest disabled enabled."
   tags          = merge(local.rds_common_tags, { class = "security" })
 
   param "title" {
@@ -261,50 +288,25 @@ pipeline "correct_one_rds_db_instance_with_encryption_at_rest_disabled" {
           success_msg = ""
           error_msg   = ""
         },
-        "encrypt_db_instance" = {
-          label        = "Encrypt DB Instance"
-          value        = "encrypt_db_instance"
+        "enable_encryption_at_rest" = {
+          label        = "Enable Encryption at Rest"
+          value        = "enable_encryption_at_rest"
           style        = local.style_alert
           pipeline_ref = pipeline.update_rds_encryption
           pipeline_args = {
             db_instance_identifier  = param.db_instance_identifier
             snapshot_identifier     = param.snapshot_identifier
             aws_managed_kms_key_arn = param.aws_managed_kms_key_arn
-            region                 = param.region
-            cred                   = param.cred
+            region                  = param.region
+            cred                    = param.cred
           }
-          success_msg = "Encrypted RDS DB instance ${param.title}."
-          error_msg   = "Error encrypting RDS DB instance ${param.title}."
+          success_msg = "Enabled encryption at rest for RDS DB instance ${param.title}."
+          error_msg   = "Error enabling encryption at rest for RDS DB instance ${param.title}."
         }
       }
     }
   }
 }
-
-variable "rds_db_instance_without_encryption_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "rds_db_instance_without_encryption_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "rds_db_instance_without_encryption_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "encrypt_db_instance"
-}
-
-variable "rds_db_instance_without_encryption_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "encrypt_db_instance"]
-}
-
 
 pipeline "update_rds_encryption" {
   title       = "Update RDS Encryption at Rest"
@@ -360,10 +362,10 @@ pipeline "update_rds_encryption" {
     env = credential.aws[param.cred].env
   }
 
-step "sleep" "sleep_10_seconds" {
-  depends_on = [ step.container.create_db_snapshot ]
-  duration   = "300s"
-}
+  step "sleep" "sleep_10_seconds" {
+    depends_on = [ step.container.create_db_snapshot ]
+    duration   = "20s"
+  }
 
   step "container" "copy_db_snapshot" {
     depends_on = [step.sleep.sleep_10_seconds]
@@ -380,7 +382,7 @@ step "sleep" "sleep_10_seconds" {
 
   step "sleep" "sleep_300_seconds" {
     depends_on = [ step.container.copy_db_snapshot ]
-    duration   = "300s"
+    duration   = "20s"
 }
 
   step "container" "restore_db_instance_from_snapshot" {

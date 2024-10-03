@@ -236,20 +236,5 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_security_group]
   }
-
-  output "vpc_info" {
-    description = "Details about the created VPC."
-    value       = jsondecode(step.container.create_vpc.stdout).Vpc
-  }
-
-  output "security_group_info" {
-    description = "Details about the created security group."
-    value       = jsondecode(step.container.create_security_group.stdout).GroupId
-  }
-
-  output "deletion_status" {
-    description = "Status of resource deletion."
-    value       = format("VPC %s and Security Group %s have been deleted.", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId, jsondecode(step.container.create_security_group.stdout).GroupId)
-  }
 }
 

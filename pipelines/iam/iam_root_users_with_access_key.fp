@@ -13,6 +13,30 @@ locals {
   EOQ
 }
 
+variable "iam_root_access_keys_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "iam_root_access_keys_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "iam_root_access_keys_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "iam_root_access_keys_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "delete_access_key"]
+}
+
 trigger "query" "detect_and_delete_iam_root_access_keys" {
   title         = "Detect & correct IAM Root User Access Keys"
   description   = "Detects IAM root user access keys and deletes them."
@@ -28,6 +52,13 @@ trigger "query" "detect_and_delete_iam_root_access_keys" {
     pipeline = pipeline.delete_iam_root_access_keys
     args = {
       items = self.inserted_rows
+    }
+  }
+
+  capture "update" {
+    pipeline = pipeline.delete_iam_root_access_keys
+    args = {
+      items = self.updated_rows
     }
   }
 }
@@ -145,12 +176,8 @@ pipeline "delete_iam_root_access_keys" {
     text     = "Detected ${length(param.items)} IAM root user access key(s)."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.access_key_id => row }
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for row in param.items : row.access_key_id => row }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_root_access_key
     args = {
@@ -268,28 +295,4 @@ pipeline "correct_one_iam_root_access_key" {
       }
     }
   }
-}
-
-variable "iam_root_access_keys_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "iam_root_access_keys_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "iam_root_access_keys_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "iam_root_access_keys_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "delete_access_key"]
 }

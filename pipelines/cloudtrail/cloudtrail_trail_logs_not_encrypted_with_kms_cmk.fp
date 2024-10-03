@@ -38,7 +38,6 @@ variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions" {
   default     = ["skip", "encrypt_cloud_trail_logs"]
 }
 
-//TODO: Fix the default values of the following variables
 variable "cloudtrail_kms_key_policy_name" {
   type        = string
   description = "The name of the policy to use for encryption."
@@ -55,7 +54,7 @@ trigger "query" "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms
   title       = "Detect & correct CloudTrail Trail logs not encrypted with KMS CMK"
   description = "Detect CloudTrail trail logs not encrypted with KMS CMK and then skip or encrypt with KMS CMK."
   // // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger.md")
-  // tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = local.cloudtrail_common_tags
 
   enabled  = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger_enabled
   schedule = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger_schedule
@@ -68,13 +67,20 @@ trigger "query" "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   title       = "Detect & correct CloudTrail Trail logs not encrypted with KMS CMK"
   description = "Detect CloudTrail trail logs not encrypted with KMS CMK and then skip or encrypt with KMS CMK."
   // // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk.md")
-  // tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
+  tags = local.cloudtrail_common_tags
 
   param "database" {
     type        = string
@@ -134,7 +140,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   title       = "Correct CloudTrail Trail logs not encrypted with KMS CMK"
   description = "Executes corrective actions on CloudTrail trail logs not encrypted with KMS CMK."
   // // documentation = file("./cloudtrail/docs/correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk.md")
-  // tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -205,7 +211,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
   title       = "Correct one CloudTrail trail log not encrypted with KMS CMK"
   description = "Runs corrective action on a single CloudTrail trail logs not encrypted with KMS CMK."
   // // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_classic_load_balancer_without_connection_draining_disabled.md")
-  // tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

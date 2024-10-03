@@ -8,7 +8,7 @@ locals {
       aws_iam_account_password_policy
     where
       require_lowercase_characters = false
-      or require_lowercase_characters is null
+      or require_lowercase_characters is null;
   EOQ
 }
 
@@ -37,8 +37,8 @@ variable "iam_accounts_password_policy_without_one_lowercase_letter_enabled_acti
 }
 
 trigger "query" "detect_and_correct_iam_accounts_password_policy_without_one_lowercase_letter" {
-  title         = "Detect & correct IAM accounts password policy without requirement for any lowercase letter"
-  description   = "Detects IAM accounts password policy without requirement for any lowercase letter and then updates to at least one lowercase letter."
+  title         = "Detect & correct IAM account password policies without requirement for any lowercase letter"
+  description   = "Detects IAM account password policies without requirement for any lowercase letter and then updates to at least one lowercase letter."
 
   enabled  = var.iam_accounts_password_policy_without_one_lowercase_letter_trigger_enabled
   schedule = var.iam_accounts_password_policy_without_one_lowercase_letter_trigger_schedule
@@ -51,11 +51,18 @@ trigger "query" "detect_and_correct_iam_accounts_password_policy_without_one_low
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_iam_accounts_password_policy_without_one_lowercase_letter
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_iam_accounts_password_policy_without_one_lowercase_letter" {
-  title         = "Detect & correct IAM accounts password policy without requirement for any lowercase letter"
-  description   = "Detects IAM accounts password policy without requirement for any lowercase letter and then updates to at least one lowercase letter."
+  title         = "Detect & correct IAM account password policies without requirement for any lowercase letter"
+  description   = "Detects IAM account password policies without requirement for any lowercase letter and then updates to at least one lowercase letter."
 
   param "database" {
     type        = string
@@ -112,7 +119,7 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_one_lowercase_
 }
 
 pipeline "correct_iam_accounts_password_policy_without_one_lowercase_letter" {
-  title         = "Correct IAM accounts password policy without requirement for any lowercase letter"
+  title         = "Correct IAM account password policies without requirement for any lowercase letter"
   description   = "Update password policy to at least one lowercase letter for IAM accounts without requirement for any lowercase letter."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
@@ -158,7 +165,7 @@ pipeline "correct_iam_accounts_password_policy_without_one_lowercase_letter" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM account(s) password policy with no requirement for at least one lowercase letter."
+    text     = "Detected ${length(param.items)} IAM account password policies with no requirement for at least one lowercase letter."
   }
 
   step "pipeline" "correct_item" {
@@ -320,22 +327,4 @@ pipeline "update_iam_account_password_policy_lowercase_letter" {
     }
   }
 
-  // step "container" "update_iam_account_password_policy" {
-  //   depends_on = [step.query.get_password_policy]
-  //   image = "public.ecr.aws/aws-cli/aws-cli"
-
-  //   cmd = concat(
-  //     ["iam", "update-account-password-policy"],
-  //     ["--minimum-password-length", tostring(step.query.get_password_policy.rows[0].minimum_password_length)],
-  //     step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
-  //     step.query.get_password_policy.rows[0].require_numbers ? ["--require-numbers"] : ["--no-require-numbers"],
-  //     ["--require-lowercase-characters"],
-  //     step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
-  //     step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
-  //     step.query.get_password_policy.rows[0].max_password_age != null ? ["--max-password-age",  tostring(step.query.get_password_policy.rows[0].max_password_age)] : [],
-  //     step.query.get_password_policy.rows[0].password_reuse_prevention != null ? ["--password-reuse-prevention",  tostring(step.query.get_password_policy.rows[0].password_reuse_prevention)] : []
-  //   )
-
-  //   env = credential.aws[param.cred].env
-  // }
 }

@@ -41,6 +41,30 @@ locals {
   EOQ
 }
 
+variable "iam_user_with_more_than_one_active_key_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "iam_user_with_more_than_one_active_key_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "iam_user_with_more_than_one_active_key_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "iam_user_with_more_than_one_active_key_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "delete_access_key"]
+}
+
 trigger "query" "detect_and_delete_extra_iam_user_active_keys" {
   title         = "Detect & correct Extra IAM User Active Keys"
   description   = "Detects IAM users with more than one active key and deletes the extra keys."
@@ -55,6 +79,13 @@ trigger "query" "detect_and_delete_extra_iam_user_active_keys" {
     pipeline = pipeline.delete_extra_iam_user_active_keys
     args = {
       items = self.inserted_rows
+    }
+  }
+
+  capture "update" {
+    pipeline = pipeline.delete_extra_iam_user_active_keys
+    args = {
+      items = self.updated_rows
     }
   }
 }
@@ -169,12 +200,8 @@ pipeline "delete_extra_iam_user_active_keys" {
     text     = "Detected ${length(param.items)} extra IAM user active keys."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.access_key_id => row }
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for row in param.items : row.access_key_id => row }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_extra_iam_user_active_key
     args = {
@@ -285,28 +312,4 @@ pipeline "correct_one_extra_iam_user_active_key" {
       }
     }
   }
-}
-
-variable "iam_user_with_more_than_one_active_key_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "iam_user_with_more_than_one_active_key_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "iam_user_with_more_than_one_active_key_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "iam_user_with_more_than_one_active_key_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "delete_access_key"]
 }

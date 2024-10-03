@@ -163,10 +163,5 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_vpc]
   }
-
-  output "status" {
-    description = "VPC has been created and deleted."
-    value       = format("VPC %s has been created and deleted.", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId)
-  }
 }
 
