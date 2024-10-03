@@ -37,8 +37,8 @@ variable "iam_accounts_password_policy_without_max_password_age_90_days_enabled_
 }
 
 trigger "query" "detect_and_correct_iam_accounts_password_policy_without_max_password_age_90_days" {
-  title         = "Detect & correct IAM accounts password policy without maximum password age of 90 days"
-  description   = "Detects IAM accounts password policy without maximum password age of 90 days and then updates to maximum password age of 90 days."
+  title         = "Detect & correct IAM account password policies without maximum password age of 90 days"
+  description   = "Detects IAM account password policies without maximum password age of 90 days and then updates to maximum password age of 90 days."
 
   enabled  = var.iam_accounts_password_policy_without_max_password_age_90_days_trigger_enabled
   schedule = var.iam_accounts_password_policy_without_max_password_age_90_days_trigger_schedule
@@ -51,11 +51,18 @@ trigger "query" "detect_and_correct_iam_accounts_password_policy_without_max_pas
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_iam_accounts_password_policy_without_max_password_age_90_days
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_iam_accounts_password_policy_without_max_password_age_90_days" {
-  title         = "Detect & correct IAM accounts password policy without maximum password age of 90 days"
-  description   = "Detects IAM accounts password policy without maximum password age of 90 days and then updates to maximum password age of 90 days."
+  title         = "Detect & correct IAM account password policies without maximum password age of 90 days"
+  description   = "Detects IAM account password policies without maximum password age of 90 days and then updates to maximum password age of 90 days."
 
   param "database" {
     type        = string
@@ -112,7 +119,7 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_max_password_a
 }
 
 pipeline "correct_iam_accounts_password_policy_without_max_password_age_90_days" {
-  title         = "Correct IAM accounts password policy without maximum password age of 90 days"
+  title         = "Correct IAM account password policies without maximum password age of 90 days"
   description   = "Update password policy to maximum password age of 90 days for IAM accounts without maximum password age of 90 days."
 
   param "items" {
@@ -157,7 +164,7 @@ pipeline "correct_iam_accounts_password_policy_without_max_password_age_90_days"
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM account(s) password policy with no maximum password age of 90 days."
+    text     = "Detected ${length(param.items)} IAM account password policies with no maximum password age of 90 days."
   }
 
   step "pipeline" "correct_item" {
@@ -318,22 +325,4 @@ pipeline "update_iam_account_password_policy_max_password_age" {
     }
   }
 
-  // step "container" "update_iam_account_password_policy" {
-  //   depends_on = [step.query.get_password_policy]
-  //   image = "public.ecr.aws/aws-cli/aws-cli"
-
-  //   cmd = concat(
-  //     ["iam", "update-account-password-policy"],
-  //     ["--minimum-password-length", tostring(step.query.get_password_policy.rows[0].minimum_password_length)],
-  //     step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
-  //     step.query.get_password_policy.rows[0].require_numbers ? ["--require-numbers"] : ["--no-require-numbers"],
-  //     step.query.get_password_policy.rows[0].require_lowercase_characters ? ["--require-lowercase-characters"] : ["--no-require-lowercase-characters"],
-  //     step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
-  //     step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
-  //     ["--max-password-age",  tostring(param.max_password_age)],
-  //     step.query.get_password_policy.rows[0].password_reuse_prevention != null ? ["--password-reuse-prevention",  tostring(step.query.get_password_policy.rows[0].password_reuse_prevention)] : []
-  //   )
-
-  //   env = credential.aws[param.cred].env
-  // }
 }

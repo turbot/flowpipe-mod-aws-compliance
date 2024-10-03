@@ -51,6 +51,13 @@ trigger "query" "detect_and_correct_iam_users_with_inline_policy_attached" {
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_iam_users_with_inline_policy_attached
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_iam_users_with_inline_policy_attached" {

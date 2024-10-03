@@ -39,6 +39,30 @@ locals {
   EOQ
 }
 
+variable "iam_entities_with_cloudshell_fullaccess_policy_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "iam_entities_with_cloudshell_fullaccess_policy_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "iam_entities_with_cloudshell_fullaccess_policy_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "iam_entities_with_cloudshell_fullaccess_policy_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "detach_policy"]
+}
+
 trigger "query" "detect_and_detach_iam_entities_with_cloudshell_fullaccess_policy" {
   title         = "Detect & correct IAM Entities with CloudShellFullAccess Policy"
   description   = "Detects IAM entities (users, roles, groups) with the CloudShellFullAccess policy attached and detaches that policy."
@@ -53,6 +77,13 @@ trigger "query" "detect_and_detach_iam_entities_with_cloudshell_fullaccess_polic
     pipeline = pipeline.detach_iam_entities_with_cloudshell_fullaccess_policy
     args = {
       items = self.inserted_rows
+    }
+  }
+
+  capture "update" {
+    pipeline = pipeline.detach_iam_entities_with_cloudshell_fullaccess_policy
+    args = {
+      items = self.updated_rows
     }
   }
 }
@@ -168,12 +199,8 @@ pipeline "detach_iam_entities_with_cloudshell_fullaccess_policy" {
     text     = "Detected ${length(param.items)} IAM entities with the CloudShellFullAccess policy attached."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.title => row }
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for row in param.items : row.title => row }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.detach_cloudshell_fullaccess_policy_from_one_iam_entity
     args = {
@@ -291,29 +318,4 @@ pipeline "detach_cloudshell_fullaccess_policy_from_one_iam_entity" {
       }
     }
   }
-}
-
-
-variable "iam_entities_with_cloudshell_fullaccess_policy_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "iam_entities_with_cloudshell_fullaccess_policy_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "iam_entities_with_cloudshell_fullaccess_policy_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "iam_entities_with_cloudshell_fullaccess_policy_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "detach_policy"]
 }

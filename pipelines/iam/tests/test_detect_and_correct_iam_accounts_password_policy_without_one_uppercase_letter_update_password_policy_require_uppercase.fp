@@ -1,5 +1,5 @@
 pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_uppercase_letter_update_password_policy_require_uppercase" {
-  title       = "Test IAM accounts password policy without one uppercase letter requirement"
+  title       = "Test detect and correct IAM account password policies without one uppercase letter requirement"
   description = "Test detect_and_correct_iam_accounts_password_policy_without_one_uppercase_letter pipeline."
 
   tags = {
@@ -36,7 +36,9 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_upper
         require_lowercase_characters,
         allow_users_to_change_password,
         max_password_age,
-        password_reuse_prevention
+        password_reuse_prevention,
+        coalesce(max_password_age, 0) as effective_max_password_age,
+        coalesce(password_reuse_prevention, 0) as effective_password_reuse_prevention
       from
         aws_iam_account_password_policy
       where
@@ -59,27 +61,24 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_upper
     EOQ
   }
 
-  step "container" "set_password_policy_require_uppercase" {
-    if = length(step.query.get_password_policy_without_uppercasecase_letter_requirement.rows) == 0
-    image = "public.ecr.aws/aws-cli/aws-cli"
-
-    cmd = concat(
-      ["iam", "update-account-password-policy"],
-      ["--minimum-password-length", tostring(step.query.get_password_policy.rows[0].minimum_password_length)],
-      step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
-      step.query.get_password_policy.rows[0].require_numbers ? ["--require-numbers"] : ["--no-require-numbers"],
-      step.query.get_password_policy.rows[0].require_lowercase_characters ? ["--require-lowercase-characters"] : ["--no-require-lowercase-characters"],
-      ["--no-require-uppercase-characters"],
-      step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
-      step.query.get_password_policy.rows[0].max_password_age != null ? ["--max-password-age",  tostring(step.query.get_password_policy.rows[0].max_password_age)] : [],
-      step.query.get_password_policy.rows[0].password_reuse_prevention != null ? ["--password-reuse-prevention",  tostring(step.query.get_password_policy.rows[0].password_reuse_prevention)] : []
-    )
-
-    env = credential.aws[param.cred].env
+  step "pipeline" "disable_password_policy_require_uppercase" {
+    if        = length(step.query.get_password_policy_without_uppercasecase_letter_requirement.rows) == 0
+    pipeline  = aws.pipeline.update_iam_account_password_policy
+    args = {
+      allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
+      cred                           = param.cred
+      max_password_age               = step.query.get_password_policy.rows[0].effective_max_password_age
+      minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
+      password_reuse_prevention      = step.query.get_password_policy.rows[0].effective_password_reuse_prevention
+      require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
+      require_numbers                = step.query.get_password_policy.rows[0].require_numbers
+      require_symbols                = step.query.get_password_policy.rows[0].require_symbols
+      require_uppercase_characters   = false
+    }
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.container.set_password_policy_require_uppercase]
+    depends_on = [step.pipeline.disable_password_policy_require_uppercase]
     pipeline = pipeline.detect_and_correct_iam_accounts_password_policy_without_one_uppercase_letter
     args = {
       approvers       = []
@@ -114,7 +113,8 @@ pipeline "test_detect_and_correct_iam_accounts_password_policy_without_one_upper
     description = "Test results for each step."
     value = {
       "get_account_id"      = !is_error(step.query.get_account_id.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_account_id)}"
-      "set_password_policy_require_uppercase" = !is_error(step.container.set_password_policy_require_uppercase) ? "pass" : "fail: ${error_message(step.container.set_password_policy_require_uppercase)}"
+      "get_password_policy" = !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}"
+      "disable_password_policy_require_uppercase" = !is_error(step.pipeline.disable_password_policy_require_uppercase) ? "pass" : "fail: ${error_message(step.pipeline.disable_password_policy_require_uppercase)}"
       "get_password_policy_after_detection" = length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
     }
   }

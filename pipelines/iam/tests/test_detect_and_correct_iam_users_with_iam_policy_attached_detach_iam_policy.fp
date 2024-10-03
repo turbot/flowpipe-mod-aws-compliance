@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_policy" {
-  title       = "Test IAM Access Analyzer disabled in regions"
-  description = "Test detect_and_correct_iam_access_analyzer_disabled_in_region pipeline."
+  title       = "Test detect and correct IAM users with IAM policy"
+  description = "Test detect_and_correct_iam_users_with_iam_policy_attached pipeline."
 
   tags = {
     type = "test"

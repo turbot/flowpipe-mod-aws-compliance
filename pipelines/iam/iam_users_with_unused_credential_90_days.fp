@@ -69,6 +69,13 @@ trigger "query" "detect_and_deactivate_iam_users_with_unused_credential_90_days"
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.deactivate_iam_users_with_unused_credential_90_days
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_deactivate_iam_users_with_unused_credential_90_days" {

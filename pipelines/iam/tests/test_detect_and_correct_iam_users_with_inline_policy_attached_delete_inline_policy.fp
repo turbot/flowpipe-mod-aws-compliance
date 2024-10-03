@@ -1,5 +1,5 @@
 pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_inline_policy" {
-  title       = "Test IAM user with inline policies"
+  title       = "Test detect and correct IAM users with inline policies"
   description = "Test detect_and_correct_iam_users_with_inline_policy_attached pipeline."
 
   tags = {

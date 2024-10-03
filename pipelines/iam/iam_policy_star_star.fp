@@ -68,6 +68,30 @@ locals {
   EOQ
 }
 
+variable "iam_entities_with_policy_star_star_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "iam_entities_with_policy_star_star_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "iam_entities_with_policy_star_star_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "iam_entities_with_policy_star_star_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "detach_policy"]
+}
+
 trigger "query" "detect_and_detach_iam_entities_with_policy_star_star" {
   title         = "Detect & correct IAM Entities with Policy Star Star"
   description   = "Detects IAM entities (users, roles, groups) with the `iam_policy_star_star` attached and detaches that policy."
@@ -82,6 +106,13 @@ trigger "query" "detect_and_detach_iam_entities_with_policy_star_star" {
     pipeline = pipeline.detach_iam_entities_with_policy_star_star
     args = {
       items = self.inserted_rows
+    }
+  }
+
+  capture "update" {
+    pipeline = pipeline.detach_iam_entities_with_policy_star_star
+    args = {
+      items = self.updated_rows
     }
   }
 }
@@ -198,12 +229,8 @@ pipeline "detach_iam_entities_with_policy_star_star" {
     text     = "Detected ${length(param.items)} IAM entities with the `iam_policy_star_star` policy attached."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.policy_arn => row }
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for row in param.items : row.policy_arn => row }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.detach_policy_from_one_iam_entity
     args = {
@@ -327,30 +354,6 @@ pipeline "detach_policy_from_one_iam_entity" {
       }
     }
   }
-}
-
-variable "iam_entities_with_policy_star_star_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "iam_entities_with_policy_star_star_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "iam_entities_with_policy_star_star_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "iam_entities_with_policy_star_star_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "detach_policy"]
 }
 
 pipeline "detach_iam_policy" {

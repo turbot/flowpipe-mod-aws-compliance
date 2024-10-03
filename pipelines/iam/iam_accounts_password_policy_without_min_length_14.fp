@@ -37,8 +37,8 @@ variable "iam_accounts_password_policy_without_min_length_14_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_accounts_password_policy_without_min_length_14" {
-  title         = "Detect & correct IAM accounts password policy without minimum length of 14"
-  description   = "Detects IAM accounts password policy without minimum length of 14 and then updates to minimum length of 14."
+  title         = "Detect & correct IAM account password policies without minimum length of 14"
+  description   = "Detects IAM account password policies without minimum length of 14 and then updates to minimum length of 14."
 
   enabled  = var.iam_accounts_password_policy_without_min_length_14_trigger_enabled
   schedule = var.iam_accounts_password_policy_without_min_length_14_trigger_schedule
@@ -51,11 +51,18 @@ trigger "query" "detect_and_correct_iam_accounts_password_policy_without_min_len
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_iam_accounts_password_policy_without_min_length_14
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_iam_accounts_password_policy_without_min_length_14" {
-  title         = "Detect & correct IAM accounts password policy without minimum length of 14"
-  description   = "Detects IAM accounts password policy without minimum length of 14 and then updates to minimum length of 14."
+  title         = "Detect & correct IAM account password policies without minimum length of 14"
+  description   = "Detects IAM account password policies without minimum length of 14 and then updates to minimum length of 14."
 
   param "database" {
     type        = string
@@ -112,8 +119,8 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_min_length_14"
 }
 
 pipeline "correct_iam_accounts_password_policy_without_min_length_14" {
-  title         = "Correct IAM accounts password policy without minimum length of 14"
-  description   = "Update password policy to minimum length of 14 for IAM accounts without password policy of minimum length 14."
+  title         = "Correct IAM account password policies without minimum length of 14"
+  description   = "Update password policies to minimum length of 14 for IAM accounts without password policy of minimum length 14."
 
   param "items" {
     type = list(object({
@@ -157,7 +164,7 @@ pipeline "correct_iam_accounts_password_policy_without_min_length_14" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM account(s) password policy with no minimum length of 14 requirement."
+    text     = "Detected ${length(param.items)} IAM account password policies with no minimum length of 14 requirement."
   }
 
   step "pipeline" "correct_item" {
@@ -317,22 +324,4 @@ pipeline "update_iam_account_password_policy_min_length" {
     }
   }
 
-  // step "container" "update_iam_account_password_policy" {
-  //   depends_on = [step.query.get_password_policy]
-  //   image = "public.ecr.aws/aws-cli/aws-cli"
-
-  //   cmd = concat(
-  //     ["iam", "update-account-password-policy"],
-  //     ["--minimum-password-length", tostring(param.minimum_password_length)],
-  //     step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
-  //     step.query.get_password_policy.rows[0].require_numbers ? ["--require-numbers"] : ["--no-require-numbers"],
-  //     step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
-  //     step.query.get_password_policy.rows[0].require_lowercase_characters ? ["--require-lowercase-characters"] : ["--no-require-lowercase-characters"],
-  //     step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
-  //     step.query.get_password_policy.rows[0].max_password_age != null ? ["--max-password-age",  tostring(step.query.get_password_policy.rows[0].max_password_age)] : [],
-  //     step.query.get_password_policy.rows[0].password_reuse_prevention != null ? ["--password-reuse-prevention",  tostring(step.query.get_password_policy.rows[0].password_reuse_prevention)] : []
-  //   )
-
-  //   env = credential.aws[param.cred].env
-  // }
 }

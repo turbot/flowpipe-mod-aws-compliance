@@ -1,15 +1,15 @@
 locals {
   iam_users_with_iam_policy_attached_query = <<-EOQ
-		select
-			concat(name, ' [', account_id, ']') as title,
-			jsonb_array_elements_text(attached_policy_arns) as policy_arn,
-			name as user_name,
+    select
+      concat(name, ' [', account_id, ']') as title,
+      jsonb_array_elements_text(attached_policy_arns) as policy_arn,
+      name as user_name,
       account_id,
       _ctx ->> 'connection_name' as cred
-		from
-			aws_iam_user
-		where
-			attached_policy_arns is not null;
+    from
+      aws_iam_user
+    where
+      attached_policy_arns is not null;
   EOQ
 }
 
@@ -50,6 +50,13 @@ trigger "query" "detect_and_correct_iam_users_with_iam_policy_attached" {
     pipeline = pipeline.correct_iam_users_with_iam_policy_attached
     args = {
       items = self.inserted_rows
+    }
+  }
+
+  capture "update" {
+    pipeline = pipeline.correct_iam_users_with_iam_policy_attached
+    args = {
+      items = self.updated_rows
     }
   }
 }
