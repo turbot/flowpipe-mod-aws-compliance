@@ -289,7 +289,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped default VPC security group ${param.title} with security group rule ${param.security_group_rule_id} allowing ingress and egress."
+            text     = "Skipped default VPC security group ${param.title} with security group rule ${param.security_group_rule_id}."
           }
           success_msg = ""
           error_msg   = ""
@@ -306,8 +306,8 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
             cred                   = param.cred
             type                   = param.type
           }
-          success_msg = "Revoked security group rule ${param.security_group_rule_id} from security group ${param.title} allowing ingress egress."
-          error_msg   = "Error revoking security group rule ${param.security_group_rule_id} from security group ${param.title} allowing ingress egress."
+          success_msg = "Revoked security group rule ${param.security_group_rule_id} from security group ${param.title}."
+          error_msg   = "Error revoking security group rule ${param.security_group_rule_id} from security group ${param.title}."
         }
       }
     }

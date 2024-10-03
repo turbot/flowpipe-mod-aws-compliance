@@ -313,7 +313,7 @@ pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administ
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped VPC network ACL ${param.network_acl_id} entry with rule number ${param.rule_number} allowing ingress to port 22 or 3389 from 0.0.0.0/0 or ::/0."
+            text     = "Skipped VPC network ACL ${param.network_acl_id} entry with rule number ${param.rule_number}."
           }
           success_msg = ""
           error_msg   = ""
@@ -330,8 +330,8 @@ pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administ
             region         = param.region
             cred           = param.cred
           }
-          success_msg = "Deleted rule ${param.rule_number} from network ACL ${param.network_acl_id} allowing ingress to port 22 or 3389 from 0.0.0.0/0 or ::/0."
-          error_msg   = "Error deleting rule ${param.rule_number} from network ACL ${param.network_acl_id} allowing ingress to port 22 or 3389 from 0.0.0.0/0 or ::/0."
+          success_msg = "Deleted rule ${param.rule_number} from network ACL ${param.network_acl_id}."
+          error_msg   = "Error deleting rule ${param.rule_number} from network ACL ${param.network_acl_id}."
         }
       }
     }

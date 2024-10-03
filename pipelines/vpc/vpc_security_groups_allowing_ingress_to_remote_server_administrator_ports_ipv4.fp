@@ -204,7 +204,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from 0.0.0.0/0. This poses a significant security risk as it exposes your instances to potential unauthorized access from any IP address on the internet."
+    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from 0.0.0.0/0."
   }
 
   step "pipeline" "correct_item" {
@@ -292,7 +292,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group ${param.group_id} with rule ${param.security_group_rule_id} allowing ingress on sensitive ports (e.g., SSH on port 22, RDP on port 3389) from 0.0.0.0/0. This configuration is dangerous as it allows unrestricted remote access, increasing the risk of unauthorized access and potential security breaches."
+      detect_msg         = "Detected VPC security group ${param.title} with rule ${param.security_group_rule_id} allowing ingress on sensitive ports (e.g., SSH on port 22, RDP on port 3389) from 0.0.0.0/0."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -304,7 +304,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped VPC security group ${param.group_id} with rule ${param.security_group_rule_id} allowing ingress on sensitive ports (e.g., SSH on port 22, RDP on port 3389) from 0.0.0.0/0."
+            text     = "Skipped VPC security group rule ${param.security_group_rule_id} in ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
@@ -320,8 +320,8 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
             region                 = param.region
             cred                   = param.cred
           }
-          success_msg = "Deleted VPC security group rule ${param.security_group_rule_id} allowing ingress on sensitive ports (e.g., SSH on port 22, RDP on port 3389) from 0.0.0.0/0."
-          error_msg   = "Error deleting defective rule from security group ${param.title}."
+          success_msg = "Revoked VPC security group rule ${param.security_group_rule_id} in ${param.title}."
+          error_msg   = "Error revoking VPC security group rule ${param.security_group_rule_id} in ${param.title}."
         }
       }
     }

@@ -12,14 +12,38 @@ locals {
   EOQ
 }
 
+variable "rds_db_instances_with_public_access_enabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "rds_db_instances_with_public_access_enabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "rds_db_instances_with_public_access_enabled_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "rds_db_instances_with_public_access_enabled_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "disable_public_access"]
+}
+
 trigger "query" "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title         = "Detect & correct RDS DB instances with public access enabled"
-  description   = "Detects RDS DB instances with public access enabled and runs your chosen action."
+  description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
   // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_public_access_enabled_trigger.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
-  enabled  = var.rds_db_instance_if_public_access_enabled_trigger_enabled
-  schedule = var.rds_db_instance_if_public_access_enabled_trigger_schedule
+  enabled  = var.rds_db_instances_with_public_access_enabled_trigger_enabled
+  schedule = var.rds_db_instances_with_public_access_enabled_trigger_schedule
   database = var.database
   sql      = local.rds_db_instance_with_public_access_enabled_query
 
@@ -29,11 +53,18 @@ trigger "query" "detect_and_correct_rds_db_instances_with_public_access_enabled"
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_rds_db_instances_with_public_access_enabled
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title         = "Detect & correct RDS DB instances with public access enabled"
-  description   = "Detects RDS DB instances with public access enabled and runs your chosen action."
+  description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
   // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_public_access_enabled.md")
   tags          = merge(local.rds_common_tags, { class = "unused", type = "featured" })
 
@@ -64,13 +95,13 @@ pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.rds_db_instance_if_public_access_enabled_default_action
+    default     = var.rds_db_instances_with_public_access_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.rds_db_instance_if_public_access_enabled_enabled_actions
+    default     = var.rds_db_instances_with_public_access_enabled_enabled_actions
   }
 
   step "query" "detect" {
@@ -93,7 +124,7 @@ pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
 
 pipeline "correct_rds_db_instances_with_public_access_enabled" {
   title         = "Correct RDS DB instances with public access enabled"
-  description   = "Runs corrective action on a collection of RDS DB instances with public access enabled."
+  description   = "Disable public access on a collection of RDS DB instances with public access enabled."
   // // documentation = file("./rds/docs/correct_rds_db_instances_with_public_access_enabled.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
@@ -129,13 +160,13 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.rds_db_instance_if_public_access_enabled_default_action
+    default     = var.rds_db_instances_with_public_access_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.rds_db_instance_if_public_access_enabled_enabled_actions
+    default     = var.rds_db_instances_with_public_access_enabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -144,12 +175,8 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
     text     = "Detected ${length(param.items)} RDS DB instance(s) with public access enabled."
   }
 
-  step "transform" "items_by_id" {
-    value = { for row in param.items : row.db_instance_identifier => row }
-  }
-
   step "pipeline" "correct_item" {
-    for_each        = step.transform.items_by_id.value
+    for_each        = { for item in param.items : item.db_instance_identifier => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_rds_db_instance_with_public_access_enabled
     args = {
@@ -169,7 +196,7 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
 
 pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
   title         = "Correct one RDS DB instance with public access enabled"
-  description   = "Runs corrective action on an RDS DB instance with public access enabled."
+  description   = "Disable public access on an RDS DB instance with public access enabled."
   // // documentation = file("./rds/docs/correct_one_rds_db_instance_with_public_access_enabled.md")
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
@@ -219,13 +246,13 @@ pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.rds_db_instance_if_public_access_enabled_default_action
+    default     = var.rds_db_instances_with_public_access_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.rds_db_instance_if_public_access_enabled_enabled_actions
+    default     = var.rds_db_instances_with_public_access_enabled_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -251,9 +278,9 @@ pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
           success_msg = ""
           error_msg   = ""
         },
-        "update_db_instance" = {
-          label        = "Update DB Instance"
-          value        = "update_db_instance"
+        "disable_public_access" = {
+          label        = "Disable Public Access"
+          value        = "disable_public_access"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_rds_db_instance
           pipeline_args = {
@@ -262,34 +289,10 @@ pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
             region                 = param.region
             cred                   = param.cred
           }
-          success_msg = "Updated RDS DB instance ${param.title}."
-          error_msg   = "Error updating RDS DB instance ${param.title}."
+          success_msg = "Disabled public access for RDS DB instance ${param.title}."
+          error_msg   = "Error disabling public access for RDS DB instance ${param.title}."
         }
       }
     }
   }
-}
-
-variable "rds_db_instance_if_public_access_enabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "rds_db_instance_if_public_access_enabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "rds_db_instance_if_public_access_enabled_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "rds_db_instance_if_public_access_enabled_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "update_db_instance"]
 }

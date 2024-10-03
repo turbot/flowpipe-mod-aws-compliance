@@ -124,13 +124,9 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
     depends_on = [step.container.allow_ssh_ipv6]
   }
+
   step "transform" "get_security_group_id" {
     value   = jsondecode(step.container.create_security_group.stdout).GroupId
-  }
-
-  output "security_group_id" {
-    description = "Security group ID from the transform step"
-    value = step.transform.get_security_group_id
   }
 
 	step "sleep" "sleep_10_seconds" {
@@ -308,11 +304,6 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
 
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_security_group]
-  }
-
-  output "status" {
-    description = "VPC, security group, and rules for IPv6 have been created and deleted successfully."
-    value       = format("VPC %s and Security Group %s with IPv6 have been deleted.", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId, jsondecode(step.container.create_security_group.stdout).GroupId)
   }
 }
 
