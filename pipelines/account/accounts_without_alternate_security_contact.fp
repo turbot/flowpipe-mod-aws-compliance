@@ -1,32 +1,21 @@
 locals {
   accounts_without_alternate_security_contact_query = <<-EOQ
-  with alternate_security_contact as (
+    with alternate_security_contact as (
+      select
+        count(name) as security_contact_count
+      from
+        aws_account_alternate_contact
+      where
+        contact_type = 'SECURITY'
+    )
     select
-      count(name) as secutiry_contact_count
+      concat(a.title, ' [', a.account_id, ']') as title,
+      a._ctx ->> 'connection_name' as cred
     from
-      aws_account_alternate_contact
+      aws_account as a,
+      alternate_security_contact as c
     where
-      contact_type = 'SECURITY'
-  ),
-  account as (
-    select
-      arn,
-      partition,
-      title,
-      account_id,
-      _ctx
-    from
-      aws_account
-  )
-  select
-    concat(a.title, ' [', a.account_id, ']') as title,
-    a.account_id,
-    arn
-  from
-    account as a,
-    alternate_security_contact as c
-  where
-    c.secutiry_contact_count <= 0;
+      c.security_contact_count <= 0;
   EOQ
 }
 
@@ -44,51 +33,45 @@ variable "accounts_without_alternate_security_contact_trigger_schedule" {
 
 variable "accounts_without_alternate_security_contact_default_action" {
   type        = string
-  description = "The default action to use for detected items."
+  description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
 variable "accounts_without_alternate_security_contact_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "add_alternate_contact"]
+  default     = ["skip", "add_alternate_security_contact"]
 }
 
-variable "alternate_contact_type" {
-  type        = string
-  description = "The alternate contact type."
-  default     = "SECURITY"
-}
-
-variable "email_address" {
+variable "accounts_without_alternate_security_contact_email_address" {
   type        = string
   description = "The email address of the alternate contact."
   default     = "" // TODO: fix this
 }
 
-variable "phone_number" {
+variable "accounts_without_alternate_security_contact_phone_number" {
   type        = string
   description = "The phone number of the alternate contact."
   default     = "" // TODO: fix this
 }
 
-variable "alternate_account_title" {
+variable "accounts_without_alternate_security_contact_title" {
   type        = string
   description = "The title of the alternate contact."
   default     = "" // TODO: fix this
 }
 
-variable "alternate_account_name" {
+variable "accounts_without_alternate_security_contact_name" {
   type        = string
   description = "The name of the alternate contact."
   default     = "" // TODO: fix this
 }
 
 trigger "query" "detect_and_correct_accounts_without_alternate_security_contact" {
-  title       = "Detect & Correct Accounts Without Alternate Security Contact"
-  description = "Detect accounts without alternate security contact and then registers an alternate security contact."
-  // // documentation = file("./account/docs/detect_and_correct_accounts_without_alternate_security_contact_trigger.md")
-  // tags          = merge(local.account_common_tags, { class = "unused" })
+  title         = "Detect & Correct Accounts Without Alternate Security Contact"
+  description   = "Detect accounts without an alternate security contact and then add an alternate security contact."
+  // documentation = file("./account/docs/detect_and_correct_accounts_without_alternate_security_contact_trigger.md")
+  tags          = local.account_common_tags
 
   enabled  = var.accounts_without_alternate_security_contact_trigger_enabled
   schedule = var.accounts_without_alternate_security_contact_trigger_schedule
@@ -101,13 +84,20 @@ trigger "query" "detect_and_correct_accounts_without_alternate_security_contact"
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_accounts_without_alternate_security_contact
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
-  title       = "Detect & Correct Accounts Alternate Security Contact"
-  description = "Detect accounts with alternate security contact and then registers alternate security contact."
-  // // documentation = file("./account/docs/detect_and_correct_accounts_without_alternate_security_contact.md")
-  // tags          = merge(local.account_common_tags, { class = "unused", type = "featured" })
+  title         = "Detect & correct accounts without alternate security contact"
+  description   = "Detect accounts without an alternate security contact and then add an alternate security contact."
+  // documentation = file("./account/docs/detect_and_correct_accounts_without_alternate_security_contact.md")
+  tags          = local.account_common_tags
 
   param "database" {
     type        = string
@@ -150,21 +140,10 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
     sql      = local.accounts_without_alternate_security_contact_query
   }
 
-  output "row_data" {
-    description = "Row data"
-    value       = length(step.query.detect.rows)
-  }
-
-  param "cred" {
-    type        = string
-    description = local.description_credential
-  }
-
   step "pipeline" "respond" {
     pipeline = pipeline.correct_accounts_without_alternate_security_contact
     args = {
       items              = step.query.detect.rows
-      cred               = param.cred
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -175,21 +154,16 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
 }
 
 pipeline "correct_accounts_without_alternate_security_contact" {
-  title       = "Correct Accounts Alternate Security Contact"
-  description = "Registers alternate security contact for accounts with alternate security contact."
-  // // documentation = file("./account/docs/correct_accounts_without_alternate_security_contact.md")
-  // tags          = merge(local.account_common_tags, { class = "unused" })
+  title         = "Correct accounts without alternate security contact"
+  description   = "Add an alternate security contact for accounts without an alternate security contact."
+  // documentation = file("./account/docs/correct_accounts_without_alternate_security_contact.md")
+  tags          = merge(local.account_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      account_id = string
       title      = string
+      cred       = string
     }))
-  }
-
-  param "cred" {
-    type        = string
-    description = local.description_credential
   }
 
   param "notifier" {
@@ -225,7 +199,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} account(s) without alternate security contact."
+    text     = "Detected ${length(param.items)} account(s) without an alternate security contact."
   }
 
   step "pipeline" "correct_item" {
@@ -233,8 +207,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_account_without_alternate_security_contact
     args = {
-      alternate_account_title = each.value.title
-      account_id              = each.value.account_id
+      title                   = each.value.title
       cred                    = param.cred
       notifier                = param.notifier
       notification_level      = param.notification_level
@@ -246,44 +219,38 @@ pipeline "correct_accounts_without_alternate_security_contact" {
 }
 
 pipeline "correct_one_account_without_alternate_security_contact" {
-  title       = "Correct Account Without Alternate Security Contact"
-  description = "Registers alternate security contact for account with alternate security contact."
-  // // documentation = file("./account/docs/correct_one_account_without_alternate_security_contact.md")
-  // tags          = merge(local.account_common_tags, { class = "unused" })
+  title         = "Correct one account without alternate security contact"
+  description   = "Add an alternate security contact for an account without an alternate security contact."
+  // documentation = file("./account/docs/correct_one_account_without_alternate_security_contact.md")
+  tags          = merge(local.account_common_tags, { type = "internal" })
+
+  param "title" {
+    type        = string
+    description = local.description_title
+  }
 
   param "alternate_account_title" {
     type        = string
     description = "The title of the alternate contact"
-    default     = var.alternate_account_title
+    default     = var.accounts_without_alternate_security_contact_title
   }
 
-  param "alternate_account_name" {
+  param "name" {
     type        = string
     description = "The name of the alternate contact"
-    default     = var.alternate_account_name
-  }
-
-  param "alternate_contact_type" {
-    type        = string
-    description = "The alternate contact type."
-    default     = var.alternate_contact_type
+    default     = var.accounts_without_alternate_security_contact_name
   }
 
   param "email_address" {
     type        = string
     description = "The email address of the alternate contact."
-    default     = var.email_address
+    default     = var.accounts_without_alternate_security_contact_email_address
   }
 
   param "phone_number" {
     type        = string
     description = "The phone number of the alternate contact."
-    default     = var.phone_number
-  }
-
-  param "account_id" {
-    type        = string
-    description = "The account ID."
+    default     = var.accounts_without_alternate_security_contact_phone_number
   }
 
   param "cred" {
@@ -327,7 +294,7 @@ pipeline "correct_one_account_without_alternate_security_contact" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected account ${param.alternate_account_title} without alternate security contact."
+      detect_msg         = "Detected account ${param.title} without an alternate security contact."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -339,30 +306,28 @@ pipeline "correct_one_account_without_alternate_security_contact" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_info
-            text     = "Skipped account ${param.alternate_account_title}."
+            text     = "Skipped account ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "add_alternate_contact" = {
-          label        = "Register alternate security contact"
-          value        = "add_alternate_contact"
+        "add_alternate_security_contact" = {
+          label        = "Add alternate security contact"
+          value        = "add_alternate_security_contact"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.put_alternate_contact
           pipeline_args = {
-            name                   = param.alternate_account_name
+            name                   = param.name
             cred                   = param.cred
-            // account_id             = param.account_id
             alternate_contact_type = "SECURITY"
             email_address          = param.email_address
             phone_number           = param.phone_number
             title                  = param.alternate_account_title
           }
-          success_msg = "Registered alternate security contact for account ${param.alternate_account_title}."
-          error_msg   = "Error registering alternate security contact for account ${param.alternate_account_title}."
+          success_msg = "Added alternate security contact ${param.name} for account ${param.title}."
+          error_msg   = "Error adding alternate security contact ${param.name} for account ${param.title}."
         }
       }
     }
   }
 }
-
