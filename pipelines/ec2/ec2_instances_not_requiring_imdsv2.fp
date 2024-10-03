@@ -38,7 +38,7 @@ variable "ec2_instances_not_requiring_imdsv2_enabled_actions" {
 
 trigger "query" "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
   title         = "Detect & correct EC2 instances not requiring IMDSv2"
-  description   = "Detect EC2 instances that do not require IMDSv2 and then skip or disable IMDSv1."
+  description   = "Detect EC2 instances that do not require IMDSv2 and then disable IMDSv1."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_not_requiring_imdsv2_trigger.md")
   tags          = local.ec2_common_tags
 
@@ -64,7 +64,7 @@ trigger "query" "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
 
 pipeline "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
   title         = "Detect & correct EC2 instances not requiring IMDSv2"
-  description   = "Detect EC2 instances that do not require IMDSv2 and then skip or disable IMDSv1."
+  description   = "Detect EC2 instances that do not require IMDSv2 and then disable IMDSv1."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_not_requiring_imdsv2.md")
 
   param "database" {
@@ -281,8 +281,8 @@ pipeline "correct_one_ec2_instance_not_requiring_imdsv2" {
             region      = param.region
             cred        = param.cred
           }
-          success_msg = "Updated EC2 instance ${param.title} to require IMDSv2."
-          error_msg   = "Error updating EC2 instance ${param.title} to require IMDSv2."
+          success_msg = "Disabled IMDSv1 for EC2 instance ${param.title}."
+          error_msg   = "Error disabling IMDSv1 for EC2 instance ${param.title}."
         }
       }
     }
