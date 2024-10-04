@@ -1,63 +1,64 @@
 locals {
-  ebs_volumes_with_encryption_at_rest_disabled_query = <<-EOQ
+  default_ebs_encryption_at_rest_disabled_in_regions_query = <<-EOQ
     select
-      concat(volume_id, ' [', account_id, '/', region, ']') as title,
-      region,
-      _ctx ->> 'connection_name' as cred
+      concat('[', r.account_id, '/', r.name, ']') as title,
+      r._ctx ->> 'connection_name' as cred,
+      r.name as region
     from
-      aws_ebs_volume
+      aws_region as r
+      left join aws_ec2_regional_settings as e on r.account_id = e.account_id and r.name = e.region
     where
-      not encrypted;
+      not e.default_ebs_encryption_enabled;
   EOQ
 }
 
-variable "ebs_volumes_with_encryption_at_rest_disabled_trigger_enabled" {
+variable "default_ebs_encryption_at_rest_disabled_in_regions_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "ebs_volumes_with_encryption_at_rest_disabled_trigger_schedule" {
+variable "default_ebs_encryption_at_rest_disabled_in_regions_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "ebs_volumes_with_encryption_at_rest_disabled_default_action" {
+variable "default_ebs_encryption_at_rest_disabled_in_regions_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "ebs_volumes_with_encryption_at_rest_disabled_enabled_actions" {
+variable "default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "enable_encryption"]
+  default     = ["skip", "enable_default_encryption"]
 }
 
-trigger "query" "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
-  title         = "Detect & correct EBS volumes with encryption at rest disabled"
-  description   = "Detect EBS volumes with encryption at rest disabled and then skip or enable encryption."
-  // // documentation = file("./ebs/docs/detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled_trigger.md")
+trigger "query" "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions" {
+  title         = "Detect & correct default EBS encryption at rest disabled in regions"
+  description   = "Detect regions with default encryption at rest disabled and then skip or enable encryption."
+  // // documentation = file("./ebs/docs/detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions_trigger.md")
   tags          = merge(local.ebs_common_tags, { class = "security" })
 
-  enabled  = var.ebs_volumes_with_encryption_at_rest_disabled_trigger_enabled
-  schedule = var.ebs_volumes_with_encryption_at_rest_disabled_trigger_schedule
+  enabled  = var.default_ebs_encryption_at_rest_disabled_in_regions_trigger_enabled
+  schedule = var.default_ebs_encryption_at_rest_disabled_in_regions_trigger_schedule
   database = var.database
-  sql      = local.ebs_volumes_with_encryption_at_rest_disabled_query
+  sql      = local.default_ebs_encryption_at_rest_disabled_in_regions_query
 
   capture "insert" {
-    pipeline = pipeline.correct_ebs_volumes_with_encryption_at_rest_disabled
+    pipeline = pipeline.correct_default_ebs_encryption_at_rest_disabled_in_regions
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
-  title         = "Detect & correct EBS volumes with encryption at rest disabled"
-  description   = "Detect EBS volumes with encryption at rest disabled and then skip or enable encryption."
-  // // documentation = file("./ebs/docs/detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled.md")
+pipeline "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions" {
+  title         = "Detect & correct default EBS encryption at rest disabled in regions"
+  description   = "Detect regions with default encryption at rest disabled and then skip or enable encryption."
+  // // documentation = file("./ebs/docs/detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions.md")
   tags          = merge(local.ebs_common_tags, { class = "security", type = "featured" })
 
   param "database" {
@@ -87,22 +88,22 @@ pipeline "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_default_action
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_enabled_actions
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.ebs_volumes_with_encryption_at_rest_disabled_query
+    sql      = local.default_ebs_encryption_at_rest_disabled_in_regions_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_ebs_volumes_with_encryption_at_rest_disabled
+    pipeline = pipeline.correct_default_ebs_encryption_at_rest_disabled_in_regions
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -114,10 +115,10 @@ pipeline "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
   }
 }
 
-pipeline "correct_ebs_volumes_with_encryption_at_rest_disabled" {
-  title         = "Correct EBS volumes with encryption at rest disabled"
-  description   = "Executes corrective actions on EBS volumes with encryption at rest disabled."
-  // // documentation = file("./ebs/docs/correct_ebs_volumes_with_encryption_at_rest_disabled.md")
+pipeline "correct_default_ebs_encryption_at_rest_disabled_in_regions" {
+  title         = "Correct default EBS encryption at rest disabled in regions"
+  description   = "Enable EBS default encryption at rest in regions with default encryption at rest disabled."
+  // // documentation = file("./ebs/docs/correct_default_ebs_encryption_at_rest_disabled_in_regions.md")
   tags          = merge(local.ebs_common_tags, { class = "security" })
 
   param "items" {
@@ -150,25 +151,25 @@ pipeline "correct_ebs_volumes_with_encryption_at_rest_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_default_action
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_enabled_actions
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} EBS volume(s) with encryption at rest disabled."
+    text     = "Detected ${length(param.items)} EBS region(s) with default encryption at rest disabled."
   }
 
   step "pipeline" "correct_item" {
     for_each        = { for item in param.items : item.title => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_ebs_volumes_with_encryption_at_rest_disabled
+    pipeline        = pipeline.correct_one_ebs_region_with_default_encryption_at_rest_disabled
     args = {
       title              = each.value.title
       region             = each.value.region
@@ -182,10 +183,10 @@ pipeline "correct_ebs_volumes_with_encryption_at_rest_disabled" {
   }
 }
 
-pipeline "correct_one_ebs_volumes_with_encryption_at_rest_disabled" {
-  title         = "Correct one EBS volume with encryption at rest disabled"
-  description   = "Runs corrective action on a single EBS volume with encryption at rest disabled."
-  // // documentation = file("./ebs/docs/correct_one_ebs_volumes_with_encryption_at_rest_disabled.md")
+pipeline "correct_one_ebs_region_with_default_encryption_at_rest_disabled" {
+  title         = "Correct one EBS region with default encryption at rest disabled"
+  description   = "Enable default encryption at rest on a single EBS region with default encryption at rest disabled."
+  // // documentation = file("./ebs/docs/correct_one_ebs_region_with_default_encryption_at_rest_disabled.md")
   tags          = merge(local.ebs_common_tags, { class = "security" })
 
   param "title" {
@@ -224,13 +225,13 @@ pipeline "correct_one_ebs_volumes_with_encryption_at_rest_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_default_action
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_enabled_actions
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -239,7 +240,7 @@ pipeline "correct_one_ebs_volumes_with_encryption_at_rest_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected EBS volume ${param.title} with encryption at rest disabled."
+      detect_msg         = "Detected EBS region ${param.title} with default encryption at rest disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -251,22 +252,22 @@ pipeline "correct_one_ebs_volumes_with_encryption_at_rest_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped EBS volume ${param.title} with encryption at rest disabled."
+            text     = "Skipped EBS region ${param.title} with default encryption at rest disabled."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_encryption" = {
-          label        = "Enable EBS encryption by default in ${param.region} region"
-          value        = "enable_encryption"
+        "enable_default_encryption" = {
+          label        = "Enable Default Encryption"
+          value        = "enable_default_encryption"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.enable_ebs_encryption_by_default
           pipeline_args = {
             region    = param.region
             cred      = param.cred
           }
-          success_msg = "Enabled encryption for EBS volume ${param.title}."
-          error_msg   = "Error enabling encryption for EBS volume ${param.title}."
+          success_msg = "Enabled default encryption for EBS region ${param.title}."
+          error_msg   = "Error enabling default encryption for EBS region ${param.title}."
         }
       }
     }
