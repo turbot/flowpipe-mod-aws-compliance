@@ -37,7 +37,7 @@ variable "iam_access_analyzer_disabled_in_regions_enabled_actions" {
   default     = ["skip", "enable_access_analyzer"]
 }
 
-variable "analyzer_name" {
+variable "iam_access_analyzer_disabled_in_regions_analyzer_name" {
   type        = string
   description = "The name of the IAM Access Analyzer."
   default     = "accessanalyzer"
@@ -148,7 +148,7 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   param "analyzer_name" {
     type        = string
     description = "analyzer_name"
-    default     = var.analyzer_name
+    default     = var.iam_access_analyzer_disabled_in_regions_analyzer_name
   }
 
   param "notification_level" {
@@ -178,7 +178,7 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM Access Analyzers that are disabled."
+    text     = "Detected ${length(param.items)} region(s) with IAM Access Analyzer disabled."
   }
 
   step "pipeline" "correct_item" {
@@ -202,7 +202,6 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
 pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
   title         = "Correct region with IAM Access Analyzer disabled"
   description   = "Enable IAM Access Analyzer in a region with IAM Access Analyzer disabled."
-  tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "title" {
     type        = string
@@ -278,7 +277,7 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
           error_msg   = ""
         },
         "enable_access_analyzer" = {
-          label        = "Enable Access Analyzer"
+          label        = "Enable IAM access analyzer"
           value        = "enable_access_analyzer"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.create_iam_access_analyzer
