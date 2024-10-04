@@ -1,6 +1,6 @@
-pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_read_events_disabled" {
-  title       = "Test Correct One CloudTrail Trail with S3 Object Level Logging for Read Events Disabled"
-  description = "Tests the correction of a CloudTrail trail with S3 object level logging for read events disabled."
+pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_disabled" {
+  title       = "Test Correct One CloudTrail Trail with S3 Object Level Logging for Write Events Disabled"
+  description = "Tests the correction of a CloudTrail trail with S3 object level logging for write events disabled."
 
   param "cred" {
     type        = string
@@ -27,7 +27,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_read_events_dis
   }
 
   # Step to get AWS Account ID
-  step "query" "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
+  step "query" "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled" {
     database = var.database
     sql      = <<-EOQ
       with s3_selectors as
@@ -50,7 +50,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_read_events_dis
         and data_resource ->> 'Type' = 'AWS::S3::Object'
         and event_selector ->> 'ReadWriteType' in
         (
-          'ReadOnly',
+          'WriteOnly',
           'All'
         )
     )
@@ -70,23 +70,23 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_read_events_dis
   }
 
   step "pipeline" "run_detection" {
-    pipeline = pipeline.correct_one_cloudtrail_trail_with_s3_object_level_logging_for_read_events_disabled
+    pipeline = pipeline.correct_one_cloudtrail_trail_with_s3_object_level_logging_for_write_events_disabled
     args = {
-      bucket_selector_count = step.query.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled.rows[0].bucket_selector_count
-      title           = step.query.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled.rows[0].title
+      bucket_selector_count = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].bucket_selector_count
+      title           = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].title
       s3_bucket_name  = param.s3_bucket_name
       trail_name      = param.trail_name
-      account_id      = step.query.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled.rows[0].account_id
-      cred            = step.query.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled.rows[0].cred
+      account_id      = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].account_id
+      cred            = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].cred
       approvers       = []
-      default_action  = "enable_s3_object_level_logging_for_read_events"
-      enabled_actions = ["enable_s3_object_level_logging_for_read_events"]
+      default_action  = "enable_s3_object_level_logging_for_write_events"
+      enabled_actions = ["enable_s3_object_level_logging_for_write_events"]
       home_region     = param.region
     }
   }
 
-  # Verify that the trail now has S3 object-level logging for read events enabled
-  step "query" "verify_trail_s3_object_read_events_enabled" {
+  # Verify that the trail now has S3 object-level logging for write events enabled
+  step "query" "verify_trail_s3_object_write_events_enabled" {
     depends_on = [step.pipeline.run_detection]
     database   = var.database
     sql        = <<-EOQ
@@ -110,7 +110,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_read_events_dis
         and data_resource ->> 'Type' = 'AWS::S3::Object'
         and event_selector ->> 'ReadWriteType' in
         (
-          'ReadOnly',
+          'WriteOnly',
           'All'
         )
     )
@@ -131,13 +131,13 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_read_events_dis
 
   output "result" {
     description = "Result of the test."
-    value       = length(step.query.verify_trail_s3_object_read_events_enabled.rows) == 1 ? "S3 object-level logging for read events is enabled." : "S3 object-level logging for read events is not enabled."
+    value       = length(step.query.verify_trail_s3_object_write_events_enabled.rows) == 1 ? "S3 object-level logging for write events is enabled." : "S3 object-level logging for write events is not enabled."
   }
 
   # Cleanup steps
   # Delete the CloudTrail trail
   step "container" "delete_cloudtrail_trail" {
-    depends_on = [step.query.verify_trail_s3_object_read_events_enabled]
+    depends_on = [step.query.verify_trail_s3_object_write_events_enabled]
     image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "cloudtrail", "delete-trail",

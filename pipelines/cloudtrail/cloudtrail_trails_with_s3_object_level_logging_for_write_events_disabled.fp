@@ -1,4 +1,3 @@
-// TODO: Update the resource name logic and check the query logic
 locals {
   cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_query = <<-EOQ
   with s3_selectors as
@@ -22,13 +21,12 @@ locals {
         (
           'WriteOnly',
           'All'
-        ) limit 1
+        )
     )
     select
       concat(a.title, ' [', '/', t.account_id, ']') as title,
       count(t.trail_name) as bucket_selector_count,
       a.account_id,
-      (select concat('fp-', to_char(now(), 'yyyy-mm-dd-hh24-mi-ss'))) as resource_name,
       a._ctx ->> 'connection_name' as cred
     from
       aws_account as a
@@ -64,12 +62,23 @@ variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabl
   default     = ["skip", "enable_s3_object_level_logging_for_write_events"]
 }
 
-variable "cloudtrail_trail_home_region_for_write_event" {
+variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_home_region_for_write_event" {
   type        = string
   description = "The AWS region ID to create the multi regional trail."
   default     = "us-east-1"
 }
 
+variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_s3_bucket_name" {
+  type        = string
+  description = "The name of the S3 bucket to create the CloudTrail trail in."
+  default     = "cloudtrail-s3-bucket-for-write-events" // This is a sample bucket name.
+}
+
+variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trail_name" {
+  type        = string
+  description = "The name of the CloudTrail trail to create."
+  default     = "cloudtrail-trail-for-write-events" // This is a sample trail name.
+}
 
 trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 object level logging for write events disabled"
@@ -101,11 +110,30 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_
   title       = "Detect & correct CloudTrail trails with S3 object level logging for write events disabled"
   description = "Detect CloudTrail trails where S3 object level logging for write events is disabled, and then either skip or enable the logging of S3 object write events."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.md")
+  tags = local.cloudtrail_common_tags
 
   param "database" {
     type        = string
     description = local.description_database
     default     = var.database
+  }
+
+  param "home_region" {
+    type        = string
+    description = "The home region of the CloudTrail trail."
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_home_region_for_write_event
+  }
+
+  param "s3_bucket_name" {
+    type        = string
+    description = "The name of the S3 bucket to create the CloudTrail trail in."
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_s3_bucket_name
+  }
+
+  param "trail_name" {
+    type        = string
+    description = "The name of the CloudTrail trail to create."
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trail_name
   }
 
   param "notifier" {
@@ -147,6 +175,9 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_
     pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled
     args = {
       items              = step.query.detect.rows
+      home_region        = param.home_region
+      s3_bucket_name     = param.s3_bucket_name
+      trail_name         = param.trail_name
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -166,11 +197,28 @@ pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_write_event
     type = list(object({
       title                 = string
       bucket_selector_count = number
-      resource_name         = string
       cred                  = string
       account_id            = string
     }))
     description = local.description_items
+  }
+
+  param "home_region" {
+    type        = string
+    description = "The home region of the CloudTrail trail."
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_home_region_for_write_event
+  }
+
+  param "s3_bucket_name" {
+    type        = string
+    description = "The name of the S3 bucket to create the CloudTrail trail in."
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_s3_bucket_name
+  }
+
+  param "trail_name" {
+    type        = string
+    description = "The name of the CloudTrail trail to create."
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trail_name
   }
 
   param "notifier" {
@@ -210,14 +258,16 @@ pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_write_event
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for item in param.items : item.resource_name => item }
+    for_each        = { for item in param.items : item.title => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disabled
+    pipeline        = pipeline.correct_one_cloudtrail_trail_with_s3_object_level_logging_for_write_events_disabled
     args = {
       title                 = each.value.title
+      home_region           = param.home_region
       bucket_selector_count = each.value.bucket_selector_count
       account_id            = each.value.account_id
-      resource_name         = each.value.resource_name
+      s3_bucket_name        = param.s3_bucket_name
+      trail_name            = param.trail_name
       cred                  = each.value.cred
       notifier              = param.notifier
       notification_level    = param.notification_level
@@ -228,7 +278,7 @@ pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_write_event
   }
 }
 
-pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disabled" {
+pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_write_events_disabled" {
   title       = "Correct one CloudTrail trail with S3 object level logging for write events disabled"
   description = "Runs corrective action on a CloudTrail trail with S3 object level logging for write events disabled."
   // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disabled.md")
@@ -239,9 +289,22 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disable
     description = local.description_title
   }
 
-  param "resource_name" {
+  param "s3_bucket_name" {
     type        = string
-    description = "The unique resource name to be created."
+    description = "The name of the S3 bucket to create the CloudTrail trail in."
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_s3_bucket_name
+  }
+
+  param "trail_name" {
+    type        = string
+    description = "The name of the CloudTrail trail to create."
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trail_name
+  }
+
+  param "home_region" {
+    type        = string
+    description = local.description_region
+    default     = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_home_region_for_write_event
   }
 
   param "account_id" {
@@ -320,12 +383,13 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disable
           pipeline_args = {
             bucket_selector_count = param.bucket_selector_count
             cred                  = param.cred
-            resource_name         = param.resource_name
-            region                = var.cloudtrail_trail_home_region_for_write_event
+            s3_bucket_name        = param.s3_bucket_name
+            trail_name            = param.trail_name
+            region                = param.home_region
             account_id            = param.account_id
           }
-          success_msg = "Created a CloudTrail trail ${param.resource_name} with S3 object level logging for write events."
-          error_msg   = "Error creating a CloudTrail trail ${param.resource_name} with S3 object level logging for write events."
+          success_msg = "Created a CloudTrail trail ${param.trail_name} with S3 object level logging for write events."
+          error_msg   = "Error creating a CloudTrail trail ${param.trail_name} with S3 object level logging for write events."
         }
       }
     }
@@ -339,7 +403,17 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
 
   param "region" {
     type        = string
-    description = "The AWS region in which to create the CloudTrail trail."
+    description = local.description_region
+  }
+
+  param "s3_bucket_name" {
+    type        = string
+    description = "The name of the S3 bucket to create the CloudTrail trail in."
+  }
+
+  param "trail_name" {
+    type        = string
+    description = "The name of the CloudTrail trail to create."
   }
 
   param "bucket_selector_count" {
@@ -349,18 +423,13 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
 
   param "account_id" {
     type        = string
-    description = "The AWS account ID in which to create the CloudTrail trail."
+    description = "The ID of the AWS account."
   }
 
   param "cred" {
     type        = string
-    description = "The AWS credentials to use for creating the trail."
+    description = local.description_credential
     default     = "default"
-  }
-
-  param "resource_name" {
-    type        = string
-    description = "The name of the resource to create."
   }
 
   step "pipeline" "create_s3_bucket" {
@@ -369,7 +438,7 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
     args = {
       region = param.region
       cred   = param.cred
-      bucket = param.resource_name
+      bucket = param.s3_bucket_name
     }
   }
 
@@ -380,8 +449,8 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
     args = {
       region = param.region
       cred   = param.cred
-      bucket = param.resource_name
-      policy = "{\"Version\": \"2012-10-17\",\n\"Statement\": [\n{\n\"Sid\":\"AWSCloudTrailAclCheck\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:GetBucketAcl\",\n\"Resource\": \"arn:aws:s3:::${param.resource_name}\"\n},\n{\n\"Sid\": \"AWSCloudTrailWrite\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\": \"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutObject\",\n\"Resource\": \"arn:aws:s3:::${param.resource_name}/AWSLogs/${param.account_id}/*\",\n\"Condition\": {\n\"StringEquals\": {\n\"s3:x-amz-acl\":\n\"bucket-owner-full-control\"\n}\n}\n}\n]\n}"
+      bucket = param.s3_bucket_name
+      policy = "{\"Version\": \"2012-10-17\",\n\"Statement\": [\n{\n\"Sid\":\"AWSCloudTrailAclCheck\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:GetBucketAcl\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}\"\n},\n{\n\"Sid\": \"AWSCloudTrailWrite\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\": \"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutObject\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.account_id}/*\",\n\"Condition\": {\n\"StringEquals\": {\n\"s3:x-amz-acl\":\n\"bucket-owner-full-control\"\n}\n}\n}\n]\n}"
     }
   }
 
@@ -391,9 +460,9 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
     pipeline   = aws.pipeline.create_cloudtrail_trail
     args = {
       region                        = param.region
-      name                          = param.resource_name
+      name                          = param.trail_name
       cred                          = param.cred
-      bucket_name                   = param.resource_name
+      bucket_name                   = param.s3_bucket_name
       is_multi_region_trail         = true
       include_global_service_events = true
       enable_log_file_validation    = true
@@ -406,8 +475,8 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_ev
     pipeline   = aws.pipeline.put_cloudtrail_trail_event_selector
     args = {
       region          = param.region
-      trail_name      = param.resource_name
-      event_selectors = "[{ \"ReadWriteType\": \"WriteOnly\", \"IncludeManagementEvents\":true, \"DataResources\": [{ \"Type\": \"AWS::S3::Object\", \"Values\": [\"arn:aws:s3:::${param.resource_name}/\"] }] }]"
+      trail_name      = param.trail_name
+      event_selectors = "[{ \"ReadWriteType\": \"WriteOnly\", \"IncludeManagementEvents\":true, \"DataResources\": [{ \"Type\": \"AWS::S3::Object\", \"Values\": [\"arn:aws:s3:::${param.s3_bucket_name}/\"] }] }]"
       cred            = param.cred
     }
   }
