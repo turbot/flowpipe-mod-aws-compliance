@@ -1,72 +1,92 @@
 locals {
-  iam_root_access_keys_query = <<-EOQ
-    select
-      concat(access_key_id, ' [', account_id, ']') as title,
-      user_name,
-      access_key_id,
+  iam_roles_with_policy_star_star_attached_query = <<-EOQ
+    with star_star_policy as (
+      select
+        arn,
+        count(*) as num_bad_statements
+      from
+        aws_iam_policy,
+        jsonb_array_elements(policy_std -> 'Statement') as s,
+        jsonb_array_elements_text(s -> 'Resource') as resource,
+        jsonb_array_elements_text(s -> 'Action') as action
+      where
+        s ->> 'Effect' = 'Allow'
+        and resource = '*'
+        and (
+          (action = '*'
+          or action = '*:*'
+          )
+        )
+        and is_attached
+        and not is_aws_managed
+      group by
+        arn,
+        is_aws_managed
+    )
+    select distinct
+      concat(name, '-', attached_arns.policy_arn, ' [', account_id, ']') as title,
+      attached_arns.policy_arn,
+      name as role_name,
+      account_id,
       _ctx ->> 'connection_name' as cred
     from
-      aws_iam_access_key
-    where
-      user_name = '<root_account>'
+      aws_iam_role,
+      lateral jsonb_array_elements_text(attached_policy_arns) as attached_arns(policy_arn)
+      join star_star_policy s on s.arn = attached_arns.policy_arn
   EOQ
 }
 
-variable "iam_root_access_keys_trigger_enabled" {
+variable "iam_roles_with_policy_star_star_attached_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "iam_root_access_keys_trigger_schedule" {
+variable "iam_roles_with_policy_star_star_attached_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "iam_root_access_keys_default_action" {
+variable "iam_roles_with_policy_star_star_attached_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "iam_root_access_keys_enabled_actions" {
+variable "iam_roles_with_policy_star_star_attached_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "delete_access_key"]
+  default     = ["skip", "detach_role_star_star_policy"]
 }
 
-trigger "query" "detect_and_delete_iam_root_access_keys" {
-  title         = "Detect & correct IAM Root User Access Keys"
-  description   = "Detects IAM root user access keys and deletes them."
-  // // documentation = file("./iam/docs/detect_and_delete_iam_root_access_keys_trigger.md")
-  tags          = merge(local.iam_common_tags, { class = "security" })
+trigger "query" "detect_and_correct_iam_roles_with_policy_star_star_attached" {
+  title         = "Detect & correct IAM roles attached with *:* policy"
+  description   = "Detects IAM roles attached with the *:* policy and then detaches the policy."
 
-  enabled  = var.iam_root_access_keys_trigger_enabled
-  schedule = var.iam_root_access_keys_trigger_schedule
+  enabled  = var.iam_roles_with_policy_star_star_attached_trigger_enabled
+  schedule = var.iam_roles_with_policy_star_star_attached_trigger_schedule
   database = var.database
-  sql      = local.iam_root_access_keys_query
+  sql      = local.iam_roles_with_policy_star_star_attached_query
 
   capture "insert" {
-    pipeline = pipeline.delete_iam_root_access_keys
+    pipeline = pipeline.correct_iam_roles_with_policy_star_star_attached
     args = {
       items = self.inserted_rows
     }
   }
 
   capture "update" {
-    pipeline = pipeline.delete_iam_root_access_keys
+    pipeline = pipeline.correct_iam_roles_with_policy_star_star_attached
     args = {
       items = self.updated_rows
     }
   }
 }
 
-pipeline "detect_and_delete_iam_root_access_keys" {
-  title         = "Detect & correct IAM Root User Access Keys"
-  description   = "Detects IAM root user access keys and deletes them."
-  // // documentation = file("./iam/docs/detect_and_delete_iam_root_access_keys.md")
-  tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
+pipeline "detect_and_correct_iam_roles_with_policy_star_star_attached" {
+  title         = "Detect & correct IAM roles attached with *:* policy"
+  description   = "Detects IAM roles attached with the *:* policy and then detaches the policy."
 
   param "database" {
     type        = string
@@ -95,22 +115,22 @@ pipeline "detect_and_delete_iam_root_access_keys" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_root_access_keys_default_action
+    default     = var.iam_roles_with_policy_star_star_attached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_root_access_keys_enabled_actions
+    default     = var.iam_roles_with_policy_star_star_attached_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_root_access_keys_query
+    sql      = local.iam_roles_with_policy_star_star_attached_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.delete_iam_root_access_keys
+    pipeline = pipeline.correct_iam_roles_with_policy_star_star_attached
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -122,18 +142,16 @@ pipeline "detect_and_delete_iam_root_access_keys" {
   }
 }
 
-pipeline "delete_iam_root_access_keys" {
-  title         = "Delete IAM Root User Access Keys"
-  description   = "Runs corrective action to delete IAM root user access keys."
-  // // documentation = file("./iam/docs/delete_iam_root_access_keys.md")
-  tags          = merge(local.iam_common_tags, { class = "security" })
+pipeline "correct_iam_roles_with_policy_star_star_attached" {
+  title         = "Correct IAM roles attached with *:* policy"
+  description   = "Runs corrective action to detach the *:* policy from IAM roles."
 
   param "items" {
     type = list(object({
       title          = string
-      user_id        = string
-      access_key_id  = string
-      region         = string
+      role_name    = string
+      policy_arn     = string
+      account_id     = string
       cred           = string
     }))
     description = local.description_items
@@ -160,30 +178,30 @@ pipeline "delete_iam_root_access_keys" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_root_access_keys_default_action
+    default     = var.iam_roles_with_policy_star_star_attached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_root_access_keys_enabled_actions
+    default     = var.iam_roles_with_policy_star_star_attached_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM root user access key(s)."
+    text     = "Detected ${length(param.items)} IAM role(s) attached with *:* policy."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for row in param.items : row.access_key_id => row }
+    for_each        = { for row in param.items : row.title => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_root_access_key
+    pipeline        = pipeline.correct_iam_role_with_policy_star_star_attached
     args = {
       title              = each.value.title
-      user_id            = each.value.user_id
-      access_key_id      = each.value.access_key_id
-      region             = each.value.region
+      role_name          = each.value.role_name
+      policy_arn         = each.value.policy_arn
+      account_id         = each.value.account_id
       cred               = each.value.cred
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -194,30 +212,28 @@ pipeline "delete_iam_root_access_keys" {
   }
 }
 
-pipeline "correct_one_iam_root_access_key" {
-  title         = "Correct one IAM Root User Access Key"
-  description   = "Runs corrective action to delete one IAM root user access key."
-  // // documentation = file("./iam/docs/correct_one_iam_root_access_key.md")
-  tags          = merge(local.iam_common_tags, { class = "security" })
+pipeline "correct_iam_role_with_policy_star_star_attached" {
+  title         = "Correct IAM role attached with *:* policy"
+  description   = "Runs corrective action to detach the *:* policy from IAM role."
 
   param "title" {
     type        = string
     description = local.description_title
   }
 
-  param "user_id" {
+  param "role_name" {
     type        = string
-    description = "The user ID of the IAM root user."
+    description = "The name of the IAM role."
   }
 
-  param "access_key_id" {
+  param "policy_arn" {
     type        = string
-    description = "The access key ID of the IAM root user."
+    description = "The ARN of the policy to be detached."
   }
 
-  param "region" {
+  param "account_id" {
     type        = string
-    description = local.description_region
+    description = "The account ID of the AWS account."
   }
 
   param "cred" {
@@ -246,13 +262,13 @@ pipeline "correct_one_iam_root_access_key" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_root_access_keys_default_action
+    default     = var.iam_roles_with_policy_star_star_attached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_root_access_keys_enabled_actions
+    default     = var.iam_roles_with_policy_star_star_attached_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -261,7 +277,7 @@ pipeline "correct_one_iam_root_access_key" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM root user access key ${param.title}."
+      detect_msg         = "Detected IAM role ${param.role_name} attached with *:* policy ${param.policy_arn}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -273,23 +289,23 @@ pipeline "correct_one_iam_root_access_key" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM root user access key ${param.title}."
+            text     = "Skipped IAM role ${param.role_name}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "delete_access_key" = {
-          label        = "Delete IAM root access key ${param.access_key_id}"
-          value        = "delete_access_key"
+        "detach_role_star_star_policy" = {
+          label        = "Detach *:* policy from IAM role"
+          value        = "detach_role_star_star_policy"
           style        = local.style_alert
-          pipeline_ref = aws.pipeline.delete_iam_access_key
+          pipeline_ref = aws.pipeline.detach_iam_role_policy
           pipeline_args = {
-            access_key_id = param.access_key_id
-            region        = param.region
-            cred          = param.cred
+            role_name  = param.role_name
+            policy_arn   = param.policy_arn
+            cred         = param.cred
           }
-          success_msg = "Deleted IAM root user access key ${param.title}."
-          error_msg   = "Error deleting IAM root user access key ${param.title}."
+          success_msg = "Detached *:* policy ${param.policy_arn} from IAM role ${param.role_name}."
+          error_msg   = "Error detaching *:* policy ${param.policy_arn} from IAM role ${param.role_name}."
         }
       }
     }
