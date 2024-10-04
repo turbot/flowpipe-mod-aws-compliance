@@ -529,7 +529,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
 
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
   title       = "Correct one CloudWatch log group etric filter for VPC changes"
-  description = "Runs corrective action on a CloudWatch log group etric filter for VPC changes."
+  description = "Runs corrective action on a CloudWatch log group metric filter for VPC changes."
   // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
   tags = merge(local.cloudwatch_common_tags, { class = "unused" })
 

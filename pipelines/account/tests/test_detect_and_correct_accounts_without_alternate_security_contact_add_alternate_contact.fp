@@ -1,4 +1,3 @@
-// Need to cross check the step 'registered_alternative_security_contact' why it is not reslting back the details even thoung the resource is created
 pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_add_alternate_contact" {
   title       = "Test detect & correct accounts without alternate security contact"
   description = "Test add the alternate security contact register action for accounts."

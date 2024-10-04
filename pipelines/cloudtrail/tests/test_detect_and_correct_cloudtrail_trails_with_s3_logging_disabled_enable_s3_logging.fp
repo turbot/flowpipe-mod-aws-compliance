@@ -134,7 +134,6 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_s3_logging_disabled_ena
     EOQ
   }
 
-
   step "pipeline" "delete_cloudtrail_trail" {
     depends_on = [step.pipeline.run_detection, step.query.enabled_trail_with_s3_logging_disabled_after_detection]
 
