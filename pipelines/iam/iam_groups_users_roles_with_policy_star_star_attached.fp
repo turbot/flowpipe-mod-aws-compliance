@@ -19,53 +19,49 @@ locals {
         )
         and is_attached
         and not is_aws_managed
-        and arn = 'arn:aws:iam::533793682495:policy/flowpipe-test-star-star-policy'
       group by
         arn,
         is_aws_managed
     )
-    select
-      concat(name, ' [', account_id, ']') as title,
-      a as policy_arn,
+    select distinct
+      concat(name, '/', 'user', ' [', account_id, '/', attached_arns.policy_arn, ']') as title,
+      attached_arns.policy_arn,
       name as entity_name,
       'user' as entity_type,
       account_id,
       _ctx ->> 'connection_name' as cred
     from
       aws_iam_user,
-      jsonb_array_elements_text(attached_policy_arns) as a
-    where
-      a in (select arn from star_star_policy)
+      lateral jsonb_array_elements_text(attached_policy_arns) as attached_arns(policy_arn)
+      join star_star_policy s on s.arn = attached_arns.policy_arn
 
     union
 
-    select
-      concat(name, ' [', account_id, ']') as title,
-      jsonb_array_elements_text(attached_policy_arns) as policy_arn,
+    select distinct
+      concat(name, '/', 'role', ' [', account_id, '/', attached_arns.policy_arn, ']') as title,
+      attached_arns.policy_arn,
       name as entity_name,
       'role' as entity_type,
       account_id,
       _ctx ->> 'connection_name' as cred
     from
       aws_iam_role,
-      jsonb_array_elements_text(attached_policy_arns) as a
-    where
-      a in (select arn from star_star_policy)
+      lateral jsonb_array_elements_text(attached_policy_arns) as attached_arns(policy_arn)
+      join star_star_policy s on s.arn = attached_arns.policy_arn
 
     union
 
-    select
-      concat(name, ' [', account_id, ']') as title,
-      jsonb_array_elements_text(attached_policy_arns) as policy_arn,
+    select distinct
+      concat(name, '/', 'group', ' [', account_id, '/', attached_arns.policy_arn, ']') as title,
+      attached_arns.policy_arn,
       name as entity_name,
       'group' as entity_type,
       account_id,
       _ctx ->> 'connection_name' as cred
     from
       aws_iam_group,
-      jsonb_array_elements_text(attached_policy_arns) as a
-    where
-      a in (select arn from star_star_policy)
+      lateral jsonb_array_elements_text(attached_policy_arns) as attached_arns(policy_arn)
+      join star_star_policy s on s.arn = attached_arns.policy_arn;
   EOQ
 }
 
@@ -94,9 +90,8 @@ variable "iam_groups_users_roles_with_policy_star_star_attached_enabled_actions"
 }
 
 trigger "query" "detect_and_correct_iam_groups_users_roles_with_policy_star_star_attached" {
-  title         = "Detect & correct IAM Entities with Policy Star Star"
-  description   = "Detects IAM entities (users, roles, groups) with the `iam_policy_star_star` attached and detaches that policy."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+  title         = "Detect & correct IAM entities attached with policy star star"
+  description   = "Detects IAM entities (users, roles, groups) attached with the policy star star and then detaches the policy."
 
   enabled  = var.iam_groups_users_roles_with_policy_star_star_attached_trigger_enabled
   schedule = var.iam_groups_users_roles_with_policy_star_star_attached_trigger_schedule
@@ -119,9 +114,8 @@ trigger "query" "detect_and_correct_iam_groups_users_roles_with_policy_star_star
 }
 
 pipeline "detect_and_correct_iam_groups_users_roles_with_policy_star_star_attached" {
-  title         = "Detect & correct IAM Entities with Policy Star Star"
-  description   = "Detects IAM entities (users, roles, groups) with the `iam_policy_star_star` attached and detaches that policy."
-  tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
+  title         = "Detect & correct IAM entities attached with policy star star"
+  description   = "Detects IAM entities (users, roles, groups) attached with the policy star star and then detaches the policy."
 
   param "database" {
     type        = string
@@ -178,9 +172,8 @@ pipeline "detect_and_correct_iam_groups_users_roles_with_policy_star_star_attach
 }
 
 pipeline "correct_iam_groups_users_roles_with_policy_star_star_attached" {
-  title         = "Detach IAM Entities with Policy Star Star"
-  description   = "Runs corrective action to detach the `iam_policy_star_star` policy from IAM entities (users, roles, groups)."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+  title         = "Correct IAM entities attached with policy star star"
+  description   = "Runs corrective action to detach the star starpolicy from IAM entities (users, roles, groups)."
 
   param "items" {
     type = list(object({
@@ -227,11 +220,11 @@ pipeline "correct_iam_groups_users_roles_with_policy_star_star_attached" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM entities with the `iam_policy_star_star` policy attached."
+    text     = "Detected ${length(param.items)} IAM entities attached with star star policy."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for row in param.items : row.policy_arn => row }
+    for_each        = { for row in param.items : row.title => row }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_iam_group_user_role_with_policy_star_star_attached
     args = {
@@ -251,9 +244,8 @@ pipeline "correct_iam_groups_users_roles_with_policy_star_star_attached" {
 }
 
 pipeline "correct_iam_group_user_role_with_policy_star_star_attached" {
-  title         = "Detach Policy from One IAM Entity"
-  description   = "Runs corrective action to detach the `iam_policy_star_star` policy from one IAM entity (user, role, or group)."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+  title         = "Correct IAM entity attached with policy star star"
+  description   = "Runs corrective action to detach the star star policy from IAM entity."
 
   param "title" {
     type        = string
@@ -321,7 +313,7 @@ pipeline "correct_iam_group_user_role_with_policy_star_star_attached" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM entity with the `iam_policy_star_star` policy attached for ${param.title}."
+      detect_msg         = "Detected IAM ${param.entity_type} ${param.entity_name} attached with star star policy ${param.policy_arn}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -333,13 +325,13 @@ pipeline "correct_iam_group_user_role_with_policy_star_star_attached" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped detaching policy from IAM entity for ${param.title}."
+            text     = "Skipped IAM ${param.entity_type} ${param.entity_name}."
           }
           success_msg = ""
           error_msg   = ""
         },
         "detach_star_star_policy" = {
-          label        = "Detach star star policy"
+          label        = "Detach star star policy from IAM entity (user, group, role)"
           value        = "detach_star_star_policy"
           style        = local.style_alert
           pipeline_ref = pipeline.detach_iam_policy
@@ -349,8 +341,8 @@ pipeline "correct_iam_group_user_role_with_policy_star_star_attached" {
             policy_arn   = param.policy_arn
             cred         = param.cred
           }
-          success_msg = "Detached policy from IAM entity ${param.title}."
-          error_msg   = "Error detaching policy from IAM entity ${param.title}."
+          success_msg = "Detached star star policy ${param.policy_arn} from IAM ${param.entity_type} ${param.entity_name}."
+          error_msg   = "Error detaching star star policy ${param.policy_arn} from IAM ${param.entity_type} ${param.entity_name}."
         }
       }
     }
@@ -363,7 +355,7 @@ pipeline "detach_iam_policy" {
 
   param "cred" {
     type        = string
-    description = "The credentials to use for AWS CLI commands."
+    description = local.description_credential
     default     = "default"
   }
 
