@@ -173,6 +173,9 @@ pipeline "test_test_detect_and_correct_cloudtrail_trails_with_multi_region_read_
     value = {
       "enabled_multi_region_read_write_disabled" = step.query.enabled_multi_region_read_write_disabled.rows[0].multi_region_read_weite_status == "enabled" ? "pass" : "fail"
       "verify_trails_with_multi_region_read_write_disabled" : length(step.query.verify_trails_with_multi_region_read_write_disabled.rows) > 0 ? "pass" : "fail"
+      "delete_cloudtrail_trail"      = !is_error(step.pipeline.delete_cloudtrail_trail) ? "pass" : "fail"
+      "delete_s3_bucket_all_objects" = !is_error(step.pipeline.delete_s3_bucket_all_objects) ? "pass" : "fail"
+      "delete_s3_bucket"             = !is_error(step.pipeline.delete_s3_bucket) ? "pass" : "fail"
     }
   }
 }

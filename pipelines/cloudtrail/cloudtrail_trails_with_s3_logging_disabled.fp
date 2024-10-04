@@ -1,12 +1,11 @@
 locals {
   cloudtrail_trails_with_s3_logging_disabled_query = <<-EOQ
   select
-    concat(t.name, ' [', region, '/', t.account_id, ']') as title,
+    concat(t.name, ' [', t.region, '/', t.account_id, ']') as title,
     t.arn as resource,
     t.name,
     t.region,
     t.account_id,
-    (select concat('fp-', to_char(now(), 'yyyy-mm-dd-hh24-mi-ss'))) as unique_string,
     t._ctx ->> 'connection_name' as cred
   from
     aws_cloudtrail_trail t
@@ -35,6 +34,12 @@ variable "cloudtrail_trails_with_s3_logging_disabled_default_action" {
   default     = "notify"
 }
 
+variable "cloudtrail_trails_with_s3_logging_disabled_default_bucket_name" {
+  type        = string
+  description = "The name of the bucket."
+  default     = "test-fp-bucket-trail-logging"
+}
+
 variable "cloudtrail_trails_with_s3_logging_disabled_default_actions" {
   type        = list(string)
   description = " The list of enabled actions approvers can select."
@@ -42,10 +47,10 @@ variable "cloudtrail_trails_with_s3_logging_disabled_default_actions" {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
-  title         = "Detect & correct CloudTrail trails with S3 logging disabled"
-  description   = "Detect CloudTrail trails with S3 logging disabled and then skip or enable S3 logging."
+  title       = "Detect & correct CloudTrail trails with S3 logging disabled"
+  description = "Detect CloudTrail trails with S3 logging disabled and then skip or enable S3 logging."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_logging_disabled_trigger.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   enabled  = var.cloudtrail_trails_with_s3_logging_disabled_trigger_enabled
   schedule = var.cloudtrail_trails_with_s3_logging_disabled_trigger_schedule
@@ -58,13 +63,20 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" 
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_cloudtrail_trails_with_s3_logging_disabled
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
-  title         = "Detect & correct CloudTrail trails with S3 logging disabled"
-  description   = "Detect CloudTrail trails with S3 logging disabled and then skip or enable S3 logging."
+  title       = "Detect & correct CloudTrail trails with S3 logging disabled"
+  description = "Detect CloudTrail trails with S3 logging disabled and then skip or enable S3 logging."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_logging_disabled.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -82,6 +94,12 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+  }
+
+  param "bucket_name" {
+    type        = string
+    description = "The name of the bucket."
+    default     = var.cloudtrail_trails_with_s3_logging_disabled_default_bucket_name
   }
 
   param "approvers" {
@@ -111,6 +129,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
     pipeline = pipeline.correct_cloudtrail_trails_with_s3_logging_disabled
     args = {
       items              = step.query.detect.rows
+      bucket_name        = param.bucket_name
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -121,19 +140,18 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
 }
 
 pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
-  title         = "Correct CloudTrail trails with S3 logging disabled"
-  description   = "Runs corrective action on a collection of CloudTrail trails with S3 logging disabled."
+  title       = "Correct CloudTrail trails with S3 logging disabled"
+  description = "Runs corrective action on a collection of CloudTrail trails with S3 logging disabled."
   // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_s3_logging_disabled.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
-      title         = string
-      name          = string
-      unique_string = string
-      region        = string
-      account_id    = string
-      cred          = string
+      title      = string
+      name       = string
+      region     = string
+      account_id = string
+      cred       = string
     }))
     description = local.description_items
   }
@@ -142,6 +160,12 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
     type        = string
     description = local.description_notifier
     default     = var.notifier
+  }
+
+  param "bucket_name" {
+    type        = string
+    description = "The name of the bucket."
+    default     = var.cloudtrail_trails_with_s3_logging_disabled_default_bucket_name
   }
 
   param "notification_level" {
@@ -175,13 +199,13 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for item in param.items : row.title => item }
+    for_each        = { for item in param.items : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_cloudtrail_trail_with_s3_logging_disabled
     args = {
       title              = each.value.title
       name               = each.value.name
-      bucket_name        = each.value.unique_string
+      bucket_name        = param.bucket_name
       region             = each.value.region
       account_id         = each.value.account_id
       cred               = each.value.cred
@@ -195,10 +219,10 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
 }
 
 pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
-  title         = "Correct one CloudTrail trail with S3 logging disabled"
-  description   = "Runs corrective action on a CloudTrail trail with S3 logging disabled."
+  title       = "Correct one CloudTrail trail with S3 logging disabled"
+  description = "Runs corrective action on a CloudTrail trail with S3 logging disabled."
   // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_s3_logging_disabled.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "title" {
     type        = string
