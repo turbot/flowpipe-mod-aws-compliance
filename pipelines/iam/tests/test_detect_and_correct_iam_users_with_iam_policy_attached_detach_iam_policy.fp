@@ -15,13 +15,13 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
   param "user_name" {
     type        = string
     description = "The name of the user."
-    default     = "flowpipe-user-dummy"
+    default     = "flowpipe-user-${uuid()}"
   }
 
   param "policy_name" {
     type        = string
     description = "The name of the policy."
-    default     = "flowpipe-policy-dummy"
+    default     = "flowpipe-policy-${uuid()}"
   }
 
   param "policy_document" {
@@ -97,13 +97,38 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
     env = credential.aws[param.cred].env
   }
 
-  step "pipeline" "run_detection" {
+  step "query" "get_iam_users_with_iam_policy_attached" {
     depends_on = [step.container.attach_user_policy]
-    pipeline = pipeline.detect_and_correct_iam_users_with_iam_policy_attached
+    database   = var.database
+    sql        = <<-EOQ
+      select
+        concat(name, ' [', account_id, ']') as title,
+        jsonb_array_elements_text(attached_policy_arns) as policy_arn,
+        name as user_name,
+        account_id,
+        _ctx ->> 'connection_name' as cred
+      from
+        aws_iam_user
+      where
+        attached_policy_arns is not null
+        and name = '${param.user_name}';
+    EOQ
+  }
+
+  step "pipeline" "run_detection" {
+    depends_on = [step.query.get_iam_users_with_iam_policy_attached]
+    for_each        = { for item in step.query.get_iam_users_with_iam_policy_attached.rows : item.policy_arn => item }
+    max_concurrency = var.max_concurrency
+    pipeline        = pipeline.correct_one_iam_user_with_iam_policy_attached
     args = {
-      approvers       = []
-      default_action  = "detach_iam_policy"
-      enabled_actions = ["detach_iam_policy"]
+      title                  = each.value.title
+      user_name              = each.value.user_name
+      policy_arn             = each.value.policy_arn
+      account_id             = each.value.account_id
+      cred                   = each.value.cred
+      approvers              = []
+      default_action         = "detach_iam_policy"
+      enabled_actions        = ["detach_iam_policy"]
     }
   }
 

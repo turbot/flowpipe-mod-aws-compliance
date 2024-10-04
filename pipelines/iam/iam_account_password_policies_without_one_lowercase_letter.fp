@@ -1,5 +1,5 @@
 locals {
-  iam_accounts_password_policy_without_password_reuse_24_query = <<-EOQ
+  iam_account_password_policies_without_one_lowercase_letter_query = <<-EOQ
     select
       account_id as title,
       account_id,
@@ -7,62 +7,62 @@ locals {
     from
       aws_iam_account_password_policy
     where
-      password_reuse_prevention < 24
-      or password_reuse_prevention is null;
+      require_lowercase_characters = false
+      or require_lowercase_characters is null;
   EOQ
 }
 
-variable "iam_accounts_password_policy_without_password_reuse_24_trigger_enabled" {
+variable "iam_account_password_policies_without_one_lowercase_letter_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "iam_accounts_password_policy_without_password_reuse_24_trigger_schedule" {
+variable "iam_account_password_policies_without_one_lowercase_letter_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "iam_accounts_password_policy_without_password_reuse_24_default_action" {
+variable "iam_account_password_policies_without_one_lowercase_letter_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "iam_accounts_password_policy_without_password_reuse_24_enabled_actions" {
+variable "iam_account_password_policies_without_one_lowercase_letter_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "update_password_policy_reuse_prevention"]
+  default     = ["skip", "update_password_policy_require_lowercase"]
 }
 
-trigger "query" "detect_and_correct_iam_accounts_password_policy_without_password_reuse_24" {
-  title         = "Detect & correct IAM account password policies without password reuse 24"
-  description   = "Detects IAM account password policies that do not enforce a password reuse prevention policy of 24 and updates them."
+trigger "query" "detect_and_correct_iam_account_password_policies_without_one_lowercase_letter" {
+  title         = "Detect & correct IAM account password policies without requirement for any lowercase letter"
+  description   = "Detects IAM account password policies without requirement for any lowercase letter and then updates to at least one lowercase letter."
 
-  enabled  = var.iam_accounts_password_policy_without_password_reuse_24_trigger_enabled
-  schedule = var.iam_accounts_password_policy_without_password_reuse_24_trigger_schedule
+  enabled  = var.iam_account_password_policies_without_one_lowercase_letter_trigger_enabled
+  schedule = var.iam_account_password_policies_without_one_lowercase_letter_trigger_schedule
   database = var.database
-  sql      = local.iam_accounts_password_policy_without_password_reuse_24_query
+  sql      = local.iam_account_password_policies_without_one_lowercase_letter_query
 
   capture "insert" {
-    pipeline = pipeline.correct_iam_accounts_password_policy_without_password_reuse_24
+    pipeline = pipeline.correct_iam_account_password_policies_without_one_lowercase_letter
     args = {
       items = self.inserted_rows
     }
   }
 
   capture "update" {
-    pipeline = pipeline.correct_iam_accounts_password_policy_without_password_reuse_24
+    pipeline = pipeline.correct_iam_account_password_policies_without_one_lowercase_letter
     args = {
       items = self.updated_rows
     }
   }
 }
 
-pipeline "detect_and_correct_iam_accounts_password_policy_without_password_reuse_24" {
-  title         = "Detect & correct IAM account password policies without password reuse 24"
-  description   = "Detects IAM account password policies that do not enforce a password reuse prevention policy of 24 and updates them."
+pipeline "detect_and_correct_iam_account_password_policies_without_one_lowercase_letter" {
+  title         = "Detect & correct IAM account password policies without requirement for any lowercase letter"
+  description   = "Detects IAM account password policies without requirement for any lowercase letter and then updates to at least one lowercase letter."
 
   param "database" {
     type        = string
@@ -91,22 +91,22 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_password_reuse
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policy_without_password_reuse_24_default_action
+    default     = var.iam_account_password_policies_without_one_lowercase_letter_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policy_without_password_reuse_24_enabled_actions
+    default     = var.iam_account_password_policies_without_one_lowercase_letter_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_accounts_password_policy_without_password_reuse_24_query
+    sql      = local.iam_account_password_policies_without_one_lowercase_letter_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_iam_accounts_password_policy_without_password_reuse_24
+    pipeline = pipeline.correct_iam_account_password_policies_without_one_lowercase_letter
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -118,9 +118,9 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_password_reuse
   }
 }
 
-pipeline "correct_iam_accounts_password_policy_without_password_reuse_24" {
-  title         = "Correct IAM account password policies without password reuse 24"
-  description   = "Runs corrective action on a collection of IAM account password policies that do not enforce a password reuse prevention policy of 24."
+pipeline "correct_iam_account_password_policies_without_one_lowercase_letter" {
+  title         = "Correct IAM account password policies without requirement for any lowercase letter"
+  description   = "Update password policy to at least one lowercase letter for IAM accounts without requirement for any lowercase letter."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "items" {
@@ -153,25 +153,25 @@ pipeline "correct_iam_accounts_password_policy_without_password_reuse_24" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policy_without_password_reuse_24_default_action
+    default     = var.iam_account_password_policies_without_one_lowercase_letter_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policy_without_password_reuse_24_enabled_actions
+    default     = var.iam_account_password_policies_without_one_lowercase_letter_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM account password policies with no password reuse prevention policy of 24."
+    text     = "Detected ${length(param.items)} IAM account password policies with no requirement for at least one lowercase letter."
   }
 
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.account_id => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_account_password_policy_without_password_reuse_24
+    pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_lowercase_letter
     args = {
       title              = each.value.title
       account_id         = each.value.account_id
@@ -185,9 +185,9 @@ pipeline "correct_iam_accounts_password_policy_without_password_reuse_24" {
   }
 }
 
-pipeline "correct_one_iam_account_password_policy_without_password_reuse_24" {
-  title         = "Correct IAM account password policy without password reuse 24"
-  description   = "Runs corrective action on a IAM account password policy that do not enforce a password reuse prevention policy of 24."
+pipeline "correct_one_iam_account_password_policy_without_one_lowercase_letter" {
+  title         = "Correct IAM account password policy without requirement for any lowercase letter"
+  description   = "Update password policy to at least one lowercase letter for a IAM account without requirement for any lowercase letter."
   tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "title" {
@@ -226,13 +226,13 @@ pipeline "correct_one_iam_account_password_policy_without_password_reuse_24" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policy_without_password_reuse_24_default_action
+    default     = var.iam_account_password_policies_without_one_lowercase_letter_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policy_without_password_reuse_24_enabled_actions
+    default     = var.iam_account_password_policies_without_one_lowercase_letter_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -241,7 +241,7 @@ pipeline "correct_one_iam_account_password_policy_without_password_reuse_24" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM account ${param.title} password policy with no password reuse prevention policy of 24."
+      detect_msg         = "Detected IAM account password policy with no requirement for at least one lowercase letter in ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -253,31 +253,31 @@ pipeline "correct_one_iam_account_password_policy_without_password_reuse_24" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM account password policy for ${param.title} with no password reuse prevention policy of 24."
+            text     = "Skipped IAM account password policy for ${param.title} with no requirement for at least one lowercase letter."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "update_password_policy_reuse_prevention" = {
-          label        = "Update Password Policy Reuse Prevention"
-          value        = "update_password_policy_reuse_prevention"
+        "update_password_policy_require_lowercase" = {
+          label        = "Update Password Policy Require Lowercase"
+          value        = "update_password_policy_require_lowercase"
           style        = local.style_alert
-          pipeline_ref = pipeline.update_iam_account_password_policy_password_reuse
+          pipeline_ref = pipeline.update_iam_account_password_policy_lowercase_letter
           pipeline_args = {
-            password_reuse_prevention = 24
-            cred                     = param.cred
+            require_lowercase_characters = true
+            cred                        = param.cred
           }
-          success_msg = "Updated IAM account password policy for ${param.title} to enforce a password reuse prevention policy of 24."
-          error_msg   = "Error updating IAM account password policy ${param.title}."
+          success_msg = "Updated IAM account password policy for ${param.title} to require at least one lowercase letter."
+          error_msg   = "Error updating IAM account password policy for ${param.title}."
         }
       }
     }
   }
 }
 
-pipeline "update_iam_account_password_policy_password_reuse" {
-  title       = "Update IAM account password policy password reuse"
-  description = "Updates the account password policy password reuse for the AWS account."
+pipeline "update_iam_account_password_policy_lowercase_letter" {
+  title       = "Update IAM account password policy lowercase letter requirement"
+  description = "Updates the account password policy lowercase letter requirement for the AWS account."
 
   param "cred" {
     type        = string
@@ -285,9 +285,10 @@ pipeline "update_iam_account_password_policy_password_reuse" {
     default     = "default"
   }
 
-  param "password_reuse_prevention" {
-    type        = number
-    description = "Prevents the reuse of the specified number of previous passwords."
+  param "require_lowercase_characters" {
+    type        = bool
+    description = "Specifies whether to require lowercase characters in the password."
+    optional    = true
   }
 
   step "query" "get_password_policy" {
@@ -318,11 +319,12 @@ pipeline "update_iam_account_password_policy_password_reuse" {
       cred                           = param.cred
       max_password_age               = step.query.get_password_policy.rows[0].max_password_age
       minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
-      password_reuse_prevention      = param.password_reuse_prevention
-      require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
+      password_reuse_prevention      = step.query.get_password_policy.rows[0].password_reuse_prevention
+      require_lowercase_characters   = param.require_lowercase_characters
       require_numbers                = step.query.get_password_policy.rows[0].require_numbers
       require_symbols                = step.query.get_password_policy.rows[0].require_symbols
       require_uppercase_characters   = step.query.get_password_policy.rows[0].require_uppercase_characters
     }
   }
+
 }

@@ -1,5 +1,5 @@
 locals {
-  iam_accounts_password_policy_without_one_symbol_query = <<-EOQ
+  iam_account_password_policies_without_password_reuse_24_query = <<-EOQ
     select
       account_id as title,
       account_id,
@@ -7,62 +7,62 @@ locals {
     from
       aws_iam_account_password_policy
     where
-      require_symbols = false
-      or require_symbols is null;
+      password_reuse_prevention < 24
+      or password_reuse_prevention is null;
   EOQ
 }
 
-variable "iam_accounts_password_policy_without_one_symbol_trigger_enabled" {
+variable "iam_account_password_policies_without_password_reuse_24_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "iam_accounts_password_policy_without_one_symbol_trigger_schedule" {
+variable "iam_account_password_policies_without_password_reuse_24_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "iam_accounts_password_policy_without_one_symbol_default_action" {
+variable "iam_account_password_policies_without_password_reuse_24_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "iam_accounts_password_policy_without_one_symbol_enabled_actions" {
+variable "iam_account_password_policies_without_password_reuse_24_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "update_password_policy_require_symbols"]
+  default     = ["skip", "update_password_policy_reuse_prevention"]
 }
 
-trigger "query" "detect_and_correct_iam_accounts_password_policy_without_one_symbol" {
-  title         = "Detect & correct IAM account password policies without requirement for any symbol"
-  description   = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
+trigger "query" "detect_and_correct_iam_account_password_policies_without_password_reuse_24" {
+  title         = "Detect & correct IAM account password policies without password reuse 24"
+  description   = "Detects IAM account password policies that do not enforce a password reuse prevention policy of 24 and updates them."
 
-  enabled  = var.iam_accounts_password_policy_without_one_symbol_trigger_enabled
-  schedule = var.iam_accounts_password_policy_without_one_symbol_trigger_schedule
+  enabled  = var.iam_account_password_policies_without_password_reuse_24_trigger_enabled
+  schedule = var.iam_account_password_policies_without_password_reuse_24_trigger_schedule
   database = var.database
-  sql      = local.iam_accounts_password_policy_without_one_symbol_query
+  sql      = local.iam_account_password_policies_without_password_reuse_24_query
 
   capture "insert" {
-    pipeline = pipeline.correct_iam_accounts_password_policy_without_one_symbol
+    pipeline = pipeline.correct_iam_account_password_policies_without_password_reuse_24
     args = {
       items = self.inserted_rows
     }
   }
 
   capture "update" {
-    pipeline = pipeline.correct_iam_accounts_password_policy_without_one_symbol
+    pipeline = pipeline.correct_iam_account_password_policies_without_password_reuse_24
     args = {
       items = self.updated_rows
     }
   }
 }
 
-pipeline "detect_and_correct_iam_accounts_password_policy_without_one_symbol" {
-  title         = "Detect & correct IAM account password policies without requirement for any symbol"
-  description   = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
+pipeline "detect_and_correct_iam_account_password_policies_without_password_reuse_24" {
+  title         = "Detect & correct IAM account password policies without password reuse 24"
+  description   = "Detects IAM account password policies that do not enforce a password reuse prevention policy of 24 and updates them."
 
   param "database" {
     type        = string
@@ -91,22 +91,22 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_one_symbol" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policy_without_one_symbol_default_action
+    default     = var.iam_account_password_policies_without_password_reuse_24_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policy_without_one_symbol_enabled_actions
+    default     = var.iam_account_password_policies_without_password_reuse_24_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_accounts_password_policy_without_one_symbol_query
+    sql      = local.iam_account_password_policies_without_password_reuse_24_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_iam_accounts_password_policy_without_one_symbol
+    pipeline = pipeline.correct_iam_account_password_policies_without_password_reuse_24
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -118,9 +118,10 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_one_symbol" {
   }
 }
 
-pipeline "correct_iam_accounts_password_policy_without_one_symbol" {
-  title         = "Correct IAM account password policies without requirement for any symbol"
-  description   = "Update password policy to at least one symbol for IAM accounts without requirement for any symbol."
+pipeline "correct_iam_account_password_policies_without_password_reuse_24" {
+  title         = "Correct IAM account password policies without password reuse 24"
+  description   = "Runs corrective action on a collection of IAM account password policies that do not enforce a password reuse prevention policy of 24."
+  tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "items" {
     type = list(object({
@@ -152,25 +153,25 @@ pipeline "correct_iam_accounts_password_policy_without_one_symbol" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policy_without_one_symbol_default_action
+    default     = var.iam_account_password_policies_without_password_reuse_24_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policy_without_one_symbol_enabled_actions
+    default     = var.iam_account_password_policies_without_password_reuse_24_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM account password policies with no requirement for at least one symbol."
+    text     = "Detected ${length(param.items)} IAM account password policies with no password reuse prevention policy of 24."
   }
 
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.account_id => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_symbol
+    pipeline        = pipeline.correct_one_iam_account_password_policy_without_password_reuse_24
     args = {
       title              = each.value.title
       account_id         = each.value.account_id
@@ -184,9 +185,10 @@ pipeline "correct_iam_accounts_password_policy_without_one_symbol" {
   }
 }
 
-pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
-  title         = "Correct IAM account password policy without requirement for any symbol"
-  description   = "Update password policy to at least one symbol for a IAM account without requirement for any symbol."
+pipeline "correct_one_iam_account_password_policy_without_password_reuse_24" {
+  title         = "Correct IAM account password policy without password reuse 24"
+  description   = "Runs corrective action on a IAM account password policy that do not enforce a password reuse prevention policy of 24."
+  tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "title" {
     type        = string
@@ -224,13 +226,13 @@ pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policy_without_one_symbol_default_action
+    default     = var.iam_account_password_policies_without_password_reuse_24_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policy_without_one_symbol_enabled_actions
+    default     = var.iam_account_password_policies_without_password_reuse_24_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -239,7 +241,7 @@ pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM account password policy with no requirement for at least one symbol in ${param.title}."
+      detect_msg         = "Detected IAM account ${param.title} password policy with no password reuse prevention policy of 24."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -251,21 +253,21 @@ pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM account password policy for ${param.title} with no requirement for at least one symbol."
+            text     = "Skipped IAM account password policy for ${param.title} with no password reuse prevention policy of 24."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "update_password_policy_require_symbols" = {
-          label        = "Update Password Policy Require Symbols"
-          value        = "update_password_policy_require_symbols"
+        "update_password_policy_reuse_prevention" = {
+          label        = "Update Password Policy Reuse Prevention"
+          value        = "update_password_policy_reuse_prevention"
           style        = local.style_alert
-          pipeline_ref = pipeline.update_iam_account_password_policy_symbol
+          pipeline_ref = pipeline.update_iam_account_password_policy_password_reuse
           pipeline_args = {
-            require_symbols = true
-            cred           = param.cred
+            password_reuse_prevention = 24
+            cred                     = param.cred
           }
-          success_msg = "Updated IAM account password policy in ${param.title} to require at least one symbol."
+          success_msg = "Updated IAM account password policy for ${param.title} to enforce a password reuse prevention policy of 24."
           error_msg   = "Error updating IAM account password policy ${param.title}."
         }
       }
@@ -273,9 +275,9 @@ pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
   }
 }
 
-pipeline "update_iam_account_password_policy_symbol" {
-  title       = "Update IAM account password policy symbol requirement"
-  description = "Updates the account password policy symbol requirement for the AWS account."
+pipeline "update_iam_account_password_policy_password_reuse" {
+  title       = "Update IAM account password policy password reuse"
+  description = "Updates the account password policy password reuse for the AWS account."
 
   param "cred" {
     type        = string
@@ -283,9 +285,9 @@ pipeline "update_iam_account_password_policy_symbol" {
     default     = "default"
   }
 
-  param "require_symbols" {
-    type        = bool
-    description = "Specifies whether to require symbols in the password."
+  param "password_reuse_prevention" {
+    type        = number
+    description = "Prevents the reuse of the specified number of previous passwords."
   }
 
   step "query" "get_password_policy" {
@@ -316,12 +318,11 @@ pipeline "update_iam_account_password_policy_symbol" {
       cred                           = param.cred
       max_password_age               = step.query.get_password_policy.rows[0].max_password_age
       minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
-      password_reuse_prevention      = step.query.get_password_policy.rows[0].password_reuse_prevention
+      password_reuse_prevention      = param.password_reuse_prevention
       require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
       require_numbers                = step.query.get_password_policy.rows[0].require_numbers
-      require_symbols                = param.require_symbols
+      require_symbols                = step.query.get_password_policy.rows[0].require_symbols
       require_uppercase_characters   = step.query.get_password_policy.rows[0].require_uppercase_characters
     }
   }
-
 }

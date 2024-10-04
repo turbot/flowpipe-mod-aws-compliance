@@ -64,7 +64,7 @@ trigger "query" "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
 
 pipeline "detect_and_correct_ec2_instances_not_requiring_imdsv2" {
   title         = "Detect & correct EC2 instances not requiring IMDSv2"
-  description   = "Detect EC2 instances that do not require IMDSv2 and then disable IMDSv1."
+  description   = "Detect EC2 instances that do not require IMDSv2 and then disable IMDSv2."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_not_requiring_imdsv2.md")
 
   param "database" {
