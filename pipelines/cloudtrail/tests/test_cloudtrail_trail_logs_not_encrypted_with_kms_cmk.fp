@@ -26,6 +26,10 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     default     = "test-cloudtrail-s3-bucket-${uuid()}"
   }
 
+  tags = {
+    type = "test"
+  }
+
   # Step to create the S3 bucket for CloudTrail logs
   step "pipeline" "create_s3_bucket" {
     pipeline = aws.pipeline.create_s3_bucket
@@ -37,16 +41,20 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   }
 
   # Step to get AWS Account ID
-  step "container" "get_aws_account_id" {
-    depends_on = [step.pipeline.create_s3_bucket]
-    image      = "public.ecr.aws/aws-cli/aws-cli"
-    cmd        = ["sts", "get-caller-identity", "--query", "Account", "--output", "text", "--region", param.region]
-    env        = credential.aws[param.cred].env
+  step "query" "get_account_id" {
+    database = var.database
+    sql      = <<-EOQ
+      select
+        account_id
+      from
+        aws_account
+      limit 1;
+    EOQ
   }
 
   # Step to set the S3 bucket policy for CloudTrail
   step "transform" "generate_s3_bucket_policy" {
-    depends_on = [step.container.get_aws_account_id]
+    depends_on = [step.query.get_account_id]
     output "policy" {
       value = jsonencode({
         "Version" : "2012-10-17",
@@ -67,7 +75,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
               "Service" : "cloudtrail.amazonaws.com"
             },
             "Action" : "s3:PutObject",
-            "Resource" : "arn:aws:s3:::${param.s3_bucket}/AWSLogs/${trimspace(step.container.get_aws_account_id.stdout)}/*",
+            "Resource" : "arn:aws:s3:::${param.s3_bucket}/AWSLogs/${step.query.get_account_id.rows[0].account_id}/*",
             "Condition" : {
               "StringEquals" : {
                 "s3:x-amz-acl" : "bucket-owner-full-control"
@@ -120,67 +128,46 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     env = credential.aws[param.cred].env
   }
 
-  # Generate the KMS key policy
-  step "transform" "generate_kms_policy" {
+  # Step to check if the CloudTrail trail log is unencrypted
+  step "query" "cloudtrail_logs_unencrypted" {
     depends_on = [step.container.create_kms_key]
-    output "policy" {
-      value = jsonencode({
-        "Version" : "2012-10-17",
-        "Statement" : [
-          {
-            "Sid" : "Allow CloudTrail to use the key",
-            "Effect" : "Allow",
-            "Principal" : {
-              "Service" : "cloudtrail.amazonaws.com"
-            },
-            "Action" : [
-              "kms:Decrypt",
-              "kms:GenerateDataKey*"
-            ],
-            "Resource" : "*"
-          },
-          {
-            "Sid" : "Allow root user full access",
-            "Effect" : "Allow",
-            "Principal" : {
-              "AWS" : "arn:aws:iam::${trimspace(step.container.get_aws_account_id.stdout)}:root"
-            },
-            "Action" : "kms:*",
-            "Resource" : "*"
-          }
-        ]
-      })
-    }
-  }
-
-  # Step to add the key policy to the KMS key
-  step "pipeline" "put_kms_key_policy" {
-    depends_on = [step.transform.generate_kms_policy]
-    pipeline   = aws.pipeline.put_kms_key_policy
-    args = {
-      key_id      = jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId
-      policy_name = "default"
-      policy      = step.transform.generate_kms_policy.output.policy
-      region      = param.region
-      cred        = param.cred
-    }
+    database   = var.database
+    sql        = <<-EOQ
+      select
+        concat(name, ' [', account_id, '/', region, ']') as title,
+        region,
+        _ctx ->> 'connection_name' as cred,
+        account_id,
+        name
+      from
+        aws_cloudtrail_trail
+      where
+        name = '${param.trail_name}'
+        and kms_key_id is null;
+    EOQ
   }
 
   # Update the CloudTrail trail to use the KMS key
-  step "pipeline" "encrypt_cloud_trail_logs" {
-    depends_on = [step.pipeline.put_kms_key_policy]
-    pipeline   = aws.pipeline.update_cloudtrail_trail
+  step "pipeline" "run_corrective_action" {
+    if       = length(step.query.cloudtrail_logs_unencrypted.rows) == 1
+    pipeline = pipeline.correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk
     args = {
-      kms_key_id  = jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId
-      region      = param.region
-      trail_name  = param.trail_name
-      cred        = param.cred
+      title               = step.query.cloudtrail_logs_unencrypted.rows[0].title
+      kms_key_id          = jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId
+      kms_key_policy_name = "default"
+      account_id          = step.query.get_account_id.rows[0].account_id
+      region              = param.region
+      name                = param.trail_name
+      cred                = step.query.cloudtrail_logs_unencrypted.rows[0].cred
+      approvers           = []
+      default_action      = "encrypt_cloud_trail_logs"
+      enabled_actions     = ["encrypt_cloud_trail_logs"]
     }
   }
 
   # Verify that the CloudTrail trail is now encrypted with the CMK
   step "query" "verify_encryption" {
-    depends_on = [step.pipeline.encrypt_cloud_trail_logs]
+    depends_on = [step.pipeline.run_corrective_action]
     database   = var.database
     sql        = <<-EOQ
       select
@@ -190,7 +177,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
         aws_cloudtrail_trail
       where
         name = '${param.trail_name}'
-        and kms_key_id = 'arn:aws:kms:${param.region}:${trimspace(step.container.get_aws_account_id.stdout)}:key/${jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId}';
+        and kms_key_id = 'arn:aws:kms:${param.region}:${step.query.get_account_id.rows[0].account_id}:key/${jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId}';
     EOQ
   }
 
@@ -211,6 +198,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   }
 
   # Cleanup steps
+  # Delete the CloudTrail trail
   step "container" "delete_cloudtrail_trail" {
     depends_on = [step.container.empty_s3_bucket]
     image      = "public.ecr.aws/aws-cli/aws-cli"
@@ -222,6 +210,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     env = credential.aws[param.cred].env
   }
 
+  # Delete the KMS key after the CloudTrail trail has been deleted
   step "container" "schedule_kms_key_deletion" {
     depends_on = [step.container.delete_cloudtrail_trail]
     image      = "public.ecr.aws/aws-cli/aws-cli"
