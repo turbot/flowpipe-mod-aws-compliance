@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "aws"
+    default     = "default"
   }
 
 	param "group_name" {

@@ -9,7 +9,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "aws"
+    default     = "default"
   }
 
 	param "role_name" {
