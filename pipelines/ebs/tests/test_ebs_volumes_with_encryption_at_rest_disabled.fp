@@ -67,6 +67,5 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
       "get_elb_classic_load_balancer" = length(step.query.get_ebs_volume_region_encryption_at_rest_details_after_remediation.rows) == 0 ? "pass" : "fail: Row length is not 1"
     }
   }
-
 }
 

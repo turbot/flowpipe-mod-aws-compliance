@@ -27,7 +27,7 @@ locals {
       aws_s3_bucket as b
       left join ssl_ok as ok on ok.name = b.name
     where
-      ok.name is null
+      ok.name is null;
   EOQ
 }
 

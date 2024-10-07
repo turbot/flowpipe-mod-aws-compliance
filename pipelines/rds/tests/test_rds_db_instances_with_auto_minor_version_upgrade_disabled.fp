@@ -155,16 +155,16 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
     depends_on = [step.pipeline.correct_item]
     database   = var.database
     sql        = <<-EOQ
-    select
-      concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
-      db_instance_identifier,
-      region,
-      _ctx ->> 'connection_name' as cred
-    from
-      aws_rds_db_instance
-    where
-      db_instance_identifier = '${param.db_instance_identifier}'
-      and not auto_minor_version_upgrade;
+      select
+        concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
+        db_instance_identifier,
+        region,
+        _ctx ->> 'connection_name' as cred
+      from
+        aws_rds_db_instance
+      where
+        db_instance_identifier = '${param.db_instance_identifier}'
+        and not auto_minor_version_upgrade;
     EOQ
   }
 

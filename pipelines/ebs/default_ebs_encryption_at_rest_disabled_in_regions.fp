@@ -53,6 +53,13 @@ trigger "query" "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_r
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_default_ebs_encryption_at_rest_disabled_in_regions
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions" {
