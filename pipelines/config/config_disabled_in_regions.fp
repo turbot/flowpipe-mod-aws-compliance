@@ -1,70 +1,85 @@
 locals {
-  s3_buckets_with_mfa_delete_disabled_query = <<-EOQ
+  config_disabled_in_regions_query = <<-EOQ
+    with global_recorders as (
+      select
+        count(*) as global_config_recorders
+      from
+        aws_config_configuration_recorder
+      where
+        recording_group -> 'IncludeGlobalResourceTypes' = 'true'
+        and recording_group -> 'AllSupported' = 'true'
+        and status ->> 'Recording' = 'true'
+        and status ->> 'LastStatus' = 'SUCCESS'
+    )
     select
-      concat(name, ' [', account_id, '/', region, ']') as title,
-      name as bucket_name,
-      region,
-      _ctx ->> 'connection_name' as cred
+      concat('[', a.account_id, '/', a.name, ']') as title,
+      a._ctx ->> 'connection_name' as cred,
+      a.name as region
     from
-      aws_s3_bucket
+      global_recorders as g,
+      aws_region as a
+      left join aws_config_configuration_recorder as r on r.account_id = a.account_id
+      and r.region = a.name
     where
-      not versioning_mfa_delete;
+      a.opt_in_status != 'not-opted-in'
+      and g.global_config_recorders >= 1
+      and status is null;
   EOQ
 }
 
-variable "s3_bucket_mfa_delete_disabled_trigger_enabled" {
+variable "config_disabled_in_regions_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "s3_bucket_mfa_delete_disabled_trigger_schedule" {
+variable "config_disabled_in_regions_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "s3_bucket_mfa_delete_disabled_default_action" {
+variable "config_disabled_in_regions_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "s3_bucket_mfa_delete_disabled_enabled_actions" {
+variable "config_disabled_in_regions_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["notify"]
 }
 
-trigger "query" "detect_and_correct_s3_buckets_with_mfa_delete_disabled" {
-  title       = "Detect & correct S3 buckets with MFA delete disabled"
-  description = "Detect S3 buckets with MFA delete disabled."
-  // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_mfa_delete_disabled_trigger.md")
+trigger "query" "detect_and_correct_config_disabled_in_regions" {
+  title       = "Detect & correct Config disabled in regions"
+  description = "Detect Config disabled in regions."
+  // documentation = file("./config/docs/detect_and_correct_config_disabled_in_regions_trigger.md")
 
-  enabled  = var.s3_bucket_mfa_delete_disabled_trigger_enabled
-  schedule = var.s3_bucket_mfa_delete_disabled_trigger_schedule
+  enabled  = var.config_disabled_in_regions_trigger_enabled
+  schedule = var.config_disabled_in_regions_trigger_schedule
   database = var.database
-  sql      = local.s3_buckets_with_mfa_delete_disabled_query
+  sql      = local.config_disabled_in_regions_query
 
   capture "insert" {
-    pipeline = pipeline.correct_s3_buckets_with_mfa_delete_disabled
+    pipeline = pipeline.correct_config_disabled_in_regions
     args = {
       items = self.inserted_rows
     }
   }
 
   capture "update" {
-    pipeline = pipeline.correct_s3_buckets_with_mfa_delete_disabled
+    pipeline = pipeline.correct_config_disabled_in_regions
     args = {
       items = self.updated_rows
     }
   }
 }
 
-pipeline "detect_and_correct_s3_buckets_with_mfa_delete_disabled" {
-  title       = "Detect & correct S3 buckets with MFA delete disabled"
-  description = "Detect S3 buckets with MFA delete disabled."
-  // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_mfa_delete_disabled.md")
+pipeline "detect_and_correct_config_disabled_in_regions" {
+  title       = "Detect & correct Config disabled in regions"
+  description = "Detect Config disabled in regions."
+  // documentation = file("./config/docs/detect_and_correct_config_disabled_in_regions.md")
 
   param "database" {
     type        = string
@@ -93,22 +108,22 @@ pipeline "detect_and_correct_s3_buckets_with_mfa_delete_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.s3_bucket_mfa_delete_disabled_default_action
+    default     = var.config_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.s3_bucket_mfa_delete_disabled_enabled_actions
+    default     = var.config_disabled_in_regions_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.s3_buckets_with_mfa_delete_disabled_query
+    sql      = local.config_disabled_in_regions_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_s3_buckets_with_mfa_delete_disabled
+    pipeline = pipeline.correct_config_disabled_in_regions
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -120,10 +135,10 @@ pipeline "detect_and_correct_s3_buckets_with_mfa_delete_disabled" {
   }
 }
 
-pipeline "correct_s3_buckets_with_mfa_delete_disabled" {
-  title       = "Correct S3 buckets with MFA delete disabled"
-  description = "Detect S3 buckets with MFA delete disabled."
-  // documentation = file("./s3/docs/correct_s3_buckets_with_mfa_delete_disabled.md")
+pipeline "correct_config_disabled_in_regions" {
+  title       = "Correct Config disabled in regions"
+  description = "Detect Config disabled in regions."
+  // documentation = file("./config/docs/correct_config_disabled_in_regions.md")
 
   param "items" {
     type = list(object({
@@ -156,25 +171,25 @@ pipeline "correct_s3_buckets_with_mfa_delete_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.s3_bucket_mfa_delete_disabled_default_action
+    default     = var.config_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.s3_bucket_mfa_delete_disabled_enabled_actions
+    default     = var.config_disabled_in_regions_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} S3 bucket(s) with MFA delete disabled."
+    text     = "Detected ${length(param.items)} region(s) with Config disabled."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
     notifier = notifier[param.notifier]
-    text     = "Detected S3 bucket ${each.value.title} with MFA delete disabled."
+    text     = "Detected region ${each.value.title} with Config disabled."
   }
 }
