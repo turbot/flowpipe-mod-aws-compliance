@@ -38,16 +38,16 @@ variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions" {
   default     = ["skip", "encrypt_cloud_trail_logs"]
 }
 
-variable "cloudtrail_kms_key_policy_name" {
+variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_cloudtrail_kms_key_policy_name" {
   type        = string
   description = "The name of the policy to use for encryption."
   default     = "default"
 }
 
-variable "cloudtrail_cmk_key_id" {
+variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_key_id" {
   type        = string
-  description = "The ID of the KMS CMK to use for encryption."
-  default     = "f967315c-7501-4983-aacc-540223ed33f0"
+  description = "Specifies the KMS key ID to use to encrypt the logs delivered by CloudTrail."
+  default     = "" // Add your key ID here.
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
@@ -88,6 +88,18 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     default     = var.database
   }
 
+  param "kms_key_id" {
+    type        = string
+    description = "Specifies the KMS key ID to use to encrypt the logs delivered by CloudTrail."
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_key_id
+  }
+
+  param "kms_key_policy_name" {
+    type        = string
+    description = "The name of the policy to use for encryption."
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_cloudtrail_kms_key_policy_name
+  }
+
   param "notifier" {
     type        = string
     description = local.description_notifier
@@ -126,12 +138,14 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   step "pipeline" "respond" {
     pipeline = pipeline.correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk
     args = {
-      items              = step.query.detect.rows
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
+      items               = step.query.detect.rows
+      kms_key_policy_name = param.kms_key_policy_name
+      kms_key_id          = param.kms_key_id
+      notifier            = param.notifier
+      notification_level  = param.notification_level
+      approvers           = param.approvers
+      default_action      = param.default_action
+      enabled_actions     = param.enabled_actions
     }
   }
 }
@@ -150,6 +164,18 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
       region     = string
       cred       = string
     }))
+  }
+
+  param "kms_key_id" {
+    type        = string
+    description = "Specifies the KMS key ID to use to encrypt the logs delivered by CloudTrail."
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_key_id
+  }
+
+  param "kms_key_policy_name" {
+    type        = string
+    description = "The name of the policy to use for encryption."
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_cloudtrail_kms_key_policy_name
   }
 
   param "notifier" {
@@ -193,16 +219,18 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk
     args = {
-      title              = each.value.title
-      name               = each.value.name
-      region             = each.value.region
-      account_id         = each.value.account_id
-      cred               = each.value.cred
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
+      title               = each.value.title
+      name                = each.value.name
+      region              = each.value.region
+      account_id          = each.value.account_id
+      cred                = each.value.cred
+      kms_key_id          = param.kms_key_id
+      kms_key_policy_name = param.kms_key_policy_name
+      notifier            = param.notifier
+      notification_level  = param.notification_level
+      approvers           = param.approvers
+      default_action      = param.default_action
+      enabled_actions     = param.enabled_actions
     }
   }
 }
@@ -268,16 +296,16 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions
   }
 
-  param "cloudtrail_cmk_key_id" {
+  param "kms_key_id" {
     type        = string
-    description = "The ID of the KMS CMK to use for encryption."
-    default     = var.cloudtrail_cmk_key_id
+    description = "Specifies the KMS key ID to use to encrypt the logs delivered by CloudTrail."
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_key_id
   }
 
-  param "cloudtrail_kms_key_policy_name" {
+  param "kms_key_policy_name" {
     type        = string
     description = "The name of the policy to use for encryption."
-    default     = var.cloudtrail_kms_key_policy_name
+    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_cloudtrail_kms_key_policy_name
   }
 
   step "pipeline" "respond" {
@@ -309,10 +337,10 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
           style        = local.style_alert
           pipeline_ref = pipeline.encrypt_cloud_trail_logs
           pipeline_args = {
-            key_id      = param.cloudtrail_cmk_key_id
+            key_id      = param.kms_key_id
             region      = param.region
             trail_name  = param.name
-            policy_name = param.cloudtrail_kms_key_policy_name
+            policy_name = param.kms_key_policy_name
             policy      = "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"Allow CloudTrail to use the key\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"cloudtrail.amazonaws.com\"}, \"Action\": [\"kms:Decrypt\", \"kms:GenerateDataKey*\"], \"Resource\": \"*\"}, {\"Sid\": \"Allow root user full access\", \"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::${param.account_id}:root\"}, \"Action\": \"kms:*\", \"Resource\": \"*\"}]}"
             cred        = param.cred
           }
@@ -327,6 +355,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
 pipeline "encrypt_cloud_trail_logs" {
   title       = "Encrypt CloudTrail logs"
   description = "Encrypts CloudTrail logs with a cmk."
+  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "key_id" {
     type        = string

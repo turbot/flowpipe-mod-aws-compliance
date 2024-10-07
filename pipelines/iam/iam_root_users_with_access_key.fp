@@ -1,5 +1,4 @@
 locals {
-
   iam_root_access_keys_query = <<-EOQ
     select
       concat(access_key_id, ' [', account_id, ']') as title,

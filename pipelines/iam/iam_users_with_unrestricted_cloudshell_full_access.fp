@@ -1,75 +1,68 @@
 locals {
-  iam_access_analyzer_disabled_in_regions_query = <<-EOQ
+  iam_users_with_unrestricted_cloudshell_full_access_query = <<-EOQ
     select
-      concat(r.region, ' [', r.account_id, ']') as title,
-      r.region,
-      r._ctx ->> 'connection_name' as cred
+      concat(name, ' [', account_id,  ']') as title,
+      name as user_name,
+      account_id,
+      _ctx ->> 'connection_name' as cred
     from
-      aws_region as r
-      left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
+      aws_iam_user
     where
-      r.opt_in_status <> 'not-opted-in'
-      and aa.arn is null;
+      attached_policy_arns @> '["arn:aws:iam::aws:policy/AWSCloudShellFullAccess"]'
   EOQ
 }
 
-variable "iam_access_analyzer_disabled_in_regions_trigger_enabled" {
+variable "iam_users_with_unrestricted_cloudshell_full_access_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "iam_access_analyzer_disabled_in_regions_trigger_schedule" {
+variable "iam_users_with_unrestricted_cloudshell_full_access_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "iam_access_analyzer_disabled_in_regions_default_action" {
+variable "iam_users_with_unrestricted_cloudshell_full_access_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "iam_access_analyzer_disabled_in_regions_enabled_actions" {
+variable "iam_users_with_unrestricted_cloudshell_full_access_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "enable_access_analyzer"]
+  default     = ["skip", "detach_user_cloudshell_full_access_policy"]
 }
 
-variable "iam_access_analyzer_disabled_in_regions_analyzer_name" {
-  type        = string
-  description = "The name of the IAM Access Analyzer."
-  default     = "accessanalyzer"
-}
+trigger "query" "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access" {
+  title         = "Detect & correct IAM users with unrestricted CloudShellFullAccess policy"
+  description   = "Detects IAM users with unrestricted CloudShellFullAccess policy attached and then detaches that policy."
 
-trigger "query" "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Detect and correct regions with IAM Access Analyzer disabled"
-  description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
-
-  enabled  = var.iam_access_analyzer_disabled_in_regions_trigger_enabled
-  schedule = var.iam_access_analyzer_disabled_in_regions_trigger_schedule
+  enabled  = var.iam_users_with_unrestricted_cloudshell_full_access_trigger_enabled
+  schedule = var.iam_users_with_unrestricted_cloudshell_full_access_trigger_schedule
   database = var.database
-  sql      = local.iam_access_analyzer_disabled_in_regions_query
+  sql      = local.iam_users_with_unrestricted_cloudshell_full_access_query
 
   capture "insert" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
+    pipeline = pipeline.correct_iam_users_with_unrestricted_cloudshell_full_access
     args = {
       items = self.inserted_rows
     }
   }
 
   capture "update" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
+    pipeline = pipeline.correct_iam_users_with_unrestricted_cloudshell_full_access
     args = {
       items = self.updated_rows
     }
   }
 }
 
-pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Detect and correct regions with IAM Access Analyzer disabled"
-  description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
+pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access" {
+  title         = "Detect & correct IAM users with unrestricted CloudShellFullAccess policy"
+  description   = "Detects IAM users with unrestricted CloudShellFullAccess policy attached and detaches that policy."
 
   param "database" {
     type        = string
@@ -98,22 +91,22 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    default     = var.iam_users_with_unrestricted_cloudshell_full_access_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    default     = var.iam_users_with_unrestricted_cloudshell_full_access_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_access_analyzer_disabled_in_regions_query
+    sql      = local.iam_users_with_unrestricted_cloudshell_full_access_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
+    pipeline = pipeline.correct_iam_users_with_unrestricted_cloudshell_full_access
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -125,15 +118,16 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   }
 }
 
-pipeline "correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Correct regions with IAM Access Analyzer disabled"
-  description   = "Enable IAM Access Analyzer in regions with IAM Access Analyzer disabled."
+pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
+  title         = "Correct IAM users with unrestricted CloudShellFullAccess policy"
+  description   = "Runs corrective action to detach the CloudShellFullAccess policy from IAM users."
+  tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "items" {
     type = list(object({
       title          = string
-      analyzer_name  = string
-      region         = string
+      user_name      = string
+      account_id     = string
       cred           = string
     }))
     description = local.description_items
@@ -143,12 +137,6 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
     type        = string
     description = local.description_notifier
     default     = var.notifier
-  }
-
-  param "analyzer_name" {
-    type        = string
-    description = "analyzer_name"
-    default     = var.iam_access_analyzer_disabled_in_regions_analyzer_name
   }
 
   param "notification_level" {
@@ -166,29 +154,29 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    default     = var.iam_users_with_unrestricted_cloudshell_full_access_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    default     = var.iam_users_with_unrestricted_cloudshell_full_access_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} region(s) with IAM Access Analyzer disabled."
+    text     = "Detected ${length(param.items)} IAM user(s) with unrestricted CloudShellFullAccess policy attached."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for row in param.items : row.region => row }
+    for_each        = { for row in param.items : row.title => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_access_analyzer_disabled_in_region
+    pipeline        = pipeline.correct_iam_user_with_unrestricted_cloudshell_full_access
     args = {
       title              = each.value.title
-      analyzer_name      = param.analyzer_name
-      region             = each.value.region
+      user_name          = each.value.user_name
+      account_id         = each.value.account_id
       cred               = each.value.cred
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -199,23 +187,23 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   }
 }
 
-pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
-  title         = "Correct region with IAM Access Analyzer disabled"
-  description   = "Enable IAM Access Analyzer in a region with IAM Access Analyzer disabled."
+pipeline "correct_iam_user_with_unrestricted_cloudshell_full_access" {
+  title         = "Correct IAM user with unrestricted CloudShellFullAccess policy"
+  description   = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from IAM user."
 
   param "title" {
     type        = string
     description = local.description_title
   }
 
-  param "analyzer_name" {
+  param "user_name" {
     type        = string
-    description = "The name of the IAM Access Analyzer."
+    description = "The name of the IAM user."
   }
 
-  param "region" {
+  param "account_id" {
     type        = string
-    description = local.description_region
+    description = "The account ID of the AWS account."
   }
 
   param "cred" {
@@ -244,13 +232,13 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    default     = var.iam_users_with_unrestricted_cloudshell_full_access_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    default     = var.iam_users_with_unrestricted_cloudshell_full_access_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -259,7 +247,7 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected region ${param.title} with IAM Access Analyzer disabled."
+      detect_msg         = "Detected IAM user ${param.title} atttached with the policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess`."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -271,27 +259,25 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped region ${param.title}."
+            text     = "Skipped IAM user ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_access_analyzer" = {
-          label        = "Enable IAM access analyzer"
-          value        = "enable_access_analyzer"
+        "detach_user_cloudshell_full_access_policy" = {
+          label        = "Detach cloudshell full access policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess`"
+          value        = "detach_user_cloudshell_full_access_policy"
           style        = local.style_alert
-          pipeline_ref = aws.pipeline.create_iam_access_analyzer
+          pipeline_ref = aws.pipeline.detach_iam_user_policy
           pipeline_args = {
-            analyzer_name = param.analyzer_name
-            region        = param.region
-            cred          = param.cred
+            user_name   = param.user_name
+            policy_arn  = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
+            cred        = param.cred
           }
-          success_msg = "Enabled IAM Access Analyzer in region ${param.title}."
-          error_msg   = "Error enabling IAM Access Analyzer in region ${param.title}."
+          success_msg = "Detached policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM user ${param.title}."
+          error_msg   = "Error detaching policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM user ${param.title}."
         }
       }
     }
   }
 }
-
-

@@ -1,75 +1,92 @@
 locals {
-  iam_access_analyzer_disabled_in_regions_query = <<-EOQ
-    select
-      concat(r.region, ' [', r.account_id, ']') as title,
-      r.region,
-      r._ctx ->> 'connection_name' as cred
+  iam_groups_with_policy_star_star_attached_query = <<-EOQ
+    with star_star_policy as (
+      select
+        arn,
+        count(*) as num_bad_statements
+      from
+        aws_iam_policy,
+        jsonb_array_elements(policy_std -> 'Statement') as s,
+        jsonb_array_elements_text(s -> 'Resource') as resource,
+        jsonb_array_elements_text(s -> 'Action') as action
+      where
+        s ->> 'Effect' = 'Allow'
+        and resource = '*'
+        and (
+          (action = '*'
+          or action = '*:*'
+          )
+        )
+        and is_attached
+        and not is_aws_managed
+      group by
+        arn,
+        is_aws_managed
+    )
+    select distinct
+      concat(name, '-', attached_arns.policy_arn, ' [', account_id, ']') as title,
+      attached_arns.policy_arn,
+      name as group_name,
+      account_id,
+      _ctx ->> 'connection_name' as cred
     from
-      aws_region as r
-      left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
-    where
-      r.opt_in_status <> 'not-opted-in'
-      and aa.arn is null;
+      aws_iam_group,
+      lateral jsonb_array_elements_text(attached_policy_arns) as attached_arns(policy_arn)
+      join star_star_policy s on s.arn = attached_arns.policy_arn;
   EOQ
 }
 
-variable "iam_access_analyzer_disabled_in_regions_trigger_enabled" {
+variable "iam_groups_with_policy_star_star_attached_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "iam_access_analyzer_disabled_in_regions_trigger_schedule" {
+variable "iam_groups_with_policy_star_star_attached_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "iam_access_analyzer_disabled_in_regions_default_action" {
+variable "iam_groups_with_policy_star_star_attached_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "iam_access_analyzer_disabled_in_regions_enabled_actions" {
+variable "iam_groups_with_policy_star_star_attached_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "enable_access_analyzer"]
+  default     = ["skip", "detach_group_star_star_policy"]
 }
 
-variable "iam_access_analyzer_disabled_in_regions_analyzer_name" {
-  type        = string
-  description = "The name of the IAM Access Analyzer."
-  default     = "accessanalyzer"
-}
+trigger "query" "detect_and_correct_iam_groups_with_policy_star_star_attached" {
+  title         = "Detect & correct IAM groups attached with *:* policy"
+  description   = "Detects IAM groups attached with the *:* policy and then detaches the policy."
 
-trigger "query" "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Detect and correct regions with IAM Access Analyzer disabled"
-  description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
-
-  enabled  = var.iam_access_analyzer_disabled_in_regions_trigger_enabled
-  schedule = var.iam_access_analyzer_disabled_in_regions_trigger_schedule
+  enabled  = var.iam_groups_with_policy_star_star_attached_trigger_enabled
+  schedule = var.iam_groups_with_policy_star_star_attached_trigger_schedule
   database = var.database
-  sql      = local.iam_access_analyzer_disabled_in_regions_query
+  sql      = local.iam_groups_with_policy_star_star_attached_query
 
   capture "insert" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
+    pipeline = pipeline.correct_iam_groups_with_policy_star_star_attached
     args = {
       items = self.inserted_rows
     }
   }
 
   capture "update" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
+    pipeline = pipeline.correct_iam_groups_with_policy_star_star_attached
     args = {
       items = self.updated_rows
     }
   }
 }
 
-pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Detect and correct regions with IAM Access Analyzer disabled"
-  description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
+pipeline "detect_and_correct_iam_groups_with_policy_star_star_attached" {
+  title         = "Detect & correct IAM groups attached with *:* policy"
+  description   = "Detects IAM groups attached with the *:* policy and then detaches the policy."
 
   param "database" {
     type        = string
@@ -98,22 +115,22 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    default     = var.iam_groups_with_policy_star_star_attached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    default     = var.iam_groups_with_policy_star_star_attached_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_access_analyzer_disabled_in_regions_query
+    sql      = local.iam_groups_with_policy_star_star_attached_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
+    pipeline = pipeline.correct_iam_groups_with_policy_star_star_attached
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -125,15 +142,16 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   }
 }
 
-pipeline "correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Correct regions with IAM Access Analyzer disabled"
-  description   = "Enable IAM Access Analyzer in regions with IAM Access Analyzer disabled."
+pipeline "correct_iam_groups_with_policy_star_star_attached" {
+  title         = "Correct IAM groups attached with *:* policy"
+  description   = "Runs corrective action to detach the *:* policy from IAM groups."
 
   param "items" {
     type = list(object({
       title          = string
-      analyzer_name  = string
-      region         = string
+      group_name    = string
+      policy_arn     = string
+      account_id     = string
       cred           = string
     }))
     description = local.description_items
@@ -143,12 +161,6 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
     type        = string
     description = local.description_notifier
     default     = var.notifier
-  }
-
-  param "analyzer_name" {
-    type        = string
-    description = "analyzer_name"
-    default     = var.iam_access_analyzer_disabled_in_regions_analyzer_name
   }
 
   param "notification_level" {
@@ -166,29 +178,30 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    default     = var.iam_groups_with_policy_star_star_attached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    default     = var.iam_groups_with_policy_star_star_attached_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} region(s) with IAM Access Analyzer disabled."
+    text     = "Detected ${length(param.items)} IAM groups(s) attached with *:* policy."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for row in param.items : row.region => row }
+    for_each        = { for row in param.items : row.title => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_access_analyzer_disabled_in_region
+    pipeline        = pipeline.correct_iam_group_with_policy_star_star_attached
     args = {
       title              = each.value.title
-      analyzer_name      = param.analyzer_name
-      region             = each.value.region
+      group_name        = each.value.group_name
+      policy_arn         = each.value.policy_arn
+      account_id         = each.value.account_id
       cred               = each.value.cred
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -199,23 +212,28 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   }
 }
 
-pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
-  title         = "Correct region with IAM Access Analyzer disabled"
-  description   = "Enable IAM Access Analyzer in a region with IAM Access Analyzer disabled."
+pipeline "correct_iam_group_with_policy_star_star_attached" {
+  title         = "Correct IAM group attached with *:* policy"
+  description   = "Runs corrective action to detach the *:* policy from IAM group."
 
   param "title" {
     type        = string
     description = local.description_title
   }
 
-  param "analyzer_name" {
+  param "group_name" {
     type        = string
-    description = "The name of the IAM Access Analyzer."
+    description = "The name of the IAM entity (user, role, or group)."
   }
 
-  param "region" {
+  param "policy_arn" {
     type        = string
-    description = local.description_region
+    description = "The ARN of the policy to be detached."
+  }
+
+  param "account_id" {
+    type        = string
+    description = "The account ID of the AWS account."
   }
 
   param "cred" {
@@ -244,13 +262,13 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    default     = var.iam_groups_with_policy_star_star_attached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    default     = var.iam_groups_with_policy_star_star_attached_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -259,7 +277,7 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected region ${param.title} with IAM Access Analyzer disabled."
+      detect_msg         = "Detected IAM group ${param.group_name} attached with *:* policy ${param.policy_arn}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -271,27 +289,25 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped region ${param.title}."
+            text     = "Skipped IAM group ${param.group_name}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_access_analyzer" = {
-          label        = "Enable IAM access analyzer"
-          value        = "enable_access_analyzer"
+        "detach_group_star_star_policy" = {
+          label        = "Detach *:* policy from IAM group"
+          value        = "detach_group_star_star_policy"
           style        = local.style_alert
-          pipeline_ref = aws.pipeline.create_iam_access_analyzer
+          pipeline_ref = aws.pipeline.detach_iam_group_policy
           pipeline_args = {
-            analyzer_name = param.analyzer_name
-            region        = param.region
-            cred          = param.cred
+            group_name  = param.group_name
+            policy_arn   = param.policy_arn
+            cred         = param.cred
           }
-          success_msg = "Enabled IAM Access Analyzer in region ${param.title}."
-          error_msg   = "Error enabling IAM Access Analyzer in region ${param.title}."
+          success_msg = "Detached *:* policy ${param.policy_arn} from IAM group ${param.group_name}."
+          error_msg   = "Error detaching *:* policy ${param.policy_arn} from IAM group ${param.group_name}."
         }
       }
     }
   }
 }
-
-

@@ -1,92 +1,88 @@
-// pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable_access_analyzer" {
-//   title       = "Test IAM Access Analyzer disabled in regions"
-//   description = "Test detect_and_correct_iam_access_analyzer_disabled_in_region pipeline."
+pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable_access_analyzer" {
+  title       = "Test detect and correcr IAM Access Analyzer disabled in regions"
+  description = "Test detect_and_correct_iam_access_analyzer_disabled_in_region pipeline."
 
-//   tags = {
-//     type = "test"
-//   }
+  tags = {
+    type = "test"
+  }
 
-//   param "cred" {
-//     type        = string
-//     description = local.description_credential
-//     default     = "default"
-//   }
+  param "cred" {
+    type        = string
+    description = local.description_credential
+    default     = "default"
+  }
 
-//  	step "query" "get_access_analyzer_disabled_region" {
-// 		database = var.database
-//     sql = <<-EOQ
-//       select
-// 				r.account_id,
-// 				r.region,
-// 				r._ctx ->> 'connection_name' as cred
-// 			from
-// 				aws_region as r
-// 				left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
-// 			where
-// 				r.opt_in_status <> 'not-opted-in'
-// 				and aa.arn is null limit 1;
-//     EOQ
-//   }
+ 	step "query" "get_access_analyzer_disabled_region" {
+		database = var.database
+    sql = <<-EOQ
+      select
+				concat(r.region, ' [', r.account_id, ']') as title,
+				r.region,
+				r._ctx ->> 'connection_name' as cred
+			from
+				aws_region as r
+				left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
+			where
+				r.opt_in_status <> 'not-opted-in'
+				and aa.arn is null limit 1;
+    EOQ
 
-//   step "container" "get_one_access_analyzer_enabled_region" {
-// 		if    = length(step.query.get_password_policy_with_password_max_age_less_than_90_days.rows) == 0
-//     image = "public.ecr.aws/aws-cli/aws-cli"
+    throw {
+      if      = length(result.rows) == 0
+      message = "The access analyzer is enabled in all the regions. Exiting the pipeline."
+    }
+  }
 
-//    	cmd = concat(
-//       ["iam", "update-account-password-policy"],
-//       ["--minimum-password-length", tostring(step.query.get_password_policy.rows[0].minimum_password_length)],
-// 			step.query.get_password_policy.rows[0].require_symbols ? ["--require-symbols"] : ["--no-require-symbols"],
-// 			step.query.get_password_policy.rows[0].require_numbers ? ["--require-numbers"] : ["--no-require-numbers"],
-//       step.query.get_password_policy.rows[0].require_lowercase_characters ? ["--require-lowercase-characters"] : ["--no-require-lowercase-characters"],
-//       step.query.get_password_policy.rows[0].require_uppercase_characters ? ["--require-uppercase-characters"] : ["--no-require-uppercase-characters"],
-// 			step.query.get_password_policy.rows[0].allow_users_to_change_password ? ["--allow-users-to-change-password"] : ["--no-allow-users-to-change-password"],
-// 			["--max-password-age",  tostring(60)],
-// 			step.query.get_password_policy.rows[0].password_reuse_prevention != null ? ["--password-reuse-prevention",  tostring(step.query.get_password_policy.rows[0].password_reuse_prevention)] : []
-//     )
-//     env = credential.aws[param.cred].env
-// 	}
+  step "pipeline" "run_detection" {
+    depends_on = [step.query.get_access_analyzer_disabled_region]
+    for_each        = { for item in step.query.get_access_analyzer_disabled_region.rows : item.title => item }
+    max_concurrency = var.max_concurrency
+    pipeline        = pipeline.correct_one_iam_access_analyzer_disabled_in_region
+    args = {
+      title                  = each.value.title
+      analyzer_name          = "flowpipe-test-access-analyser"
+      region                 = each.value.region
+      cred                   = each.value.cred
+      approvers              = []
+      default_action         = "enable_access_analyzer"
+      enabled_actions        = ["enable_access_analyzer"]
+    }
+  }
 
-// 	step "sleep" "sleep_100_seconds" {
-// 		depends_on = [ step.container.set_password_max_age_60_days ]
-// 		duration   = "100s"
-// 	}
+  step "query" "get_details_after_detection" {
+    depends_on = [step.pipeline.run_detection]
+    database   = var.database
+    sql        = <<-EOQ
+      select
+        concat(r.region, ' [', r.account_id, ']') as title,
+        r.region,
+        r._ctx ->> 'connection_name' as cred
+      from
+        aws_region as r
+        left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
+      where
+        r.opt_in_status <> 'not-opted-in'
+        and aa.arn is not null
+        and r.region = '${step.query.get_access_analyzer_disabled_region.rows[0].region}';
+    EOQ
+  }
 
-//   step "pipeline" "run_detection" {
-//     depends_on = [step.sleep.sleep_100_seconds]
-//     pipeline = pipeline.detect_and_correct_iam_access_analyzer_disabled_in_regions
-//     args = {
-//       approvers       = []
-//       default_action  = "update_password_policy_max_age"
-//       enabled_actions = ["update_password_policy_max_age"]
-//     }
-//   }
+  step "pipeline" "delete_iam_access_analyzer" {
+    depends_on = [step.query.get_details_after_detection]
+    pipeline   = aws.pipeline.delete_iam_access_analyzer
+    args = {
+      analyzer_name  = "flowpipe-test-access-analyser"
+      region         = step.query.get_access_analyzer_disabled_region.rows[0].region
+      cred           = param.cred
+    }
+  }
 
-// 	step "sleep" "sleep_30_seconds" {
-// 		depends_on = [ step.pipeline.run_detection ]
-// 		duration   = "30s"
-// 	}
-
-//   step "query" "get_password_policy_after_detection" {
-//     depends_on = [step.sleep.sleep_30_seconds]
-//     database = var.database
-//     sql = <<-EOQ
-//       select
-// 				account_id
-//       from
-//         aws_iam_account_password_policy
-// 			where
-// 				max_password_age = 90
-//       	and account_id = '${step.query.get_account_id.rows[0].account_id}';
-//     EOQ
-//   }
-
-//   output "test_results" {
-//     description = "Test results for each step."
-//     value = {
-// 			"get_account_id"      = !is_error(step.query.get_account_id.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_account_id)}"
-// 			"get_password_policy" = !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}"
-//       "set_password_max_age_60_days" = !is_error(step.container.set_password_max_age_60_days) ? "pass" : "fail: ${error_message(step.container.set_password_max_age_60_days)}"
-// 			"get_password_policy_after_detection" = length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
-//     }
-//   }
-// }
+  output "test_results" {
+    description = "Test results for each step."
+    value = {
+      "get_access_analyzer_disabled_region" = step.query.get_access_analyzer_disabled_region.rows
+      "get_details_after_detection" = length(step.query.get_details_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
+      "delete_iam_access_analyzer"      = !is_error(step.pipeline.delete_iam_access_analyzer) ? "pass" : "fail: ${error_message(step.pipeline.delete_iam_access_analyzer)}"
+    }
+  }
+}

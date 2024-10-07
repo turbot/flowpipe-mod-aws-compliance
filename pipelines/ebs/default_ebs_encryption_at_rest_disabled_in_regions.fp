@@ -1,75 +1,65 @@
 locals {
-  iam_access_analyzer_disabled_in_regions_query = <<-EOQ
+  default_ebs_encryption_at_rest_disabled_in_regions_query = <<-EOQ
     select
-      concat(r.region, ' [', r.account_id, ']') as title,
-      r.region,
-      r._ctx ->> 'connection_name' as cred
+      concat('[', r.account_id, '/', r.name, ']') as title,
+      r._ctx ->> 'connection_name' as cred,
+      r.name as region
     from
       aws_region as r
-      left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
+      left join aws_ec2_regional_settings as e on r.account_id = e.account_id and r.name = e.region
     where
-      r.opt_in_status <> 'not-opted-in'
-      and aa.arn is null;
+      not e.default_ebs_encryption_enabled;
   EOQ
 }
 
-variable "iam_access_analyzer_disabled_in_regions_trigger_enabled" {
+variable "default_ebs_encryption_at_rest_disabled_in_regions_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "iam_access_analyzer_disabled_in_regions_trigger_schedule" {
+variable "default_ebs_encryption_at_rest_disabled_in_regions_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "iam_access_analyzer_disabled_in_regions_default_action" {
+variable "default_ebs_encryption_at_rest_disabled_in_regions_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "iam_access_analyzer_disabled_in_regions_enabled_actions" {
+variable "default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "enable_access_analyzer"]
+  default     = ["skip", "enable_default_encryption"]
 }
 
-variable "iam_access_analyzer_disabled_in_regions_analyzer_name" {
-  type        = string
-  description = "The name of the IAM Access Analyzer."
-  default     = "accessanalyzer"
-}
+trigger "query" "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions" {
+  title         = "Detect & correct default EBS encryption at rest disabled in regions"
+  description   = "Detect regions with default encryption at rest disabled and then skip or enable encryption."
+  // // documentation = file("./ebs/docs/detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions_trigger.md")
+  tags          = merge(local.ebs_common_tags, { class = "security" })
 
-trigger "query" "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Detect and correct regions with IAM Access Analyzer disabled"
-  description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
-
-  enabled  = var.iam_access_analyzer_disabled_in_regions_trigger_enabled
-  schedule = var.iam_access_analyzer_disabled_in_regions_trigger_schedule
+  enabled  = var.default_ebs_encryption_at_rest_disabled_in_regions_trigger_enabled
+  schedule = var.default_ebs_encryption_at_rest_disabled_in_regions_trigger_schedule
   database = var.database
-  sql      = local.iam_access_analyzer_disabled_in_regions_query
+  sql      = local.default_ebs_encryption_at_rest_disabled_in_regions_query
 
   capture "insert" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
+    pipeline = pipeline.correct_default_ebs_encryption_at_rest_disabled_in_regions
     args = {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
-pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Detect and correct regions with IAM Access Analyzer disabled"
-  description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
+pipeline "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions" {
+  title         = "Detect & correct default EBS encryption at rest disabled in regions"
+  description   = "Detect regions with default encryption at rest disabled and then skip or enable encryption."
+  // // documentation = file("./ebs/docs/detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions.md")
+  tags          = merge(local.ebs_common_tags, { class = "security", type = "featured" })
 
   param "database" {
     type        = string
@@ -98,22 +88,22 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_access_analyzer_disabled_in_regions_query
+    sql      = local.default_ebs_encryption_at_rest_disabled_in_regions_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
+    pipeline = pipeline.correct_default_ebs_encryption_at_rest_disabled_in_regions
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -125,16 +115,17 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   }
 }
 
-pipeline "correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Correct regions with IAM Access Analyzer disabled"
-  description   = "Enable IAM Access Analyzer in regions with IAM Access Analyzer disabled."
+pipeline "correct_default_ebs_encryption_at_rest_disabled_in_regions" {
+  title         = "Correct default EBS encryption at rest disabled in regions"
+  description   = "Enable EBS default encryption at rest in regions with default encryption at rest disabled."
+  // // documentation = file("./ebs/docs/correct_default_ebs_encryption_at_rest_disabled_in_regions.md")
+  tags          = merge(local.ebs_common_tags, { class = "security" })
 
   param "items" {
     type = list(object({
-      title          = string
-      analyzer_name  = string
-      region         = string
-      cred           = string
+      title       = string
+      region      = string
+      cred        = string
     }))
     description = local.description_items
   }
@@ -143,12 +134,6 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
     type        = string
     description = local.description_notifier
     default     = var.notifier
-  }
-
-  param "analyzer_name" {
-    type        = string
-    description = "analyzer_name"
-    default     = var.iam_access_analyzer_disabled_in_regions_analyzer_name
   }
 
   param "notification_level" {
@@ -166,28 +151,27 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} region(s) with IAM Access Analyzer disabled."
+    text     = "Detected ${length(param.items)} EBS region(s) with default encryption at rest disabled."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for row in param.items : row.region => row }
+    for_each        = { for item in param.items : item.title => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_access_analyzer_disabled_in_region
+    pipeline        = pipeline.correct_one_ebs_region_with_default_encryption_at_rest_disabled
     args = {
       title              = each.value.title
-      analyzer_name      = param.analyzer_name
       region             = each.value.region
       cred               = each.value.cred
       notifier           = param.notifier
@@ -199,18 +183,15 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   }
 }
 
-pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
-  title         = "Correct region with IAM Access Analyzer disabled"
-  description   = "Enable IAM Access Analyzer in a region with IAM Access Analyzer disabled."
+pipeline "correct_one_ebs_region_with_default_encryption_at_rest_disabled" {
+  title         = "Correct one EBS region with default encryption at rest disabled"
+  description   = "Enable default encryption at rest on a single EBS region with default encryption at rest disabled."
+  // // documentation = file("./ebs/docs/correct_one_ebs_region_with_default_encryption_at_rest_disabled.md")
+  tags          = merge(local.ebs_common_tags, { class = "security" })
 
   param "title" {
     type        = string
     description = local.description_title
-  }
-
-  param "analyzer_name" {
-    type        = string
-    description = "The name of the IAM Access Analyzer."
   }
 
   param "region" {
@@ -244,13 +225,13 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -259,7 +240,7 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected region ${param.title} with IAM Access Analyzer disabled."
+      detect_msg         = "Detected EBS region ${param.title} with default encryption at rest disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -271,27 +252,25 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped region ${param.title}."
+            text     = "Skipped EBS region ${param.title} with default encryption at rest disabled."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_access_analyzer" = {
-          label        = "Enable IAM access analyzer"
-          value        = "enable_access_analyzer"
+        "enable_default_encryption" = {
+          label        = "Enable Default Encryption"
+          value        = "enable_default_encryption"
           style        = local.style_alert
-          pipeline_ref = aws.pipeline.create_iam_access_analyzer
+          pipeline_ref = aws.pipeline.enable_ebs_encryption_by_default
           pipeline_args = {
-            analyzer_name = param.analyzer_name
-            region        = param.region
-            cred          = param.cred
+            region    = param.region
+            cred      = param.cred
           }
-          success_msg = "Enabled IAM Access Analyzer in region ${param.title}."
-          error_msg   = "Error enabling IAM Access Analyzer in region ${param.title}."
+          success_msg = "Enabled default encryption for EBS region ${param.title}."
+          error_msg   = "Error enabling default encryption for EBS region ${param.title}."
         }
       }
     }
   }
 }
-
 

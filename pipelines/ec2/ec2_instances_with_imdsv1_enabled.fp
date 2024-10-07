@@ -1,64 +1,71 @@
 locals {
-  ebs_volumes_with_encryption_at_rest_disabled_query = <<-EOQ
+  ec2_instances_with_imdsv1_enabled_query = <<-EOQ
     select
-      concat(volume_id, ' [', account_id, '/', region, ']') as title,
+      concat(instance_id, ' [', account_id, '/', region, ']') as title,
+      instance_id,
       region,
       _ctx ->> 'connection_name' as cred
     from
-      aws_ebs_volume
+      aws_ec2_instance
     where
-      not encrypted;
+      metadata_options ->> 'HttpTokens' = 'optional';
   EOQ
 }
 
-variable "ebs_volumes_with_encryption_at_rest_disabled_trigger_enabled" {
+variable "ec2_instances_with_imdsv1_enabled_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
 }
 
-variable "ebs_volumes_with_encryption_at_rest_disabled_trigger_schedule" {
+variable "ec2_instances_with_imdsv1_enabled_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
 }
 
-variable "ebs_volumes_with_encryption_at_rest_disabled_default_action" {
+variable "ec2_instances_with_imdsv1_enabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "ebs_volumes_with_encryption_at_rest_disabled_enabled_actions" {
+variable "ec2_instances_with_imdsv1_enabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "enable_encryption"]
+  default     = ["skip", "disable_imdsv1"]
 }
 
-trigger "query" "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
-  title         = "Detect & correct EBS volumes with encryption at rest disabled"
-  description   = "Detect EBS volumes with encryption at rest disabled and then skip or enable encryption."
-  // // documentation = file("./ebs/docs/detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled_trigger.md")
-  tags          = merge(local.ebs_common_tags, { class = "security" })
+trigger "query" "detect_and_correct_ec2_instances_with_imdsv1_enabled" {
+  title         = "Detect & correct EC2 instances with IMDSv1 enabled"
+  description   = "Detect EC2 instances and disable IMDSv1."
+  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_imdsv1_enabled_trigger.md")
+  tags          = local.ec2_common_tags
 
-  enabled  = var.ebs_volumes_with_encryption_at_rest_disabled_trigger_enabled
-  schedule = var.ebs_volumes_with_encryption_at_rest_disabled_trigger_schedule
+  enabled  = var.ec2_instances_with_imdsv1_enabled_trigger_enabled
+  schedule = var.ec2_instances_with_imdsv1_enabled_trigger_schedule
   database = var.database
-  sql      = local.ebs_volumes_with_encryption_at_rest_disabled_query
+  sql      = local.ec2_instances_with_imdsv1_enabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_ebs_volumes_with_encryption_at_rest_disabled
+    pipeline = pipeline.correct_ec2_instances_with_imdsv1_enabled
     args = {
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_ec2_instances_with_imdsv1_enabled
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
-pipeline "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
-  title         = "Detect & correct EBS volumes with encryption at rest disabled"
-  description   = "Detect EBS volumes with encryption at rest disabled and then skip or enable encryption."
-  // // documentation = file("./ebs/docs/detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled.md")
-  tags          = merge(local.ebs_common_tags, { class = "security", type = "featured" })
+pipeline "detect_and_correct_ec2_instances_with_imdsv1_enabled" {
+  title         = "Detect & correct EC2 instances with IMDSv1 enabled"
+  description   = "Detect EC2 instances and disable IMDSv1."
+  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_imdsv1_enabled.md")
 
   param "database" {
     type        = string
@@ -87,22 +94,22 @@ pipeline "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_default_action
+    default     = var.ec2_instances_with_imdsv1_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_enabled_actions
+    default     = var.ec2_instances_with_imdsv1_enabled_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.ebs_volumes_with_encryption_at_rest_disabled_query
+    sql      = local.ec2_instances_with_imdsv1_enabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_ebs_volumes_with_encryption_at_rest_disabled
+    pipeline = pipeline.correct_ec2_instances_with_imdsv1_enabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -114,16 +121,17 @@ pipeline "detect_and_correct_ebs_volumes_with_encryption_at_rest_disabled" {
   }
 }
 
-pipeline "correct_ebs_volumes_with_encryption_at_rest_disabled" {
-  title         = "Correct EBS volumes with encryption at rest disabled"
-  description   = "Executes corrective actions on EBS volumes with encryption at rest disabled."
-  // // documentation = file("./ebs/docs/correct_ebs_volumes_with_encryption_at_rest_disabled.md")
-  tags          = merge(local.ebs_common_tags, { class = "security" })
+pipeline "correct_ec2_instances_with_imdsv1_enabled" {
+  title         = "Correct EC2 instances with IMDSv1 enabled"
+  description   = "Disable IMDSv1 for EC2 instances."
+  // documentation = file("./ec2/docs/correct_ec2_instances_with_imdsv1_enabled.md")
+  tags          = merge(local.ec2_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title       = string
-      region      = string
+      title       = string,
+      instance_id = string,
+      region      = string,
       cred        = string
     }))
     description = local.description_items
@@ -150,29 +158,30 @@ pipeline "correct_ebs_volumes_with_encryption_at_rest_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_default_action
+    default     = var.ec2_instances_with_imdsv1_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_enabled_actions
+    default     = var.ec2_instances_with_imdsv1_enabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} EBS volume(s) with encryption at rest disabled."
+    text     = "Detected ${length(param.items)} EC2 instance(s) with IMDSv1 enabled."
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for item in param.items : item.title => item }
+    for_each        = { for item in param.items : item.instance_id => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_ebs_volumes_with_encryption_at_rest_disabled
+    pipeline        = pipeline.correct_one_ec2_instance_with_imdsv1_enabled
     args = {
-      title              = each.value.title
-      region             = each.value.region
-      cred               = each.value.cred
+      title              = each.value.title,
+      instance_id        = each.value.instance_id,
+      region             = each.value.region,
+      cred               = each.value.cred,
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -182,15 +191,20 @@ pipeline "correct_ebs_volumes_with_encryption_at_rest_disabled" {
   }
 }
 
-pipeline "correct_one_ebs_volumes_with_encryption_at_rest_disabled" {
-  title         = "Correct one EBS volume with encryption at rest disabled"
-  description   = "Runs corrective action on a single EBS volume with encryption at rest disabled."
-  // // documentation = file("./ebs/docs/correct_one_ebs_volumes_with_encryption_at_rest_disabled.md")
-  tags          = merge(local.ebs_common_tags, { class = "security" })
+pipeline "correct_one_ec2_instance_with_imdsv1_enabled" {
+  title         = "Correct one EC2 instance using IMDSv2"
+  description   = "Disable IMDSv1 for an EC2 instance."
+  // documentation = file("./ec2/docs/correct_one_ec2_instance_with_imdsv1_enabled.md")
+  tags          = merge(local.ec2_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
     description = local.description_title
+  }
+
+  param "instance_id" {
+    type        = string
+    description = "The ID of the EC2 instance."
   }
 
   param "region" {
@@ -224,13 +238,13 @@ pipeline "correct_one_ebs_volumes_with_encryption_at_rest_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_default_action
+    default     = var.ec2_instances_with_imdsv1_enabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.ebs_volumes_with_encryption_at_rest_disabled_enabled_actions
+    default     = var.ec2_instances_with_imdsv1_enabled_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -239,7 +253,7 @@ pipeline "correct_one_ebs_volumes_with_encryption_at_rest_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected EBS volume ${param.title} with encryption at rest disabled."
+      detect_msg         = "Detected EC2 instance ${param.title} with IMDSv1 enabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -251,25 +265,26 @@ pipeline "correct_one_ebs_volumes_with_encryption_at_rest_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped EBS volume ${param.title} with encryption at rest disabled."
+            text     = "Skipped EC2 instance ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_encryption" = {
-          label        = "Enable EBS encryption by default in ${param.region} region"
-          value        = "enable_encryption"
+        "disable_imdsv1" = {
+          label        = "Disable IMDSv1"
+          value        = "disable_imdsv1"
           style        = local.style_alert
-          pipeline_ref = aws.pipeline.enable_ebs_encryption_by_default
+          pipeline_ref = aws.pipeline.modify_ec2_instance_metadata_options
           pipeline_args = {
-            region    = param.region
-            cred      = param.cred
+            instance_id = param.instance_id
+            http_tokens = "required",
+            region      = param.region
+            cred        = param.cred
           }
-          success_msg = "Enabled encryption for EBS volume ${param.title}."
-          error_msg   = "Error enabling encryption for EBS volume ${param.title}."
+          success_msg = "Disabled IMDSv1 for EC2 instance ${param.title}."
+          error_msg   = "Error disabling IMDSv1 for EC2 instance ${param.title}."
         }
       }
     }
   }
 }
-

@@ -63,7 +63,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
   }
 
   step "pipeline" "create_iam_policy" {
-      depends_on = [step.pipeline.create_iam_user]
+    depends_on = [step.pipeline.create_iam_user]
     pipeline   = aws.pipeline.create_iam_policy
     args = {
       cred            = param.cred
