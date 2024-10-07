@@ -361,7 +361,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc
 }
 
 pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
-  title       = "Correct CloudWatch log groups etric filter for VPC changes"
+  title       = "Correct CloudWatch log groups metric filter for VPC changes"
   description = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for VPC changes."
   // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
   tags = merge(local.cloudwatch_common_tags, { class = "unused" })
@@ -491,7 +491,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups etric filter for VPC changes."
+    text     = "Detected ${length(param.items)} CloudWatch log groups metric filter for VPC changes."
   }
 
   step "transform" "items_by_id" {
@@ -528,7 +528,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
 }
 
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_changes" {
-  title       = "Correct one CloudWatch log group etric filter for VPC changes"
+  title       = "Correct one CloudWatch log group metric filter for VPC changes"
   description = "Runs corrective action on a CloudWatch log group metric filter for VPC changes."
   // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
   tags = merge(local.cloudwatch_common_tags, { class = "unused" })
@@ -663,7 +663,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_change
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudWatch log group etric filter for VPC changes for account ${param.title}."
+      detect_msg         = "Detected CloudWatch log group metric filter for VPC changes for account ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -675,7 +675,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_vpc_change
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudWatch log group etric filter for VPC changes for account ${param.title}."
+            text     = "Skipped CloudWatch log group metric filter for VPC changes for account ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
