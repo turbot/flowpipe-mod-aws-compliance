@@ -12,16 +12,34 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
     default     = "default"
   }
 
-  step "transform" "base_args" {
-    output "base_args" {
-      value = {
-        title                  = "Account alternative contact"
-        alternate_contact_type = "SECURITY"
-        email_address          = "tommy@gmail.com"
-        name                   = "test-fp-contact"
-        phone_number           = "9887263547"
-      }
-    }
+  param "title" {
+    type        = string
+    description = "The title of the alternate contact"
+    default     = "Account alternative contact"
+  }
+
+  param "alternate_account_title" {
+    type        = string
+    description = "The title of the alternate contact"
+    default     = "Account alternative contact"
+  }
+
+  param "name" {
+    type        = string
+    description = "The name of the alternate contact"
+    default     = "test-fp-contact"
+  }
+
+  param "email_address" {
+    type        = string
+    description = "The email address of the alternate contact."
+    default     = "tommy@gmail.com"
+  }
+
+  param "phone_number" {
+    type        = string
+    description = "The phone number of the alternate contact."
+    default     = "9887263547"
   }
 
   step "query" "verify_register_alternative_security_contact" {
@@ -49,11 +67,11 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
     depends_on = [step.query.verify_register_alternative_security_contact]
     pipeline   = pipeline.correct_one_account_without_alternate_security_contact
     args = {
-      alternate_account_title = step.transform.base_args.output.base_args.title
-      title                   = step.transform.base_args.output.base_args.title
-      email_address           = step.transform.base_args.output.base_args.email_address
-      phone_number            = step.transform.base_args.output.base_args.phone_number
-      name                    = step.transform.base_args.output.base_args.name
+      title                   = param.title
+      alternate_account_title = param.alternate_account_title
+      email_address           = param.email_address
+      phone_number            = param.phone_number
+      name                    = param.name
       cred                    = param.cred
       approvers               = []
       default_action          = "add_alternate_security_contact"
@@ -61,7 +79,7 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
     }
   }
 
-  step "query" "registered_alternative_security_contact" {
+  step "query" "registered_alternative_security_contact_after_detection" {
     depends_on = [step.pipeline.run_detection]
     database   = var.database
     sql        = <<-EOQ
@@ -74,24 +92,24 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
       from
         aws_account_alternate_contact
       where
-        contact_type = 'SECURITY';
+        contact_type = 'SECURITY' and name = '${param.name}';
     EOQ
   }
 
-  step "transform" "alternate_contact_registeration_is_matched" {
-    depends_on = [step.pipeline.run_detection, step.query.registered_alternative_security_contact]
+ step "transform" "alternate_contact_registeration_is_matched" {
+    depends_on = [step.pipeline.run_detection, step.query.registered_alternative_security_contact_after_detection]
     output "match_output" {
       value = (
-        step.transform.base_args.output.base_args.name == step.query.registered_alternative_security_contact.rows[0].name &&
-        step.transform.base_args.output.base_args.email_address == step.query.registered_alternative_security_contact.rows[0].email_address &&
-        step.transform.base_args.output.base_args.phone_number == step.query.registered_alternative_security_contact.rows[0].phone_number &&
-        step.transform.base_args.output.base_args.alternate_contact_type == step.query.registered_alternative_security_contact.rows[0].contact_type
+        step.query.registered_alternative_security_contact_after_detection.rows[0].name == param.name &&
+        step.query.registered_alternative_security_contact_after_detection.rows[0].email_address == param.email_address &&
+        step.query.registered_alternative_security_contact_after_detection.rows[0].phone_number == param.phone_number &&
+        step.query.registered_alternative_security_contact_after_detection.rows[0].contact_type == "SECURITY"
       )
     }
   }
 
   step "pipeline" "delete_register_alternative_security_contact" {
-    depends_on = [step.pipeline.run_detection, step.query.registered_alternative_security_contact]
+    depends_on = [step.pipeline.run_detection, step.query.registered_alternative_security_contact_after_detection, step.transform.alternate_contact_registeration_is_matched]
 
     pipeline = aws.pipeline.delete_alternate_contact
     args = {
@@ -103,8 +121,9 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
   output "result_add_alternate_contact" {
     description = "Test result for each step"
     value = {
-      "registered_alternative_security_contact" = length(step.query.registered_alternative_security_contact.rows) == 1 ? "pass" : "fail"
-      "matched_register_contact" : step.transform.alternate_contact_registeration_is_matched.output.match_output ? "pass" : "fail"
+      "registered_alternative_security_contact_after_detection" = length(step.query.registered_alternative_security_contact_after_detection.rows) == 1 ? "pass" : "fail"
+      "matched_register_contact" = step.transform.alternate_contact_registeration_is_matched.output.match_output ? "pass" : "fail"
+      "delete_register_alternative_security_contact" = !is_error(step.pipeline.delete_register_alternative_security_contact)? "pass" : "fail ${error_message(step.pipeline.delete_register_alternative_security_contact)}"
     }
   }
 }
