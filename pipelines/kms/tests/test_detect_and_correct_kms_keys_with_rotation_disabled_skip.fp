@@ -1,5 +1,5 @@
 pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_skip" {
-  title       = "Test KMS Key Deletion Rotation Disabled"
+  title       = "Test detect and_correct KMS key with rotation disabled"
   description = "Test the detect_and_correct_kms_keys_with_rotation_disabled pipeline."
 
   tags = {

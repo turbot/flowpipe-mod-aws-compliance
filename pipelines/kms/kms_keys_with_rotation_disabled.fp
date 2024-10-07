@@ -36,13 +36,12 @@ variable "kms_keys_with_rotation_disabled_default_action" {
 variable "kms_keys_with_rotation_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "enable_rotation"]
+  default     = ["skip", "enable_key_rotation"]
 }
 
 trigger "query" "detect_and_correct_kms_keys_with_rotation_disabled" {
-  title       = "Detect & Correct KMS keys with rotation disabled"
-  description = "Detect KMS keys with rotation disabled and then skip or enable rotation."
-  // // documentation = file("./kms/docs/detect_and_correct_kms_keys_with_rotation_disabled_trigger.md")
+  title       = "Detect & correct KMS keys with rotation disabled"
+  description = "Detect KMS keys with rotation disabled and then enable rotation."
 
   enabled  = var.kms_keys_with_rotation_disabled_trigger_enabled
   schedule = var.kms_keys_with_rotation_disabled_trigger_schedule
@@ -58,9 +57,8 @@ trigger "query" "detect_and_correct_kms_keys_with_rotation_disabled" {
 }
 
 pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
-  title       = "Detect & Correct KMS keys with rotation disabled"
-  description = "Detect KMS keys with rotation disabled and then skip or enable rotation."
-  // // documentation = file("./kms/docs/detect_and_correct_kms_keys_with_rotation_disabled.md")
+  title       = "Detect & correct KMS keys with rotation disabled"
+  description = "Detect KMS keys with rotation disabled and then enable rotation."
 
   param "database" {
     type        = string
@@ -117,10 +115,8 @@ pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
 }
 
 pipeline "correct_kms_keys_with_rotation_disabled" {
-  title       = "Correct KMS Keys Rotation Disabled"
+  title       = "Correct KMS Keys with rotation disabled"
   description = "Enable rotation for KMS keys with rotation disabled."
-  // // documentation = file("./kms/docs/correct_kms_keys_with_rotation_disabled.md")
-  // tags          = merge(local.kms_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -187,10 +183,8 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
 }
 
 pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
-  title       = "Correct one KMS key with rotation disabled"
+  title       = "Correct KMS key with rotation disabled"
   description = "Runs corrective action for a KMS key with rotation disabled."
-  // // documentation = file("./kms/docs/correct_one_correct_kms_key_with_rotation_disabled.md")
-  // tags          = merge(local.kms_common_tags, { class = "unused" })
 
   param "title" {
     type        = string
@@ -248,7 +242,7 @@ pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected KMS key ${param.title} key with rotation disabled."
+      detect_msg         = "Detected KMS key ${param.title} with rotation disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -260,14 +254,14 @@ pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_info
-            text     = "Skipped enabling rotation for KMS key ${param.title}."
+            text     = "Skipped KMS key ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_rotation" = {
-          label        = "Enable Rotation"
-          value        = "enable_rotation"
+        "enable_key_rotation" = {
+          label        = "Enable KMS key rotation"
+          value        = "enable_key_rotation"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.enable_kms_key_rotation
           pipeline_args = {
@@ -276,7 +270,7 @@ pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
             cred   = param.cred
           }
           success_msg = "Enabled key rotation for KMS key ${param.title}."
-          error_msg   = "Failed to enable key rotation for KMS key ${param.title}."
+          error_msg   = "Error enabling key rotation for KMS key ${param.title}."
         }
       }
     }
