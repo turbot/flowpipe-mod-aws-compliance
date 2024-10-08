@@ -38,10 +38,9 @@ variable "apigateway_rest_api_stages_with_xray_tracing_disabled_enabled_actions"
 }
 
 trigger "query" "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
-  title         = "Detect & Correct API Gateway Rest API Stages With X-Ray Tracing Disabled"
-  description   = "Detect API Gateway rest API stages with X-Ray tracing disabled and then skip or enable X-Ray tracing."
+  title         = "Detect & correct API Gateway rest API stages with x-ray tracing disabled"
+  description   = "Detect API Gateway rest API stages with x-ray tracing disabled and then skip or enable x-ray tracing."
   // documentation = file("./apigateway/docs/detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabled_trigger.md")
-  tags          = merge(local.apigateway_common_tags, { class = "unused" })
 
   enabled  = var.apigateway_rest_api_stages_with_xray_tracing_disabled_trigger_enabled
   schedule = var.apigateway_rest_api_stages_with_xray_tracing_disabled_trigger_schedule
@@ -54,11 +53,18 @@ trigger "query" "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_apigateway_rest_api_stages_with_xray_tracing_disabled
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
-  title         = "Detect & Correct API Gateway Rest API Stages With X-Ray Tracing Disabled"
-  description   = "Detect API Gateway rest API stages with X-Ray tracing disabled and then skip or enable X-Ray tracing."
+  title         = "Detect & correct API Gateway rest API stages with x-ray tracing disabled"
+  description   = "Detect API Gateway rest API stages with x-ray tracing disabled and then skip or enable x-ray tracing."
   // documentation = file("./apigateway/docs/detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabled.md")
 
   param "database" {
@@ -116,10 +122,9 @@ pipeline "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabl
 }
 
 pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
-  title         = "Correct API Gateway Rest API Stages With X-Ray Tracing Disabled"
-  description   = "Enable X-Ray tracing for API Gateway rest API stages with X-Ray tracing disabled."
+  title         = "Correct API Gateway rest API stages with x-ray tracing disabled"
+  description   = "Enable x-ray tracing for API Gateway rest API stages with x-ray tracing disabled."
   // documentation = file("./apigateway/docs/correct_apigateway_rest_api_stages_with_xray_tracing_disabled.md")
-  tags          = merge(local.apigateway_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -164,7 +169,7 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} API Gateway rest API stage(s) with X-Ray tracing disabled."
+    text     = "Detected ${length(param.items)} API Gateway rest API stage(s) with x-ray tracing disabled."
   }
 
   step "pipeline" "correct_item" {
@@ -187,8 +192,8 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
 }
 
 pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
-  title         = "Correct API Gateway Rest API Stage X-Ray Tracing Disabled"
-  description   = "Enable X-Ray tracing for API Gateway rest API stage with X-Ray tracing disabled."
+  title         = "Correct API Gateway rest API stage x-ray tracing disabled"
+  description   = "Enable x-ray tracing for API Gateway rest API stage with x-ray tracing disabled."
   // documentation = file("./apigateway/docs/correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled.md")
 
   param "title" {
@@ -252,7 +257,7 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected API Gateway rest API stage ${param.title} with X-Ray tracing disabled."
+      detect_msg         = "Detected API Gateway rest API stage ${param.title} with x-ray tracing disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -280,8 +285,8 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
             region        = param.region
             cred          = param.cred
           }
-          success_msg = "Enabled X-Ray tracing for API Gateway rest API stage ${param.title}."
-          error_msg   = "Error enabling X-Ray tracing for API Gateway rest API stage ${param.title}."
+          success_msg = "Enabled x-ray tracing for API Gateway rest API stage ${param.title}."
+          error_msg   = "Error enabling x-ray tracing for API Gateway rest API stage ${param.title}."
         }
       }
     }

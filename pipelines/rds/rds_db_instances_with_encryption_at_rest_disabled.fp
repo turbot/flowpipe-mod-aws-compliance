@@ -19,37 +19,36 @@ locals {
   EOQ
 }
 
-variable "rds_db_instance_without_encryption_trigger_enabled" {
+variable "rds_db_instances_with_encryption_at_rest_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "rds_db_instance_without_encryption_trigger_schedule" {
+variable "rds_db_instances_with_encryption_at_rest_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "rds_db_instance_without_encryption_default_action" {
+variable "rds_db_instances_with_encryption_at_rest_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "rds_db_instance_without_encryption_enabled_actions" {
+variable "rds_db_instances_with_encryption_at_rest_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "enable_encryption_at_rest"]
+  default     = ["notify"]
 }
 
  trigger "query" "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
   title         = "Detect & correct RDS DB instances with encryption at rest disabled"
   description   = "Detect RDS DB instances with encryption at rest disabled and then skip or enable encryption."
-  tags          = merge(local.rds_common_tags, { class = "security" })
 
-  enabled  = var.rds_db_instance_without_encryption_trigger_enabled
-  schedule = var.rds_db_instance_without_encryption_trigger_schedule
+  enabled  = var.rds_db_instances_with_encryption_at_rest_disabled_trigger_enabled
+  schedule = var.rds_db_instances_with_encryption_at_rest_disabled_trigger_schedule
   database = var.database
   sql      = local.rds_db_instances_with_encryption_at_rest_disabled_query
 
@@ -70,8 +69,7 @@ variable "rds_db_instance_without_encryption_enabled_actions" {
 
 pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
   title         = "Detect & correct RDS DB instances with encryption at rest disabled"
-  description   = "Detect RDS DB instances with encryption at rest disabled and then skip or enable encryption."
-  tags          = merge(local.rds_common_tags, { class = "security", type = "featured" })
+  description   = "Detect RDS DB instances with encryption at rest disabled."
 
   param "database" {
     type        = string
@@ -100,13 +98,13 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.rds_db_instance_without_encryption_default_action
+    default     = var.rds_db_instances_with_encryption_at_rest_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.rds_db_instance_without_encryption_enabled_actions
+    default     = var.rds_db_instances_with_encryption_at_rest_disabled_enabled_actions
   }
 
   step "query" "detect" {
@@ -129,8 +127,7 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
 
 pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
   title         = "Correct RDS DB instances with encryption at rest disabled"
-  description   = "Enable encryption at rest on a collection of RDS DB instances with encryption at rest disabled."
-  tags          = merge(local.rds_common_tags, { class = "security" })
+  description   = "Detect RDS DB instances with encryption at rest disabled."
 
   param "items" {
     type = list(object({
@@ -165,13 +162,13 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.rds_db_instance_without_encryption_default_action
+    default     = var.rds_db_instances_with_encryption_at_rest_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.rds_db_instance_without_encryption_enabled_actions
+    default     = var.rds_db_instances_with_encryption_at_rest_disabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -180,231 +177,10 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
     text     = "Detected ${length(param.items)} RDS DB instance(s) with encryption at rest disabled."
   }
 
-  step "pipeline" "correct_item" {
-    for_each        = { for item in param.items : item.db_instance_identifier => item }
-    max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_rds_db_instance_with_encryption_at_rest_disabled
-    args = {
-      title                   = each.value.title
-      db_instance_identifier  = each.value.db_instance_identifier
-      snapshot_identifier     = each.value.snapshot_identifier
-      aws_managed_kms_key_arn = each.value.aws_managed_kms_key_arn
-      region                  = each.value.region
-      cred                    = each.value.cred
-      notifier                = param.notifier
-      notification_level      = param.notification_level
-      approvers               = param.approvers
-      default_action          = param.default_action
-      enabled_actions         = param.enabled_actions
-    }
-  }
-}
-
-pipeline "correct_one_rds_db_instance_with_encryption_at_rest_disabled" {
-  title         = "Correct one RDS DB instance with encryption at rest disabled"
-  description   = "Enable encryption at rest on an RDS DB instances with encryption at rest disabled enabled."
-  tags          = merge(local.rds_common_tags, { class = "security" })
-
-  param "title" {
-    type        = string
-    description = local.description_title
-  }
-
-  param "db_instance_identifier" {
-    type        = string
-    description = "The identifier of the DB instance."
-  }
-
-  param "snapshot_identifier" {
-    type        = string
-    description = "The snapshot identifier of the DB instance."
-  }
-
-  param "aws_managed_kms_key_arn" {
-    type        = string
-    description = "Enables storage encryption for the DB instance."
-  }
-
-  param "region" {
-    type        = string
-    description = local.description_region
-  }
-
-  param "cred" {
-    type        = string
-    description = local.description_credential
-  }
-
-  param "notifier" {
-    type        = string
-    description = local.description_notifier
-    default     = var.notifier
-  }
-
-  param "notification_level" {
-    type        = string
-    description = local.description_notifier_level
-    default     = var.notification_level
-  }
-
-  param "approvers" {
-    type        = list(string)
-    description = local.description_approvers
-    default     = var.approvers
-  }
-
-  param "default_action" {
-    type        = string
-    description = local.description_default_action
-    default     = var.rds_db_instance_without_encryption_default_action
-  }
-
-  param "enabled_actions" {
-    type        = list(string)
-    description = local.description_enabled_actions
-    default     = var.rds_db_instance_without_encryption_enabled_actions
-  }
-
-  step "pipeline" "respond" {
-    pipeline = detect_correct.pipeline.correction_handler
-    args = {
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-      detect_msg         = "Detected RDS DB instance ${param.title} with encryption at rest disabled."
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
-      actions = {
-        "skip" = {
-          label        = "Skip"
-          value        = "skip"
-          style        = local.style_info
-          pipeline_ref = detect_correct.pipeline.optional_message
-          pipeline_args = {
-            notifier = param.notifier
-            send     = param.notification_level == local.level_verbose
-            text     = "Skipped RDS DB instance ${param.title} with encryption at rest disabled."
-          }
-          success_msg = ""
-          error_msg   = ""
-        },
-        "enable_encryption_at_rest" = {
-          label        = "Enable Encryption at Rest"
-          value        = "enable_encryption_at_rest"
-          style        = local.style_alert
-          pipeline_ref = pipeline.update_rds_encryption
-          pipeline_args = {
-            db_instance_identifier  = param.db_instance_identifier
-            snapshot_identifier     = param.snapshot_identifier
-            aws_managed_kms_key_arn = param.aws_managed_kms_key_arn
-            region                  = param.region
-            cred                    = param.cred
-          }
-          success_msg = "Enabled encryption at rest for RDS DB instance ${param.title}."
-          error_msg   = "Error enabling encryption at rest for RDS DB instance ${param.title}."
-        }
-      }
-    }
-  }
-}
-
-pipeline "update_rds_encryption" {
-  title       = "Update RDS Encryption at Rest"
-  description = "Enables encryption at rest for an existing RDS instance by creating an encrypted snapshot and restoring it."
-
-  param "cred" {
-    type        = string
-    description = "AWS Credential"
-    default     = "default"
-  }
-
-  param "region" {
-    type        = string
-    description = "AWS Region"
-  }
-
-  param "db_instance_identifier" {
-    type        = string
-    description = "The identifier of the existing RDS instance."
-  }
-
-  param "snapshot_identifier" {
-    type        = string
-    description = "The identifier for the DB snapshot."
-    default     = "rds-database-identifir-123"
-  }
-
-  param "encrypted_snapshot_identifier" {
-    type        = string
-    description = "The identifier for the encrypted DB snapshot."
-    default = "snapshot-encrypted-database-123"
-  }
-
-  param "new_db_instance_identifier" {
-    type        = string
-    description = "The identifier for the new DB instance."
-    default = "new-encrypted-database-123"
-  }
-
-  param "aws_managed_kms_key_arn" {
-    type        = string
-    description = "The KMS key ID for encryption."
-  }
-
-  step "container" "create_db_snapshot" {
-    image = "public.ecr.aws/aws-cli/aws-cli"
-    cmd = [
-      "rds", "create-db-snapshot",
-      "--db-instance-identifier", param.db_instance_identifier,
-      "--db-snapshot-identifier", param.snapshot_identifier,
-      "--region", param.region
-    ]
-    env = credential.aws[param.cred].env
-  }
-
-  step "sleep" "sleep_10_seconds" {
-    depends_on = [ step.container.create_db_snapshot ]
-    duration   = "20s"
-  }
-
-  step "container" "copy_db_snapshot" {
-    depends_on = [step.sleep.sleep_10_seconds]
-    image = "public.ecr.aws/aws-cli/aws-cli"
-    cmd = [
-      "rds", "copy-db-snapshot",
-      "--source-db-snapshot-identifier", param.snapshot_identifier,
-      "--target-db-snapshot-identifier", param.encrypted_snapshot_identifier,
-      "--kms-key-id", param.aws_managed_kms_key_arn,
-      "--region", param.region
-    ]
-    env = credential.aws[param.cred].env
-  }
-
-  step "sleep" "sleep_300_seconds" {
-    depends_on = [ step.container.copy_db_snapshot ]
-    duration   = "20s"
-}
-
-  step "container" "restore_db_instance_from_snapshot" {
-    depends_on = [step.sleep.sleep_300_seconds]
-    image = "public.ecr.aws/aws-cli/aws-cli"
-    cmd = [
-      "rds", "restore-db-instance-from-db-snapshot",
-      "--db-instance-identifier", param.new_db_instance_identifier,
-      "--db-snapshot-identifier", param.encrypted_snapshot_identifier,
-      "--region", param.region
-    ]
-    env = credential.aws[param.cred].env
-  }
-
-  step "container" "delete_rds_db_instance" {
-    image = "public.ecr.aws/aws-cli/aws-cli"
-
-    cmd = [
-      "rds", "delete-db-instance", "--skip-final-snapshot",
-      "--db-instance-identifier", param.db_instance_identifier,
-    ]
-
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+  step "message" "notify_items" {
+    if       = var.notification_level == local.level_info
+    for_each = param.items
+    notifier = notifier[param.notifier]
+    text     = "Detected RDS DB instance ${each.value.title} with encryption at rest disabled."
   }
 }

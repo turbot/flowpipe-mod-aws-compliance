@@ -1,8 +1,8 @@
 locals {
   iam_user_with_more_than_one_active_key_query = <<-EOQ
-    with users_with_more_than_one_active_key as (
+    with users_active_key_count as (
       select
-        u.arn as resource,
+        u.arn as user_arn,
         u.name as name,
         count(*) as num
       from
@@ -12,32 +12,65 @@ locals {
         k.status = 'Active'
       group by
         u.arn, u.name
-    ), cte2 as (
-      select resource, name, num
-      from users_with_more_than_one_active_key
-      where num > 1
-      group by num, resource, name
+    ), users_with_more_than_one_active_key as (
+      select
+        user_arn,
+        name,
+        num
+      from
+        users_active_key_count
+      where
+        num > 1
+      group by
+        num, user_arn, name
     ), ranked_keys as (
       select
         k.access_key_id,
         k.user_name,
+        k.create_date,
         k.access_key_last_used_date,
-				_ctx,
-				account_id,
-        row_number() over (partition by k.user_name order by k.access_key_last_used_date desc) as rnk
+        _ctx,
+        account_id,
+        row_number() over (partition by k.user_name order by k.create_date desc) as rnk
       from
         aws_iam_access_key as k
       where
-        k.user_name in (select name from cte2)
+        k.user_name in (select name from users_with_more_than_one_active_key)
     )
     select
 			concat(access_key_id, ' [', account_id, ']') as title,
       access_key_id,
       user_name,
       access_key_last_used_date,
+      create_date,
       _ctx ->> 'connection_name' as cred
     from
-      ranked_keys;
+      ranked_keys
+    where
+      rnk = 2;
+
+
+  ----
+
+
+  select
+    k.access_key_id,
+    k.user_name,
+    k.create_date,
+    k.access_key_last_used_date,
+    k.status,
+    k.account_id,
+    _ctx ->> 'connection_name' as cred,
+    now() - k.create_date as key_age,  -- This gives an interval, including days
+    EXTRACT(day from now() - k.create_date) as key_age_in_days  -- Extracts only the days part
+from
+    aws_iam_access_key as k
+where
+    k.status = 'Active'  -- Only select active keys
+    and k.create_date < now() - INTERVAL '90 days'
+order by
+    k.create_date asc;  -- Oldest keys first
+
   EOQ
 }
 
