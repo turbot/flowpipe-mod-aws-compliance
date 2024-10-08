@@ -13,7 +13,7 @@ locals {
 }
 
 trigger "query" "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
-  title       = "Detect & Correct S3 Buckets With Default Encryption Disabled"
+  title       = "Detect & correct S3 Buckets With Default Encryption Disabled"
   description = "Detect S3 buckets with default encryption disabled and then skip or enable default encryption."
   // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_default_encryption_disabled_trigger.md")
 
@@ -31,7 +31,7 @@ trigger "query" "detect_and_correct_s3_buckets_with_default_encryption_disabled"
 }
 
 pipeline "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
-  title       = "Detect & Correct S3 Buckets With Default Encryption Disabled"
+  title       = "Detect & correct S3 Buckets With Default Encryption Disabled"
   description = "Detect S3 buckets with default encryption disabled and then skip or enable default encryption."
   // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_default_encryption_disabled.md")
   tags = merge(local.s3_common_tags, { class = "security", type = "featured" })

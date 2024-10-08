@@ -43,7 +43,7 @@ variable "s3_bucket_public_access_enabled_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_s3_buckets_with_public_access_enabled" {
-  title       = "Detect & Correct S3 Buckets With Public Access Enabled"
+  title       = "Detect & correct S3 Buckets With Public Access Enabled"
   description = "Detect S3 buckets with public access enabled and then skip or block public access."
   // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_public_access_enabled_trigger.md")
   // tags          = merge(local.s3_common_tags, { class = "unused" })
@@ -62,7 +62,7 @@ trigger "query" "detect_and_correct_s3_buckets_with_public_access_enabled" {
 }
 
 pipeline "detect_and_correct_s3_buckets_with_public_access_enabled" {
-  title       = "Detect & Correct S3 Buckets With Public Access Enabled"
+  title       = "Detect & correct S3 Buckets With Public Access Enabled"
   description = "Detect S3 buckets with public access enabled and then skip or block public access."
   // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_public_access_enabled.md")
 

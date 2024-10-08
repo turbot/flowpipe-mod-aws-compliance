@@ -38,7 +38,7 @@ variable "cloudtrail_trails_with_log_file_validation_disabled_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled" {
-  title         = "Detect & Correct CloudTrail Trails With Log File Validation Disabled"
+  title         = "Detect & correct CloudTrail trails with log file validation disabled"
   description   = "Detect CloudTrail trails with log file validation disabled and then skip or enable log file validation."
   //documentation = file("./cloudtrail/docs/cloudtrail_trails_with_log_file_validation_disabled.md")
   tags          = local.cloudtrail_common_tags
@@ -64,7 +64,7 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_log_file_validation_d
 }
 
 pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled" {
-  title         = "Detect & Correct CloudTrail Trails with Log File Validation Disabled"
+  title         = "Detect & correct CloudTrail trails with log file validation disabled"
   description   = "Detect CloudTrail trails with log file validation disabled and then skip or enable log file validation."
   //documentation = file("./cloudtrail/docs/cloudtrail_trails_with_log_file_validation_disabled.md")
   tags          = local.cloudtrail_common_tags
@@ -124,7 +124,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled
 }
 
 pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
-  title         = "Correct CloudTrail Trails Log File Validation Disabled"
+  title         = "Correct CloudTrail trails with log file validation disabled"
   description   = "Enable log file validation for CloudTrail trails with log file validation disabled."
   //documentation = file("./cloudtrail/docs/cloudtrail_trails_with_log_file_validation_disabled.md")
   tags          = local.cloudtrail_common_tags
@@ -194,7 +194,7 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
 }
 
 pipeline "correct_one_cloudtrail_trail_log_file_validation_disabled" {
-  title         = "Correct CloudTrail Trail Log File Validation Disabled"
+  title         = "Correct one CloudTrail trail with log file validation disabled"
   description   = "Enable log file validation for a CloudTrail trail with log file validation disabled."
   //documentation = file("./cloudtrail/docs/cloudtrail_trails_with_log_file_validation_disabled.md")
   tags          = local.cloudtrail_common_tags

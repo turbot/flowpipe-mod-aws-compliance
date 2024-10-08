@@ -56,7 +56,7 @@ variable "s3_bucket_enforce_ssl_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_s3_buckets_without_ssl_enforcement" {
-  title       = "Detect & Correct S3 Buckets Without SSL Enforcement"
+  title       = "Detect & correct S3 Buckets Without SSL Enforcement"
   description = "Detect S3 buckets that do not enforce SSL and then skip or enforce SSL."
   // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_without_ssl_enforcement_trigger.md")
 
@@ -74,7 +74,7 @@ trigger "query" "detect_and_correct_s3_buckets_without_ssl_enforcement" {
 }
 
 pipeline "detect_and_correct_s3_buckets_without_ssl_enforcement" {
-  title       = "Detect & Correct S3 Buckets Without SSL Enforcement"
+  title       = "Detect & correct S3 Buckets Without SSL Enforcement"
   description = "Detect S3 buckets that do not enforce SSL and then skip or enforce SSL."
   // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_without_ssl_enforcement.md")
 
