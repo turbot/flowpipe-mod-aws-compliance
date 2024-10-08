@@ -28,10 +28,6 @@ locals {
   select
     concat(name, ' [', account_id, '/', region, ']') as title,
     name,
-    case
-      when arn is null then 'arn:aws:s3:::' || name
-      else arn
-    end as bucket_arn,
     region,
     account_id,
     _ctx ->> 'connection_name' as cred
@@ -69,10 +65,10 @@ variable "cloudtrail_trails_with_public_s3_bucket_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
-  title         = "Detect & correct CloudTrail trails using public S3 bucket"
-  description   = "Detect CloudTrail trails with public S3 buckets and then skip or update S3 bucket public access block."
+  title       = "Detect & correct CloudTrail trails using public S3 bucket"
+  description = "Detect CloudTrail trails with public S3 buckets and then skip or update S3 bucket public access block."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_public_s3_bucket_trigger.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   enabled  = var.cloudtrail_trails_with_public_s3_bucket_trigger_enabled
   schedule = var.cloudtrail_trails_with_public_s3_bucket_trigger_schedule
@@ -85,13 +81,20 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
       items = self.inserted_rows
     }
   }
+
+  capture "update" {
+    pipeline = pipeline.correct_cloudtrail_trails_with_public_s3_bucket
+    args = {
+      items = self.updated_rows
+    }
+  }
 }
 
 pipeline "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
-  title         = "Detect & correct CloudTrail trails using public S3 bucket"
-  description   = "Detect CloudTrail trails with public S3 bucket and then skip or update S3 bucket public access block."
+  title       = "Detect & correct CloudTrail trails with public S3 bucket access"
+  description = "Detect CloudTrail trails with public S3 bucket and then skip or update S3 bucket public access block."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_public_s3_bucket.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -148,19 +151,18 @@ pipeline "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
 }
 
 pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
-  title         = "Correct CloudTrail trails with public S3 buckets"
-  description   = "Runs corrective action on a collection of CloudTrail trails with public S3 buckets."
+  title       = "Correct CloudTrail trails with public S3 bucket access"
+  description = "Runs corrective action on a collection of CloudTrail trails with public S3 buckets."
   // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_public_s3_bucket.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
-      title       = string
-      name        = string
-      bucket_arn  = string
-      region      = string
-      account_id  = string
-      cred        = string
+      title      = string
+      name       = string
+      region     = string
+      account_id = string
+      cred       = string
     }))
     description = local.description_items
   }
@@ -208,7 +210,7 @@ pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
     args = {
       title              = each.value.title
       name               = each.value.name
-      bucket_arn         = each.value.bucket_arn
+      bucket_name        = each.value.name
       region             = each.value.region
       account_id         = each.value.account_id
       cred               = each.value.cred
@@ -222,10 +224,10 @@ pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
 }
 
 pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
-  title         = "Correct one CloudTrail trail with public S3 bucket"
-  description   = "Runs corrective action on a CloudTrail trail with a public S3 bucket."
+  title       = "Correct one CloudTrail trail with public S3 bucket access"
+  description = "Runs corrective action on a CloudTrail trail with a public S3 bucket."
   // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_public_s3_bucket.md")
-  tags          = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "title" {
     type        = string
@@ -237,9 +239,9 @@ pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
     description = "The name of the CloudTrail trail."
   }
 
-  param "bucket_arn" {
+  param "bucket_name" {
     type        = string
-    description = "The ARN of the S3 bucket."
+    description = "The name of the S3 bucket."
   }
 
   param "region" {
@@ -316,13 +318,13 @@ pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.put_s3_bucket_public_access_block
           pipeline_args = {
-            region      = param.region
-            cred        = param.cred
-            block_public_policy = true
+            region                  = param.region
+            cred                    = param.cred
+            bucket                  = param.bucket_name
+            block_public_policy     = true
             restrict_public_buckets = true
-            bucket = param.name
-            block_public_acls = true
-            ignore_public_acls = true
+            block_public_acls       = true
+            ignore_public_acls      = true
           }
           success_msg = "Updated S3 Bucket access policy for ${param.title}."
           error_msg   = "Error updating S3 Bucket access policy ${param.title}."
