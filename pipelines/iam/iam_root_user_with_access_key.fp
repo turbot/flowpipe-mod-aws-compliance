@@ -1,5 +1,5 @@
 locals {
-  iam_root_access_keys_query = <<-EOQ
+  iam_root_user_with_access_key_query = <<-EOQ
     select
       concat(access_key_id, ' [', account_id, ']') as title,
       user_name,
@@ -8,65 +8,61 @@ locals {
     from
       aws_iam_access_key
     where
-      user_name = '<root_account>'
+      user_name = '<root_account>';
   EOQ
 }
 
-variable "iam_root_access_keys_trigger_enabled" {
+variable "iam_root_user_with_access_key_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "iam_root_access_keys_trigger_schedule" {
+variable "iam_root_user_with_access_key_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "iam_root_access_keys_default_action" {
+variable "iam_root_user_with_access_key_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
 }
 
-variable "iam_root_access_keys_enabled_actions" {
+variable "iam_root_user_with_access_key_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "delete_access_key"]
+  default     = ["skip", "delete_root_user_access_key"]
 }
 
-trigger "query" "detect_and_delete_iam_root_access_keys" {
-  title         = "Detect & correct IAM Root User Access Keys"
+trigger "query" "detect_and_correct_iam_root_user_with_access_key" {
+  title         = "Detect & correct IAM root user with access keys"
   description   = "Detects IAM root user access keys and deletes them."
-  // // documentation = file("./iam/docs/detect_and_delete_iam_root_access_keys_trigger.md")
-  tags          = merge(local.iam_common_tags, { class = "security" })
 
-  enabled  = var.iam_root_access_keys_trigger_enabled
-  schedule = var.iam_root_access_keys_trigger_schedule
+  enabled  = var.iam_root_user_with_access_key_trigger_enabled
+  schedule = var.iam_root_user_with_access_key_trigger_schedule
   database = var.database
-  sql      = local.iam_root_access_keys_query
+  sql      = local.iam_root_user_with_access_key_query
 
   capture "insert" {
-    pipeline = pipeline.delete_iam_root_access_keys
+    pipeline = pipeline.correct_iam_root_user_with_access_key
     args = {
       items = self.inserted_rows
     }
   }
 
   capture "update" {
-    pipeline = pipeline.delete_iam_root_access_keys
+    pipeline = pipeline.correct_iam_root_user_with_access_key
     args = {
       items = self.updated_rows
     }
   }
 }
 
-pipeline "detect_and_delete_iam_root_access_keys" {
-  title         = "Detect & correct IAM Root User Access Keys"
+pipeline "detect_and_correct_iam_root_user_with_access_key" {
+  title         = "Detect & correct IAM root user with access keys"
   description   = "Detects IAM root user access keys and deletes them."
-  // // documentation = file("./iam/docs/detect_and_delete_iam_root_access_keys.md")
-  tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
 
   param "database" {
     type        = string
@@ -95,22 +91,22 @@ pipeline "detect_and_delete_iam_root_access_keys" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_root_access_keys_default_action
+    default     = var.iam_root_user_with_access_key_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_root_access_keys_enabled_actions
+    default     = var.iam_root_user_with_access_key_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_root_access_keys_query
+    sql      = local.iam_root_user_with_access_key_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.delete_iam_root_access_keys
+    pipeline = pipeline.correct_iam_root_user_with_access_key
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -122,11 +118,9 @@ pipeline "detect_and_delete_iam_root_access_keys" {
   }
 }
 
-pipeline "delete_iam_root_access_keys" {
-  title         = "Delete IAM Root User Access Keys"
+pipeline "correct_iam_root_user_with_access_key" {
+  title         = "Correct IAM root user with access keys"
   description   = "Runs corrective action to delete IAM root user access keys."
-  // // documentation = file("./iam/docs/delete_iam_root_access_keys.md")
-  tags          = merge(local.iam_common_tags, { class = "security" })
 
   param "items" {
     type = list(object({
@@ -160,13 +154,13 @@ pipeline "delete_iam_root_access_keys" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_root_access_keys_default_action
+    default     = var.iam_root_user_with_access_key_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_root_access_keys_enabled_actions
+    default     = var.iam_root_user_with_access_key_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -178,7 +172,7 @@ pipeline "delete_iam_root_access_keys" {
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.access_key_id => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_root_access_key
+    pipeline        = pipeline.correct_one_iam_root_user_access_key
     args = {
       title              = each.value.title
       user_id            = each.value.user_id
@@ -194,11 +188,9 @@ pipeline "delete_iam_root_access_keys" {
   }
 }
 
-pipeline "correct_one_iam_root_access_key" {
-  title         = "Correct one IAM Root User Access Key"
-  description   = "Runs corrective action to delete one IAM root user access key."
-  // // documentation = file("./iam/docs/correct_one_iam_root_access_key.md")
-  tags          = merge(local.iam_common_tags, { class = "security" })
+pipeline "correct_one_iam_root_user_access_key" {
+  title         = "Correct IAM root user access key"
+  description   = "Runs corrective action to delete IAM root user access key."
 
   param "title" {
     type        = string
@@ -246,13 +238,13 @@ pipeline "correct_one_iam_root_access_key" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_root_access_keys_default_action
+    default     = var.iam_root_user_with_access_key_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_root_access_keys_enabled_actions
+    default     = var.iam_root_user_with_access_key_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -278,9 +270,9 @@ pipeline "correct_one_iam_root_access_key" {
           success_msg = ""
           error_msg   = ""
         },
-        "delete_access_key" = {
+        "delete_root_user_access_key" = {
           label        = "Delete IAM root access key ${param.access_key_id}"
-          value        = "delete_access_key"
+          value        = "delete_root_user_access_key"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.delete_iam_access_key
           pipeline_args = {
