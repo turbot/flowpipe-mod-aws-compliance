@@ -58,7 +58,7 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_log_file_validation_d
   capture "update" {
     pipeline = pipeline.correct_cloudtrail_trails_with_log_file_validation_disabled
     args = {
-      items = self.inserted_rows
+      items = self.updated_rows
     }
   }
 }
