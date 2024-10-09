@@ -18,7 +18,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
     default     = "flowpipe-group-${uuid()}"
   }
 
-   step "container" "create_iam_group" {
+  step "container" "create_iam_group" {
     image = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "create-group",
@@ -29,7 +29,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
   }
 
   step "container" "attach_group_policy" {
-   image = "public.ecr.aws/aws-cli/aws-cli"
+   image       = "public.ecr.aws/aws-cli/aws-cli"
     depends_on = [step.container.create_iam_group]
     cmd = [
       "iam", "attach-group-policy",
@@ -58,7 +58,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.query.get_group_with_unrestricted_cloudshell_full_access]
+    depends_on      = [step.query.get_group_with_unrestricted_cloudshell_full_access]
     for_each        = { for item in step.query.get_group_with_unrestricted_cloudshell_full_access.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_group_with_unrestricted_cloudshell_full_access
@@ -80,7 +80,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       select
         concat(name, ' [', account_id,  ']') as title,
@@ -95,9 +95,9 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
     EOQ
   }
 
- 	step "container" "delete_iam_group" {
+  step "container" "delete_iam_group" {
     depends_on = [step.query.get_details_after_detection]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "delete-group",
       "--group-name", param.group_name

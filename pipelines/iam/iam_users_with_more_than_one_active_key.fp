@@ -48,29 +48,6 @@ locals {
       ranked_keys
     where
       rnk = 2;
-
-
-  ----
-
-
-  select
-    k.access_key_id,
-    k.user_name,
-    k.create_date,
-    k.access_key_last_used_date,
-    k.status,
-    k.account_id,
-    _ctx ->> 'connection_name' as cred,
-    now() - k.create_date as key_age,  -- This gives an interval, including days
-    EXTRACT(day from now() - k.create_date) as key_age_in_days  -- Extracts only the days part
-from
-    aws_iam_access_key as k
-where
-    k.status = 'Active'  -- Only select active keys
-    and k.create_date < now() - INTERVAL '90 days'
-order by
-    k.create_date asc;  -- Oldest keys first
-
   EOQ
 }
 

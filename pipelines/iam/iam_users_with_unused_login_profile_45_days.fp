@@ -3,10 +3,10 @@ locals {
     select
       concat(u.name, ' [', u.account_id, ']') as title,
       u.name as user_name,
-			coalesce(r.password_last_used::text, 'Never Used') as password_last_used,
-			r.password_last_changed,
-			coalesce(((extract(day from now() - r.password_last_used))::text), 'Never Used') as password_last_used_in_days,
-			(extract(day from now() - r.password_last_changed))::text as password_last_changed_in_days,
+      coalesce(r.password_last_used::text, 'Never Used') as password_last_used,
+      r.password_last_changed,
+      coalesce(((extract(day from now() - r.password_last_used))::text), 'Never Used') as password_last_used_in_days,
+      (extract(day from now() - r.password_last_changed))::text as password_last_changed_in_days,
       u._ctx ->> 'connection_name' as cred
     from
       aws_iam_user as u

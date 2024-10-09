@@ -1,15 +1,15 @@
 locals {
   iam_server_certificates_expired_query = <<-EOQ
     select
-      concat(name, ' [', account_id, ']') as title,
-			name as server_certificate_name,
-			to_char(expiration, 'DD-Mon-YYYY') as expiration_date,
-			account_id,
+      (name, ' [', account_id, ']') as title,
+      name as server_certificate_name,
+      to_char(expiration, 'DD-Mon-YYYY') as expiration_date,
+      account_id,
       _ctx ->> 'connection_name' as cred
     from
       aws_iam_server_certificate
-		where
-			expiration < (current_date - interval '1' second);
+    where
+      expiration < (current_date - interval '1' second);
   EOQ
 }
 

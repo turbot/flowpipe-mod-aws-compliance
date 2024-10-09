@@ -12,7 +12,7 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
     default     = "default"
   }
 
-	param "user_name" {
+  param "user_name" {
     type        = string
     description = "The name of the user."
     default     = "flowpipe-user-${uuid()}"
@@ -78,7 +78,7 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
   }
 
   step "container" "attach_user_policy" {
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     depends_on = [step.query.get_iam_policy_arn]
     cmd = [
       "iam", "attach-user-policy",
@@ -133,7 +133,7 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.query.get_user_with_iam_star_star_policy_attached]
+    depends_on      = [step.query.get_user_with_iam_star_star_policy_attached]
     for_each        = { for item in step.query.get_user_with_iam_star_star_policy_attached.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_user_with_policy_star_star_attached
@@ -156,7 +156,7 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       with star_star_policy as (
         select
@@ -199,7 +199,7 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
 
   step "container" "delete_iam_user" {
     depends_on = [step.query.get_details_after_detection]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "delete-user",
       "--user-name", param.user_name

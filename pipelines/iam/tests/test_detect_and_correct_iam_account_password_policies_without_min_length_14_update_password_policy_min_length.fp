@@ -25,7 +25,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
 
   step "query" "get_password_policy" {
     depends_on = [step.query.get_account_id]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       select
         a.account_id as title,
@@ -51,7 +51,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
 
   step "query" "get_password_policy_with_minimum_password_length_less_than_14" {
     depends_on = [step.query.get_password_policy]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       select
         pol.account_id as password_policy_account_id
@@ -82,7 +82,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.pipeline.set_password_policy_length_7]
+    depends_on      = [step.pipeline.set_password_policy_length_7]
     for_each        = { for item in step.query.get_password_policy.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_min_length_14
@@ -97,7 +97,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
   }
 
   step "query" "get_password_policy_after_detection" {
-    if        = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
+    if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.pipeline.run_detection]
     database = var.database
     sql = <<-EOQ

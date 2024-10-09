@@ -1,14 +1,14 @@
 locals {
   iam_users_with_console_access_mfa_disabled_query = <<-EOQ
     select
-			concat(user_name, ' [', account_id, ']') as title,
-			user_name,
-			account_id,
-			_ctx ->> 'connection_name' as cred
-		from
-			aws_iam_credential_report
-		where
-			password_enabled and not mfa_active;
+      concat(user_name, ' [', account_id, ']') as title,
+      user_name,
+      account_id,
+      _ctx ->> 'connection_name' as cred
+    from
+      aws_iam_credential_report
+    where
+      password_enabled and not mfa_active;
   EOQ
 }
 

@@ -86,7 +86,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
   }
 
   step "container" "attach_user_policy" {
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     depends_on = [step.query.get_iam_policy_arn]
     cmd = [
       "iam", "attach-user-policy",
@@ -116,7 +116,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.query.get_iam_users_with_iam_policy_attached]
+    depends_on      = [step.query.get_iam_users_with_iam_policy_attached]
     for_each        = { for item in step.query.get_iam_users_with_iam_policy_attached.rows : item.policy_arn => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_user_with_iam_policy_attached

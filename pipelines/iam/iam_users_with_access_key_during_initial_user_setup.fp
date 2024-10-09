@@ -1,20 +1,20 @@
 locals {
   iam_users_with_access_key_during_initial_user_setup_query = <<-EOQ
     select
-			concat(k.access_key_id, ' [', k.account_id, ']') as title,
-			k.access_key_id,
-			k.user_name,
-			k.create_date as key_creation_date,
-			u.create_date as user_creation_date,
-			k.access_key_last_used_date,
+      concat(k.access_key_id, ' [', k.account_id, ']') as title,
+      k.access_key_id,
+      k.user_name,
+      k.create_date as key_creation_date,
+      u.create_date as user_creation_date,
+      k.access_key_last_used_date,
       k._ctx ->> 'connection_name' as cred
-		from
-			aws_iam_access_key as k
-			join aws_iam_user as u on u.name = k.user_name and (extract(day from now() - k.create_date)) = (extract(day from now() - u.create_date))
-			join aws_iam_credential_report as r on r.user_name = u.name
-		where
-			access_key_last_used_date is null
-			and password_enabled;
+    from
+      aws_iam_access_key as k
+      join aws_iam_user as u on u.name = k.user_name and (extract(day from now() - k.create_date)) = (extract(day from now() - u.create_date))
+      join aws_iam_credential_report as r on r.user_name = u.name
+    where
+      access_key_last_used_date is null
+      and password_enabled;
   EOQ
 }
 

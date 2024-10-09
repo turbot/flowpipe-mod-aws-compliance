@@ -45,7 +45,7 @@ pipeline "test_detect_and_correct_iam_roles_with_unrestricted_cloudshell_full_ac
   }
 
   step "container" "attach_role_policy" {
-   image = "public.ecr.aws/aws-cli/aws-cli"
+   image       = "public.ecr.aws/aws-cli/aws-cli"
     depends_on = [step.pipeline.create_iam_role]
     cmd = [
       "iam", "attach-role-policy",
@@ -74,7 +74,7 @@ pipeline "test_detect_and_correct_iam_roles_with_unrestricted_cloudshell_full_ac
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.query.get_role_with_unrestricted_cloudshell_full_access]
+    depends_on      = [step.query.get_role_with_unrestricted_cloudshell_full_access]
     for_each        = { for item in step.query.get_role_with_unrestricted_cloudshell_full_access.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_role_with_unrestricted_cloudshell_full_access
@@ -96,7 +96,7 @@ pipeline "test_detect_and_correct_iam_roles_with_unrestricted_cloudshell_full_ac
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       select
         concat(name, ' [', account_id,  ']') as title,

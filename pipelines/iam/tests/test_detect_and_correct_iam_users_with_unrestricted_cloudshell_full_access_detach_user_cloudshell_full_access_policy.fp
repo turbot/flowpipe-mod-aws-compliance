@@ -56,7 +56,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.query.get_user_with_unrestricted_cloudshell_full_access]
+    depends_on      = [step.query.get_user_with_unrestricted_cloudshell_full_access]
     for_each        = { for item in step.query.get_user_with_unrestricted_cloudshell_full_access.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_user_with_unrestricted_cloudshell_full_access
@@ -78,7 +78,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       select
         concat(name, ' [', account_id,  ']') as title,
@@ -93,7 +93,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
     EOQ
   }
 
- 	step "pipeline" "delete_iam_user" {
+  step "pipeline" "delete_iam_user" {
     depends_on = [step.query.get_details_after_detection]
     pipeline   = aws.pipeline.delete_iam_user
     args = {

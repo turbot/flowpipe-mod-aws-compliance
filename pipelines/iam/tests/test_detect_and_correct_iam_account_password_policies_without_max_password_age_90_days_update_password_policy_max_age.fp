@@ -24,8 +24,8 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_max_pass
   }
 
   step "query" "get_password_policy" {
-	  depends_on = [step.query.get_account_id]
-    database = var.database
+    depends_on = [step.query.get_account_id]
+    database   = var.database
     sql = <<-EOQ
       select
         a.account_id as title,
@@ -51,7 +51,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_max_pass
 
   step "query" "get_password_policy_with_password_max_age_less_than_90_days" {
     depends_on = [step.query.get_password_policy]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       select
         pol.account_id as password_policy_account_id
@@ -67,7 +67,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_max_pass
 
   step "pipeline" "set_password_max_age_60_days" {
     depends_on = [step.query.get_password_policy_with_password_max_age_less_than_90_days]
-    if        = length(step.query.get_password_policy_with_password_max_age_less_than_90_days.rows) == 0 && (step.query.get_password_policy.rows[0].password_policy_account_id) != null
+    if         = length(step.query.get_password_policy_with_password_max_age_less_than_90_days.rows) == 0 && (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     pipeline  = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
@@ -83,7 +83,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_max_pass
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.pipeline.set_password_max_age_60_days]
+    depends_on      = [step.pipeline.set_password_max_age_60_days]
     for_each        = { for item in step.query.get_password_policy.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_max_password_age_90_days
@@ -125,7 +125,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_max_pass
   step "pipeline" "set_password_max_age_to_old_setting" {
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.query.get_password_policy_after_detection]
-    pipeline  = aws.pipeline.update_iam_account_password_policy
+    pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
       cred                           = param.cred
@@ -140,7 +140,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_max_pass
   }
 
   step "container" "delete_iam_account_password_policy" {
-    if     =(step.query.get_password_policy.rows[0].password_policy_account_id) == null
+    if        =(step.query.get_password_policy.rows[0].password_policy_account_id) == null
     depends_on = [step.pipeline.set_password_max_age_to_old_setting]
     image = "public.ecr.aws/aws-cli/aws-cli"
 

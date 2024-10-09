@@ -12,19 +12,19 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
     default     = "default"
   }
 
- 	step "query" "get_access_analyzer_disabled_region" {
-		database = var.database
+  step "query" "get_access_analyzer_disabled_region" {
+    database = var.database
     sql = <<-EOQ
       select
-				concat(r.region, ' [', r.account_id, ']') as title,
-				r.region,
-				r._ctx ->> 'connection_name' as cred
-			from
-				aws_region as r
-				left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
-			where
-				r.opt_in_status <> 'not-opted-in'
-				and aa.arn is null limit 1;
+        concat(r.region, ' [', r.account_id, ']') as title,
+        r.region,
+        r._ctx ->> 'connection_name' as cred
+      from
+        aws_region as r
+        left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
+      where
+        r.opt_in_status <> 'not-opted-in'
+        and aa.arn is null limit 1;
     EOQ
 
     throw {

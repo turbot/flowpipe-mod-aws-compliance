@@ -25,7 +25,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
 
   step "query" "get_password_policy" {
     depends_on = [step.query.get_account_id]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       select
         a.account_id as title,
@@ -51,7 +51,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
 
   step "query" "get_password_policy_without_password_reuse_24" {
     depends_on = [step.query.get_password_policy]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       select
         pol.account_id as password_policy_account_id
@@ -67,8 +67,8 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
 
   step "pipeline" "set_password_reuse_10" {
     depends_on = [step.query.get_password_policy_without_password_reuse_24]
-    if        = length(step.query.get_password_policy_without_password_reuse_24.rows) == 0 && (step.query.get_password_policy.rows[0].password_policy_account_id) != null
-    pipeline  = aws.pipeline.update_iam_account_password_policy
+    if         = length(step.query.get_password_policy_without_password_reuse_24.rows) == 0 && (step.query.get_password_policy.rows[0].password_policy_account_id) != null
+    pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
       cred                           = param.cred
@@ -83,7 +83,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.pipeline.set_password_reuse_10]
+    depends_on      = [step.pipeline.set_password_reuse_10]
     for_each        = { for item in step.query.get_password_policy.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_password_reuse_24
@@ -100,7 +100,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
   step "query" "get_password_policy_after_detection" {
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.pipeline.run_detection]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       select
         account_id
@@ -140,7 +140,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
   }
 
   step "container" "delete_iam_account_password_policy" {
-    if     =(step.query.get_password_policy.rows[0].password_policy_account_id) == null
+    if         = (step.query.get_password_policy.rows[0].password_policy_account_id) == null
     depends_on = [step.pipeline.set_password_reuse__to_old_setting]
     image = "public.ecr.aws/aws-cli/aws-cli"
 

@@ -12,7 +12,7 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
     default     = "default"
   }
 
-	param "group_name" {
+  param "group_name" {
     type        = string
     description = "The name of the group_."
     default     = "flowpipe-group-${uuid()}"
@@ -133,7 +133,7 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.query.get_group_with_iam_star_star_policy_attached]
+    depends_on      = [step.query.get_group_with_iam_star_star_policy_attached]
     for_each        = { for item in step.query.get_group_with_iam_star_star_policy_attached.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_group_with_policy_star_star_attached
@@ -156,7 +156,7 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
-    database = var.database
+    database  = var.database
     sql = <<-EOQ
       with star_star_policy as (
         select
@@ -193,13 +193,13 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
         lateral jsonb_array_elements_text(attached_policy_arns) as attached_arns(policy_arn)
         join star_star_policy s on s.arn = attached_arns.policy_arn
       where
-         name = '${param.group_name}';
+        name = '${param.group_name}';
     EOQ
   }
 
   step "container" "delete_iam_group" {
     depends_on = [step.query.get_details_after_detection]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "delete-group",
       "--group-name", param.group_name

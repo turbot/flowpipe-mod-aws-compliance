@@ -1,16 +1,16 @@
 locals {
   iam_users_with_unused_access_key_45_days_query = <<-EOQ
     select
-			concat(u.name, ' [', u.account_id, ']') as title,
-			k.access_key_id,
-			u.name as user_name,
-			u._ctx ->> 'connection_name' as cred,
-			k.access_key_last_used_date,
-			(extract(day from now() - k.access_key_last_used_date))::text as access_key_last_used_day  -- Extracts only the days part
-		from
-			aws_iam_user as u
-			join aws_iam_access_key as k on u.name = k.user_name and u.account_id = k.account_id
-			and access_key_last_used_date < (current_date - interval '45' day);
+      concat(u.name, ' [', u.account_id, ']') as title,
+      k.access_key_id,
+      u.name as user_name,
+      u._ctx ->> 'connection_name' as cred,
+      k.access_key_last_used_date,
+      (extract(day from now() - k.access_key_last_used_date))::text as access_key_last_used_day  -- Extracts only the days part
+    from
+      aws_iam_user as u
+      join aws_iam_access_key as k on u.name = k.user_name and u.account_id = k.account_id
+      and access_key_last_used_date < (current_date - interval '45' day);
   EOQ
 }
 

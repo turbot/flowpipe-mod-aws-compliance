@@ -12,7 +12,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
     default     = "default"
   }
 
-	param "role_name" {
+  param "role_name" {
     type        = string
     description = "The name of the role."
     default     = "flowpipe-role-${uuid()}"
@@ -40,7 +40,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
     })
   }
 
-	param "assume_role_policy_document" {
+  param "assume_role_policy_document" {
     type        = string
     description = "The assume role policy document."
     default     =   jsonencode({
@@ -95,7 +95,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
   }
 
   step "container" "attach_role_policy" {
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     depends_on = [step.query.get_iam_policy_arn]
     cmd = [
       "iam", "attach-role-policy",
@@ -150,7 +150,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.query.get_role_with_iam_star_star_policy_attached]
+    depends_on      = [step.query.get_role_with_iam_star_star_policy_attached]
     for_each        = { for item in step.query.get_role_with_iam_star_star_policy_attached.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_role_with_policy_star_star_attached
@@ -173,7 +173,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
-    database = var.database
+    database   = var.database
     sql = <<-EOQ
       with star_star_policy as (
         select
@@ -216,7 +216,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
 
   step "container" "delete_iam_role" {
     depends_on = [step.query.get_details_after_detection]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "delete-role",
       "--role-name", param.role_name

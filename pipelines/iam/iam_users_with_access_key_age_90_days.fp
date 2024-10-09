@@ -2,15 +2,15 @@ locals {
   iam_users_with_access_key_age_90_days_query = <<-EOQ
 		select
       concat(access_key_id, ' [', account_id, ']') as title,
-			access_key_id,
-			user_name,
-			_ctx ->> 'connection_name' as cred,
-			create_date as access_key_create_date,
-			(extract(day from now() - create_date))::text as access_key_create_day
+      access_key_id,
+      user_name,
+      _ctx ->> 'connection_name' as cred,
+      create_date as access_key_create_date,
+      (extract(day from now() - create_date))::text as access_key_create_day
     from
       aws_iam_access_key
-		where
-			create_date <= (current_date - interval '90' day);
+    where
+      create_date <= (current_date - interval '90' day);
   EOQ
 }
 

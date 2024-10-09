@@ -24,8 +24,8 @@ locals {
       _ctx ->> 'connection_name' as cred
     from
       support_role_count
-		where
-			count = 0;
+    where
+      count = 0;
   EOQ
 }
 
