@@ -612,7 +612,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_iam_policy_cha
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes" {
   title       = "Correct one CloudWatch log group without metric filter for IAM policy changes"
   description = "Enable IAM policy changes metric filter for a CloudWatch log group."
-  tags = local.cloudwatch_common_tags
+  tags        = local.cloudwatch_common_tags
 
   param "title" {
     type        = string
@@ -847,8 +847,8 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_policy
               ]
             })
           }
-          success_msg = "Enabled IAM changes metric filter for account ${param.title}."
-          error_msg   = "Error enabling IAM changes metric filter for account ${param.title}."
+          success_msg = "Enabled IAM policy changes metric filter for account ${param.title}."
+          error_msg   = "Error enabling IAM policy changes metric filter for account ${param.title}."
         }
       }
     }
