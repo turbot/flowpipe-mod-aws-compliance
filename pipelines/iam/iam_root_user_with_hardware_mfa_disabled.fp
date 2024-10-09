@@ -1,5 +1,5 @@
 locals {
-  iam_root_user_hardware_mfa_disabled_query = <<-EOQ
+  iam_root_user_with_hardware_mfa_disabled_query = <<-EOQ
     select
       concat('<root_account>', ' [', s.account_id, ']') as title,
       s.account_id,
@@ -12,57 +12,68 @@ locals {
   EOQ
 }
 
-variable "iam_root_user_hardware_mfa_disabled_trigger_enabled" {
+variable "iam_root_user_with_hardware_mfa_disabled_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-variable "iam_root_user_hardware_mfa_disabled_trigger_schedule" {
+variable "iam_root_user_with_hardware_mfa_disabled_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-variable "iam_root_user_hardware_mfa_disabled_default_action" {
+variable "iam_root_user_with_hardware_mfa_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-variable "iam_root_user_hardware_mfa_disabled_enabled_actions" {
+variable "iam_root_user_with_hardware_mfa_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["notify"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-trigger "query" "detect_and_correct_iam_root_user_hardware_mfa_disabled" {
+trigger "query" "detect_and_correct_iam_root_user_with_hardware_mfa_disabled" {
   title       = "Detect & correct IAM root user with hardware MFA disabled"
   description = "Detect IAM root user with hardware MFA disabled."
+  tags          = local.iam_common_tags
 
-  enabled  = var.iam_root_user_hardware_mfa_disabled_trigger_enabled
-  schedule = var.iam_root_user_hardware_mfa_disabled_trigger_schedule
+  enabled  = var.iam_root_user_with_hardware_mfa_disabled_trigger_enabled
+  schedule = var.iam_root_user_with_hardware_mfa_disabled_trigger_schedule
   database = var.database
-  sql      = local.iam_root_user_hardware_mfa_disabled_query
+  sql      = local.iam_root_user_with_hardware_mfa_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_iam_root_user_hardware_mfa_disabled
+    pipeline = pipeline.correct_iam_root_user_with_hardware_mfa_disabled
     args = {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_root_user_hardware_mfa_disabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
-pipeline "detect_and_correct_iam_root_user_hardware_mfa_disabled" {
+pipeline "detect_and_correct_iam_root_user_with_hardware_mfa_disabled" {
   title       = "Detect & correct IAM root user with hardware MFA disabled"
   description = "Detect IAM root user with hardware MFA disabled."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -91,22 +102,22 @@ pipeline "detect_and_correct_iam_root_user_hardware_mfa_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_root_user_hardware_mfa_disabled_default_action
+    default     = var.iam_root_user_with_hardware_mfa_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_root_user_hardware_mfa_disabled_enabled_actions
+    default     = var.iam_root_user_with_hardware_mfa_disabled_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_root_user_hardware_mfa_disabled_query
+    sql      = local.iam_root_user_with_hardware_mfa_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_iam_root_user_hardware_mfa_disabled
+    pipeline = pipeline.correct_iam_root_user_with_hardware_mfa_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -118,9 +129,10 @@ pipeline "detect_and_correct_iam_root_user_hardware_mfa_disabled" {
   }
 }
 
-pipeline "correct_iam_root_user_hardware_mfa_disabled" {
-  title       = "Correct IAM root user with hardware MFA disabled"
-  description = "Detect IAM root user with hardware MFA disabled."
+pipeline "correct_iam_root_user_with_hardware_mfa_disabled" {
+  title         = "Correct IAM root user with hardware MFA disabled"
+  description   = "Detect IAM root user with hardware MFA disabled."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -153,13 +165,13 @@ pipeline "correct_iam_root_user_hardware_mfa_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_root_user_hardware_mfa_disabled_default_action
+    default     = var.iam_root_user_with_hardware_mfa_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_root_user_hardware_mfa_disabled_enabled_actions
+    default     = var.iam_root_user_with_hardware_mfa_disabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {

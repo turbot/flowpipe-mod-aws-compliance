@@ -1,11 +1,12 @@
 locals {
   iam_account_password_policies_without_one_symbol_query = <<-EOQ
     select
-      account_id as title,
-      account_id,
-      _ctx ->> 'connection_name' as cred
+      a.account_id as title,
+      a.account_id,
+      a._ctx ->> 'connection_name' as cred
     from
-      aws_iam_account_password_policy
+      aws_account as a
+      left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
     where
       require_symbols = false
       or require_symbols is null;
@@ -14,31 +15,48 @@ locals {
 
 variable "iam_account_password_policies_without_one_symbol_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_password_policies_without_one_symbol_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_password_policies_without_one_symbol_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_password_policies_without_one_symbol_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "update_password_policy_require_symbols"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policies_without_one_symbol" {
   title         = "Detect & correct IAM account password policies without requirement for any symbol"
   description   = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_account_password_policies_without_one_symbol_trigger_enabled
   schedule = var.iam_account_password_policies_without_one_symbol_trigger_schedule
@@ -51,18 +69,12 @@ trigger "query" "detect_and_correct_iam_account_password_policies_without_one_sy
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_account_password_policies_without_one_symbol
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_account_password_policies_without_one_symbol" {
   title         = "Detect & correct IAM account password policies without requirement for any symbol"
   description   = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -121,6 +133,7 @@ pipeline "detect_and_correct_iam_account_password_policies_without_one_symbol" {
 pipeline "correct_iam_account_password_policies_without_one_symbol" {
   title         = "Correct IAM account password policies without requirement for any symbol"
   description   = "Update password policy to at least one symbol for IAM accounts without requirement for any symbol."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -185,8 +198,9 @@ pipeline "correct_iam_account_password_policies_without_one_symbol" {
 }
 
 pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
-  title         = "Correct IAM account password policy without requirement for any symbol"
-  description   = "Update password policy to at least one symbol for a IAM account without requirement for any symbol."
+  title         = "Correct one IAM account password policy without requirement for any symbol"
+  description   = "Update password policy to at least one symbol for an IAM account without requirement for any symbol."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -292,19 +306,20 @@ pipeline "update_iam_account_password_policy_symbol" {
     database = var.database
     sql = <<-EOQ
       select
-        account_id,
-        minimum_password_length,
-        require_symbols,
-        require_numbers,
-        require_uppercase_characters,
-        require_lowercase_characters,
-        allow_users_to_change_password,
+        a.account_id,
+        coalesce(minimum_password_length, 8) as minimum_password_length,
+        coalesce(require_symbols, false) as require_symbols,
+        coalesce(require_numbers, false) as require_numbers,
+        coalesce(require_uppercase_characters, false) as require_uppercase_characters,
+        coalesce(require_lowercase_characters, false) as require_lowercase_characters,
+        coalesce(allow_users_to_change_password, false) as allow_users_to_change_password,
         coalesce(max_password_age, 0) as max_password_age,
         coalesce(password_reuse_prevention, 0) as password_reuse_prevention
       from
-        aws_iam_account_password_policy
+        aws_account as a
+        left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-        _ctx ->> 'connection_name' = '${param.cred}'
+        a._ctx ->> 'connection_name' = '${param.cred}';
     EOQ
   }
 

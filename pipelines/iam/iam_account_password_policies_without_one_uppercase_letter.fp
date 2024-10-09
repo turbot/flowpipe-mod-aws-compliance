@@ -1,68 +1,80 @@
 locals {
-  iam_accounts_password_policies_without_one_uppercase_letter_query = <<-EOQ
+  iam_account_password_policies_without_one_uppercase_letter_query = <<-EOQ
     select
-      account_id as title,
-      account_id,
-      _ctx ->> 'connection_name' as cred
+      a.account_id as title,
+      a.account_id,
+      a._ctx ->> 'connection_name' as cred
     from
-      aws_iam_account_password_policy
+      aws_account as a
+      left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
     where
       require_uppercase_characters = false
       or require_uppercase_characters is null;
   EOQ
 }
 
-variable "iam_accounts_password_policies_without_one_uppercase_letter_trigger_enabled" {
+variable "iam_account_password_policies_without_one_uppercase_letter_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-variable "iam_accounts_password_policies_without_one_uppercase_letter_trigger_schedule" {
+variable "iam_account_password_policies_without_one_uppercase_letter_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-variable "iam_accounts_password_policies_without_one_uppercase_letter_default_action" {
+variable "iam_account_password_policies_without_one_uppercase_letter_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-variable "iam_accounts_password_policies_without_one_uppercase_letter_enabled_actions" {
+variable "iam_account_password_policies_without_one_uppercase_letter_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "update_password_policy_require_uppercase"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-trigger "query" "detect_and_correct_iam_accounts_password_policies_without_one_uppercase_letter" {
+trigger "query" "detect_and_correct_iam_account_password_policies_without_one_uppercase_letter" {
   title         = "Detect & correct IAM account password policies without requirement for any uppercase letter"
-  description   = "Detects IAM account password policies without requirement for any uppercase letter and then updates to at least one lowercase letter."
+  description   = "Detects IAM account password policies without requirement for any uppercase letter and then updates to at least one uppercase letter."
+  tags          = local.iam_common_tags
 
-  enabled  = var.iam_accounts_password_policies_without_one_uppercase_letter_trigger_enabled
-  schedule = var.iam_accounts_password_policies_without_one_uppercase_letter_trigger_schedule
+  enabled  = var.iam_account_password_policies_without_one_uppercase_letter_trigger_enabled
+  schedule = var.iam_account_password_policies_without_one_uppercase_letter_trigger_schedule
   database = var.database
-  sql      = local.iam_accounts_password_policies_without_one_uppercase_letter_query
+  sql      = local.iam_account_password_policies_without_one_uppercase_letter_query
 
   capture "insert" {
-    pipeline = pipeline.correct_iam_accounts_password_policies_without_one_uppercase_letter
+    pipeline = pipeline.correct_iam_account_password_policies_without_one_uppercase_letter
     args = {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_accounts_password_policies_without_one_uppercase_letter
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
-pipeline "detect_and_correct_iam_accounts_password_policies_without_one_uppercase_letter" {
+pipeline "detect_and_correct_iam_account_password_policies_without_one_uppercase_letter" {
   title         = "Detect & correct IAM account password policies without requirement for any uppercase letter"
-  description   = "Detects IAM account password policies without requirement for any uppercase letter and then updates to at least one lowercase letter."
+  description   = "Detects IAM account password policies without requirement for any uppercase letter and then updates to at least one uppercase letter."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -91,22 +103,22 @@ pipeline "detect_and_correct_iam_accounts_password_policies_without_one_uppercas
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policies_without_one_uppercase_letter_default_action
+    default     = var.iam_account_password_policies_without_one_uppercase_letter_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policies_without_one_uppercase_letter_enabled_actions
+    default     = var.iam_account_password_policies_without_one_uppercase_letter_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_accounts_password_policies_without_one_uppercase_letter_query
+    sql      = local.iam_account_password_policies_without_one_uppercase_letter_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_iam_accounts_password_policies_without_one_uppercase_letter
+    pipeline = pipeline.correct_iam_account_password_policies_without_one_uppercase_letter
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -118,9 +130,10 @@ pipeline "detect_and_correct_iam_accounts_password_policies_without_one_uppercas
   }
 }
 
-pipeline "correct_iam_accounts_password_policies_without_one_uppercase_letter" {
+pipeline "correct_iam_account_password_policies_without_one_uppercase_letter" {
   title         = "Correct IAM account password policies without requirement for any uppercase letter"
-  description   = "Update password policy to at least one lowercase letter for IAM accounts without requirement for any uppercase letter."
+  description   = "Update password policy to at least one uppercase letter for IAM accounts without requirement for any uppercase letter."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -152,13 +165,13 @@ pipeline "correct_iam_accounts_password_policies_without_one_uppercase_letter" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policies_without_one_uppercase_letter_default_action
+    default     = var.iam_account_password_policies_without_one_uppercase_letter_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policies_without_one_uppercase_letter_enabled_actions
+    default     = var.iam_account_password_policies_without_one_uppercase_letter_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -185,8 +198,9 @@ pipeline "correct_iam_accounts_password_policies_without_one_uppercase_letter" {
 }
 
 pipeline "correct_one_iam_account_password_policy_without_one_uppercase_letter" {
-  title         = "Correct IAM account password policy without requirement for any uppercase letter"
-  description   = "Update password policy to at least one lowercase letter for acIAM account without requirement for any uppercase letter."
+  title         = "Correct one IAM account password policy without requirement for any uppercase letter"
+  description   = "Update password policy to at least one uppercase letter for an IAM account without requirement for any uppercase letter."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -224,13 +238,13 @@ pipeline "correct_one_iam_account_password_policy_without_one_uppercase_letter" 
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policies_without_one_uppercase_letter_default_action
+    default     = var.iam_account_password_policies_without_one_uppercase_letter_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policies_without_one_uppercase_letter_enabled_actions
+    default     = var.iam_account_password_policies_without_one_uppercase_letter_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -292,19 +306,20 @@ pipeline "update_iam_account_password_policy_uppercase_letter" {
     database = var.database
     sql = <<-EOQ
       select
-        account_id,
-        minimum_password_length,
-        require_symbols,
-        require_numbers,
-        require_uppercase_characters,
-        require_lowercase_characters,
-        allow_users_to_change_password,
+        a.account_id,
+        coalesce(minimum_password_length, 8) as minimum_password_length,
+        coalesce(require_symbols, false) as require_symbols,
+        coalesce(require_numbers, false) as require_numbers,
+        coalesce(require_uppercase_characters, false) as require_uppercase_characters,
+        coalesce(require_lowercase_characters, false) as require_lowercase_characters,
+        coalesce(allow_users_to_change_password, false) as allow_users_to_change_password,
         coalesce(max_password_age, 0) as max_password_age,
         coalesce(password_reuse_prevention, 0) as password_reuse_prevention
       from
-        aws_iam_account_password_policy
+        aws_account as a
+        left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-        _ctx ->> 'connection_name' = '${param.cred}'
+        a._ctx ->> 'connection_name' = '${param.cred}';
     EOQ
   }
 

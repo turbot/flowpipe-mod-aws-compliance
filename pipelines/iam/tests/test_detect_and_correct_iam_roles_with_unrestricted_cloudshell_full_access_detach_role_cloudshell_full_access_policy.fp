@@ -77,7 +77,7 @@ pipeline "test_detect_and_correct_iam_roles_with_unrestricted_cloudshell_full_ac
     depends_on = [step.query.get_role_with_unrestricted_cloudshell_full_access]
     for_each        = { for item in step.query.get_role_with_unrestricted_cloudshell_full_access.rows : item.title => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_iam_role_with_unrestricted_cloudshell_full_access
+    pipeline        = pipeline.correct_one_iam_role_with_unrestricted_cloudshell_full_access
     args = {
       title                  = each.value.title
       role_name              = each.value.role_name

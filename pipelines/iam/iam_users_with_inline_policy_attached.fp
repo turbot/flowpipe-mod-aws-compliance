@@ -14,31 +14,48 @@ locals {
 
 variable "iam_users_with_inline_policy_attached_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_inline_policy_attached_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_inline_policy_attached_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_inline_policy_attached_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_inline_policy"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_users_with_inline_policy_attached" {
   title         = "Detect & correct IAM users with inline policy"
   description   = "Detects IAM user with inline policy and deletes them."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_users_with_inline_policy_attached_trigger_enabled
   schedule = var.iam_users_with_inline_policy_attached_trigger_schedule
@@ -52,16 +69,11 @@ trigger "query" "detect_and_correct_iam_users_with_inline_policy_attached" {
     }
   }
 
-  capture "update" {
-    pipeline = pipeline.correct_iam_users_with_inline_policy_attached
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_users_with_inline_policy_attached" {
   title         = "Detect & correct IAM users with inline policy"
+  tags          = local.iam_common_tags
   description   = "Detects IAM user inline policy and deletes them."
 
   param "database" {
@@ -121,6 +133,7 @@ pipeline "detect_and_correct_iam_users_with_inline_policy_attached" {
 pipeline "correct_iam_users_with_inline_policy_attached" {
   title         = "Delete IAM user inline policy"
   description   = "Runs corrective action to delete IAM user inline policy."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -188,7 +201,8 @@ pipeline "correct_iam_users_with_inline_policy_attached" {
 
 pipeline "correct_one_iam_users_with_inline_policy_attached" {
   title         = "Correct one IAM user with inline policy"
-  description   = "Runs corrective action to delete one IAM user inline policy."
+  description   = "Runs corrective action to delete inline policy for a IAM user with inline policy attached."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

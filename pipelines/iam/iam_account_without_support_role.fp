@@ -31,43 +31,68 @@ locals {
 
 variable "iam_account_without_support_role_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_without_support_role_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_without_support_role_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "create_support_role"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_without_support_role_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "create_support_role"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_without_support_role_user_arn" {
   type        = string
   description = "Specifies the IAM user arn to be used for creating the support role."
   default     = "" // Add the IAM user name here.
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_without_support_role_support_role_name" {
   type        = string
   description = "Specifies the IAM support role that will be created."
   default     = "flowpipe-aws-support-access" // Add the IAM role name here.
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_account_without_support_role" {
   title         = "Detect & correct IAM account without support role"
   description   = "Detects IAM account without support role and then create a new support role."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_account_without_support_role_trigger_enabled
   schedule = var.iam_account_without_support_role_trigger_schedule
@@ -80,18 +105,12 @@ trigger "query" "detect_and_correct_iam_account_without_support_role" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_account_without_support_role
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_account_without_support_role" {
   title         = "Detect & correct IAM account without support role"
   description   = "Detects IAM account without support role and then create a new support role."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -163,7 +182,8 @@ pipeline "detect_and_correct_iam_account_without_support_role" {
 
 pipeline "correct_iam_account_without_support_role" {
  	title         = "Correct IAM account without support role"
-  description   = "Detects IAM account without support role and then create a new support role."
+  description   = "Create a new support role for IAM account without support role"
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -242,8 +262,9 @@ pipeline "correct_iam_account_without_support_role" {
 }
 
 pipeline "correct_one_iam_account_without_support_role" {
-  title         = "Correct IAM account without support role"
-  description   = "Runs corrective action to create a new support role."
+  title         = "Correct one IAM account without support role"
+  description   = "Runs corrective action for an IAM account to create a new support role."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

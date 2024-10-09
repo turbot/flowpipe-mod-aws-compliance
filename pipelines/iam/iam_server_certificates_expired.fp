@@ -15,31 +15,48 @@ locals {
 
 variable "iam_server_certificates_expired_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_server_certificates_expired_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_server_certificates_expired_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "delete_expired_server_certificate"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_server_certificates_expired_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_expired_server_certificate"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_server_certificates_expired" {
   title         = "Detect & correct expired IAM server certificates"
   description   = "Detects IAM server certificates which are expired and then delete them."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_server_certificates_expired_trigger_enabled
   schedule = var.iam_server_certificates_expired_trigger_schedule
@@ -52,18 +69,12 @@ trigger "query" "detect_and_correct_iam_server_certificates_expired" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_server_certificates_expired
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_server_certificates_expired" {
   title         = "Detect & correct expired IAM server certificates"
   description   = "Detects IAM server certificates which are expired and then delete them."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -122,6 +133,7 @@ pipeline "detect_and_correct_iam_server_certificates_expired" {
 pipeline "correct_iam_server_certificates_expired" {
   title         = "Correct expired IAM server certificates"
   description   = "Runs corrective action to delete the expired IAM server certificates."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -190,8 +202,9 @@ pipeline "correct_iam_server_certificates_expired" {
 }
 
 pipeline "correct_one_iam_server_certificate_expired" {
-  title         = "Correct expired IAM server certificate"
+  title         = "Correct one expired IAM server certificate"
   description   = "Runs corrective action to delete the expired IAM server certificate."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
