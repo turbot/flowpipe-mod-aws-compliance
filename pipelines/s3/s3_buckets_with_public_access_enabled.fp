@@ -14,7 +14,6 @@ locals {
       and not (bucket.block_public_policy or s3account.block_public_policy)
       and not (bucket.ignore_public_acls or s3account.ignore_public_acls)
       and not (bucket.restrict_public_buckets or s3account.restrict_public_buckets)
-    limit 3 -- TODO: Remove after testing
   EOQ
 }
 
