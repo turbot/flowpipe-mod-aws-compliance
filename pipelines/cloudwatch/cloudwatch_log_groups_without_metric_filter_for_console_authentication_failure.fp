@@ -276,7 +276,7 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure" {
   title       = "Detect & correct CloudWatch log groups without metric filter for console authentication failure"
-  description = "Detects CloudWatch log groups without metric filter for console authentication failure and then enable console authentication failure metric filter."
+  description = "Detect CloudWatch log groups without metric filter for console authentication failure and then enable console authentication failure metric filter."
   tags = merge(local.cloudwatch_common_tags, { type = "recommended" })
 
   param "region" {
