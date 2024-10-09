@@ -205,7 +205,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disa
 
 pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
   title       = "Correct CloudTrail trails with multi-region read/write disabled"
-  description = "Enabled multi-region read/write for CloudTrail trails."
+  description = "Enabled multi-region read/write for CloudTrail trails with multi-region read/write disabled."
   tags = merge(local.cloudtrail_common_tags)
 
   param "items" {
