@@ -61,7 +61,7 @@ pipeline "detect_and_correct_security_hub_disabled_in_regions" {
   title       = "Detect & correct Security Hub disabled in regions"
   description = "Detect regions with Security Hub disabled and then skip or enable Security Hub."
   // // documentation = file("./securityhub/docs/detect_and_correct_security_hub_disabled_in_regions.md")
-  // tags          = merge(local.securityhub_common_tags, { class = "unused", type = "featured" })
+  // tags          = merge(local.securityhub_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

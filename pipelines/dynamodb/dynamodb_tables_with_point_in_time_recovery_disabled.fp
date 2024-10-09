@@ -59,7 +59,7 @@ pipeline "detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disable
   title         = "Detect & correct DynamoDB tables with point-in-time recovery disabled"
   description   = "Detect DynamoDB tables with point-in-time recovery disabled and then skip or enable point-in-time recovery."
   // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled.md")
-  tags          = merge(local.dynamodb_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.dynamodb_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

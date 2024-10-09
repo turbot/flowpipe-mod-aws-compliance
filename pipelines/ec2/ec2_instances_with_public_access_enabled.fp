@@ -60,7 +60,7 @@ pipeline "detect_and_correct_ec2_instances_with_public_access_enabled" {
   title         = "Detect & correct EC2 instances with public access enabled"
   description   = "Detect EC2 instances with public IP addresses and then skip or stop the instance or terminate the instance."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_public_access_enabled.md")
-  tags          = merge(local.ec2_common_tags, { class = "security", type = "featured" })
+  tags          = merge(local.ec2_common_tags, { class = "security", type = "recommended" })
 
   param "database" {
     type        = string

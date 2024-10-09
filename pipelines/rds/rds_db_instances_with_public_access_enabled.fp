@@ -66,7 +66,7 @@ pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title         = "Detect & correct RDS DB instances with public access enabled"
   description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
   // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_public_access_enabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

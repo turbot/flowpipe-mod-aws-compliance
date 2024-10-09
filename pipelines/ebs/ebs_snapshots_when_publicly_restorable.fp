@@ -59,7 +59,7 @@ pipeline "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
   title         = "Detect & correct EBS snapshots when publicly restorable"
   description   = "Detect EBS snapshots that are publicly restorable and then skip or update snapshot permission to private or delete the snapshot."
   // documentation = file("./ebs/docs/detect_and_correct_ebs_snapshots_when_publicly_restorable.md")
-  tags          = merge(local.ebs_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.ebs_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

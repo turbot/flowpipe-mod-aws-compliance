@@ -214,7 +214,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam
   title       = "Detect & correct CloudWatch log groups without metric filter for IAM changes"
   description = "Detects CloudWatch log groups that do not have a metric filter for IAM changes and runs your chosen action."
   // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

@@ -34,7 +34,7 @@ trigger "query" "detect_and_correct_rds_db_cluster_if_logging_disabled" {
 pipeline "detect_and_correct_rds_db_cluster_if_logging_disabled" {
   title         = "Detect & correct RDS DB clusters if logging disabled"
   description   = "Detects RDS DB clusters if logging is disabled and runs your chosen action."
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

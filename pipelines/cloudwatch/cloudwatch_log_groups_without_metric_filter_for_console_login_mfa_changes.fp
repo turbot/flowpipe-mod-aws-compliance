@@ -208,7 +208,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_con
   title       = "Detect & correct CloudWatch log groups without metric filter for console login MFA changes"
   description = "Detects CloudWatch log groups that do not have a metric filter for Console Login MFA changes and runs your chosen action."
   // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
 
   param "region" {
     type        = string

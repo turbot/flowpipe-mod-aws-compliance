@@ -207,7 +207,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_dis
   title       = "Detect & correct CloudWatch log groups without metric filter for disable or delete CMK "
   description = "Detects CloudWatch log groups that do not have a metric filter for Disable or Delete CMK and runs your chosen action."
   // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
 
   param "region" {
     type        = string

@@ -59,7 +59,7 @@ pipeline "detect_and_correct_ec2_classic_load_balancers_with_connection_draining
   title         = "Detect & correct EC2 classic load balancers with connection draining disabled"
   description   = "Detect EC2 classic load balancers with connection draining disabled and then skip or enable connection draining."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled.md")
-  tags          = merge(local.ec2_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.ec2_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

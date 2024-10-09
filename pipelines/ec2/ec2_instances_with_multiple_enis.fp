@@ -62,7 +62,7 @@ pipeline "detect_and_correct_ec2_instances_with_multiple_enis" {
   title         = "Detect & correct EC2 instances with multiple ENIs"
   description   = "Detect EC2 instances with multiple Elastic Network Interfaces and then skip or detach the network interface(s)."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_multiple_enis.md")
-  tags          = merge(local.ec2_common_tags, { class = "configuration", type = "featured" })
+  tags          = merge(local.ec2_common_tags, { class = "configuration", type = "recommended" })
 
   param "database" {
     type        = string

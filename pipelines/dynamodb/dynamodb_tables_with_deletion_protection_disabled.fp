@@ -59,7 +59,7 @@ pipeline "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" 
   title         = "Detect & correct DynamoDB tables with deletion protection disabled"
   description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
   // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_tables_with_deletion_protection_disabled.md")
-  tags          = merge(local.dynamodb_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.dynamodb_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

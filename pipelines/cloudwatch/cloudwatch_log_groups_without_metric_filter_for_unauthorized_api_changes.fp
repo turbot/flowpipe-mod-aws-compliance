@@ -207,7 +207,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_una
   title       = "Detect & correct CloudWatch log groups without metric filter for unauthorized API changes"
   description = "Detects CloudWatch log groups that do not have a metric filter for Unauthorized API changes and runs your chosen action."
   // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

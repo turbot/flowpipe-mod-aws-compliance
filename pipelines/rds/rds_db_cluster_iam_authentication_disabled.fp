@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_rds_db_cluster_if_iam_authentication_disable
 pipeline "detect_and_correct_rds_db_cluster_if_iam_authentication_disabled" {
   title         = "Detect & correct RDS DB clusters if IAM authentication disabled"
   description   = "Detects RDS DB clusters if IAM authentication is disabled and runs your chosen action."
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

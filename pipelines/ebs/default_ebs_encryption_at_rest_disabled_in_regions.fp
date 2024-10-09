@@ -66,7 +66,7 @@ pipeline "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions"
   title         = "Detect & correct default EBS encryption at rest disabled in regions"
   description   = "Detect regions with default encryption at rest disabled and then skip or enable encryption."
   // // documentation = file("./ebs/docs/detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions.md")
-  tags          = merge(local.ebs_common_tags, { class = "security", type = "featured" })
+  tags          = merge(local.ebs_common_tags, { class = "security", type = "recommended" })
 
   param "database" {
     type        = string

@@ -76,7 +76,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 logging disabled"
   description = "Detect CloudTrail trails with S3 logging disabled and then skip or enable S3 logging."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_logging_disabled.md")
-  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

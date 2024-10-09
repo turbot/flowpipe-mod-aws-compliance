@@ -107,7 +107,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disa
   title       = "Detect & correct CloudTrail trails without multi-region read/write enabled"
   description = "Detect CloudTrail trails that do not have multi-region read/write enabled and then skip or enable multi-region read/write."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_multi_region_read_write_enabled.md")
-  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

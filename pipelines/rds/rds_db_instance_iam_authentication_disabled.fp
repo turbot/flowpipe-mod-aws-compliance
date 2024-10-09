@@ -36,7 +36,7 @@ pipeline "detect_and_correct_rds_db_instance_if_iam_authentication_disabled" {
   title         = "Detect & correct RDS DB instances if IAM authentication disabled"
   description   = "Detects RDS DB instances if IAM authentication is disabled and runs your chosen action."
   // // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_iam_authentication_disabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

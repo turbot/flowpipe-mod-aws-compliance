@@ -126,7 +126,7 @@ trigger "query" "detect_and_delete_extra_iam_user_active_keys" {
 pipeline "detect_and_delete_extra_iam_user_active_keys" {
   title         = "Detect & correct Extra IAM User Active Keys"
   description   = "Detects IAM users with more than one active key and deletes the extra keys."
-  tags          = merge(local.iam_common_tags, { class = "security", type = "featured" })
+  tags          = merge(local.iam_common_tags, { class = "security", type = "recommended" })
 
   param "database" {
     type        = string

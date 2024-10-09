@@ -94,7 +94,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
   title       = "Detect & correct CloudTrail trails with public S3 bucket access"
   description = "Detect CloudTrail trails with public S3 bucket and then skip or update S3 bucket public access block."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_public_s3_bucket.md")
-  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

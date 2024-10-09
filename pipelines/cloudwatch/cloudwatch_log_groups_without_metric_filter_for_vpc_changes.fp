@@ -207,7 +207,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc
   title       = "Detect & correct CloudWatch log groups etric filter for VPC changes"
   description = "Detects CloudWatch log groups that do not have a metric filter for VPC changes and runs your chosen action."
   // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
+  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string

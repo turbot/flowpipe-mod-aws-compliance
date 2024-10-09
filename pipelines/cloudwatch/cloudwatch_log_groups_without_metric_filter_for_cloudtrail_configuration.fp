@@ -206,7 +206,7 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Detect & correct CloudWatch log groups without metric filter for CloudTrail configuration"
   description = "Detects CloudWatch log groups that do not have a metric filter for CloudTrail Configuration and runs your chosen action."
-  tags        = merge(local.cloudwatch_common_tags, { class = "unused", type = "featured" })
+  tags        = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
 
   param "region" {
     type        = string

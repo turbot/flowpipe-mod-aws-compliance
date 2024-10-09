@@ -67,7 +67,7 @@ pipeline "detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_di
   title         = "Detect & correct RDS DB instances with auto minor version upgrade disabled"
   description   = "Detect RDS DB instances with auto minor version upgrade disabled and then skip or enable auto minor version upgrade."
   // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string
