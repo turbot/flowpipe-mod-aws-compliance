@@ -82,13 +82,6 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" 
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_cloudtrail_trails_with_s3_logging_disabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
@@ -160,7 +153,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
 pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
   title       = "Correct CloudTrail trails with S3 logging disabled"
   description = "Enable S3 logging for CloudTrail trails with S3 logging disabled."
-  tags        = merge(local.cloudtrail_common_tags)
+  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({

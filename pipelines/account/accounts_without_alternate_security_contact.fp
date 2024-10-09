@@ -23,54 +23,77 @@ variable "accounts_without_alternate_security_contact_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/Account"
+  }
 }
 
 variable "accounts_without_alternate_security_contact_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/Account"
+  }
 }
 
 variable "accounts_without_alternate_security_contact_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/Account"
+  }
 }
 
 variable "accounts_without_alternate_security_contact_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "add_alternate_security_contact"]
+
+  tags = {
+    folder = "Advanced/Account"
+  }
 }
 
 variable "accounts_without_alternate_security_contact_email_address" {
   type        = string
   description = "The email address of the alternate contact."
-  default     = "" // TODO: fix this
+  default     = ""
+
+  tags = {
+    folder = "Advanced/Account"
+  }
 }
 
 variable "accounts_without_alternate_security_contact_phone_number" {
   type        = string
   description = "The phone number of the alternate contact."
-  default     = "" // TODO: fix this
+  default     = ""
+
+  tags = {
+    folder = "Advanced/Account"
+  }
 }
 
 variable "accounts_without_alternate_security_contact_title" {
   type        = string
   description = "The title of the alternate contact."
-  default     = "" // TODO: fix this
+  default     = ""
 }
 
 variable "accounts_without_alternate_security_contact_name" {
   type        = string
   description = "The name of the alternate contact."
-  default     = "" // TODO: fix this
+  default     = ""
 }
 
 trigger "query" "detect_and_correct_accounts_without_alternate_security_contact" {
   title         = "Detect & correct accounts without alternate security contact"
-  description   = "Detect accounts without an alternate security contact and then add an alternate security contact."
-  // documentation = file("./account/docs/detect_and_correct_accounts_without_alternate_security_contact_trigger.md")
+  description   = "Detect accounts without alternate security contact and then add alternate security contact."
   tags          = local.account_common_tags
 
   enabled  = var.accounts_without_alternate_security_contact_trigger_enabled
@@ -84,19 +107,11 @@ trigger "query" "detect_and_correct_accounts_without_alternate_security_contact"
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_accounts_without_alternate_security_contact
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
   title         = "Detect & correct accounts without alternate security contact"
-  description   = "Detect accounts without an alternate security contact and then add an alternate security contact."
-  // documentation = file("./account/docs/detect_and_correct_accounts_without_alternate_security_contact.md")
+  description   = "Detect accounts without alternate security contact and then add alternate security contact."
   tags          = local.account_common_tags
 
   param "database" {
@@ -155,8 +170,7 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
 
 pipeline "correct_accounts_without_alternate_security_contact" {
   title         = "Correct accounts without alternate security contact"
-  description   = "Add an alternate security contact for accounts without an alternate security contact."
-  // documentation = file("./account/docs/correct_accounts_without_alternate_security_contact.md")
+  description   = "Add alternate security contact for accounts without alternate security contact."
   tags          = merge(local.account_common_tags, { type = "internal" })
 
   param "items" {
@@ -199,7 +213,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} account(s) without an alternate security contact."
+    text     = "Detected account(s) ${length(param.items)} without alternate security contact."
   }
 
   step "pipeline" "correct_item" {
@@ -220,9 +234,8 @@ pipeline "correct_accounts_without_alternate_security_contact" {
 
 pipeline "correct_one_account_without_alternate_security_contact" {
   title         = "Correct one account without alternate security contact"
-  description   = "Add an alternate security contact for an account without an alternate security contact."
-  // documentation = file("./account/docs/correct_one_account_without_alternate_security_contact.md")
-  tags          = merge(local.account_common_tags, { type = "internal" })
+  description   = "Add alternate security contact for an account."
+  tags          = merge(local.account_common_tags)
 
   param "title" {
     type        = string
