@@ -835,8 +835,8 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_disable_or
               ]
             })
           }
-          success_msg = "Enabled Disable or Delete CMK metric filter for account ${param.title}."
-          error_msg   = "Error enabling Disable or Delete CMK metric filter for account ${param.title}."
+          success_msg = "Enabled disable or delete CMK metric filter for account ${param.title}."
+          error_msg   = "Error enabling disable or delete CMK metric filter for account ${param.title}."
         }
       }
     }
@@ -844,7 +844,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_disable_or
 }
 
 pipeline "create_cloudwatch_metric_filter_disable_or_delete_cmk" {
-  title       = "Create CloudTrail with CloudWatch Logging"
+  title       = "Create CloudTrail with CloudWatch logging"
   description = "Creates a CloudTrail trail with integrated CloudWatch logging and necessary IAM roles and policies."
 
   param "cred" {

@@ -1,6 +1,6 @@
 
 locals {
-  cloudwatch_log_groups_without_metric_filter_for_iam_changes_query = <<-EOQ
+  cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_query = <<-EOQ
     with trails as (
       select
         trail.account_id,
@@ -77,144 +77,218 @@ locals {
   EOQ
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger_enabled" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger_schedule" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_action" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_actions" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_default_actions" {
   type        = list(string)
   description = " The list of enabled actions approvers can select."
   default     = ["skip", "enable_iam_policy_changes_metric_filter"]
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "queue_name" {
   type        = string
   description = "The name of the SQS queue."
   default     = "flowpipeIAMChangesMetricQueue"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_log_group_name" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_log_group_name" {
   type        = string
   description = "The name of the log group to create."
   default     = "log_group_name_29"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_region" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_region" {
   type        = string
   description = "The region to create the log group in."
   default     = "us-east-1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_name" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_name" {
   type        = string
   description = "The name of the metric filter."
   default     = "IAMChangesMetric"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_role_name" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_role_name" {
   type        = string
   description = "The name of the IAM role to create."
   default     = "IAMChangesMetricrRole"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_s3_bucket_name" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_s3_bucket_name" {
   type        = string
   description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
   default     = "iamchangemetrics3bucket"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_name" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_name" {
   type        = string
   description = "The name of the metric."
   default     = "IAMChangeMetrics"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_namespace" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_namespace" {
   type        = string
   description = "The namespace of the metric."
   default     = "CISBenchmark"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_queue_name" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_queue_name" {
   type        = string
   description = "The name of the SQS queue."
   default     = "flowpipeIAMChangesMetricQueue"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_value" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_value" {
   type        = string
   description = "The value to publish to the metric."
   default     = "1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_pattern" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_pattern" {
   type        = string
   description = "The filter pattern for the metric filter."
   default     = "{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_sns_topic_name" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_sns_topic_name" {
   type        = string
   description = "The name of the Amazon SNS topic to create."
   default     = "iam_changes_metric_topic"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_alarm_name" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_alarm_name" {
   type        = string
   description = "The name of the CloudWatch alarm."
   default     = "iam_changes_alarm"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_trail_name" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_trail_name" {
   type        = string
   description = "The name of the CloudTrail trail."
   default     = "IAMChangesMetricTrail"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_iam_changes_protocol" {
+variable "cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_protocol" {
   type        = string
   description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
   default     = "SQS"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
-trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
-  title       = "Detect & correct CloudWatch log groups without metric filter for IAM changes"
-  description = "Detects CloudWatch log groups that do not have a metric filter for IAM changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes" {
+  title       = "Detect & correct CloudWatch log groups without metric filter for IAM policy changes"
+  description = "Detect CloudWatch log groups that do not have a metric filter for IAM policy changes and then enable IAM policy changes metric filter."
+  tags        = local.cloudwatch_common_tags
 
-  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger_enabled
-  schedule = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_trigger_schedule
+  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_trigger_enabled
+  schedule = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_trigger_schedule
   database = var.database
-  sql      = local.cloudwatch_log_groups_without_metric_filter_for_iam_changes_query
+  sql      = local.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
-  title       = "Detect & correct CloudWatch log groups without metric filter for IAM changes"
-  description = "Detects CloudWatch log groups that do not have a metric filter for IAM changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
+pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes" {
+  title       = "Detect & correct CloudWatch log groups without metric filter for IAM policy changes"
+  description = "Detect CloudWatch log groups that do not have a metric filter for IAM policy changes and then enable IAM policy changes metric filter."
+  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
 
   param "database" {
     type        = string
@@ -243,106 +317,106 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_default_actions
   }
 
   param "region" {
     type        = string
     description = local.description_region
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_region
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_region
   }
 
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_log_group_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_log_group_name
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_name
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_role_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_role_name
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_trail_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_trail_name
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_s3_bucket_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_s3_bucket_name
   }
 
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_name
   }
 
   param "metric_namespace" {
     type        = string
     description = "The namespace of the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_namespace
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_namespace
   }
 
   param "metric_value" {
     type        = string
     description = "The value to publish to the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_value
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_value
   }
 
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_pattern
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_pattern
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_sns_topic_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_sns_topic_name
   }
 
   param "queue_name" {
     type        = string
     description = "The name of the SQS queue."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_queue_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_queue_name
   }
 
   param "protocol" {
     type        = string
     description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_protocol
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_protocol
   }
 
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_alarm_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_alarm_name
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudwatch_log_groups_without_metric_filter_for_iam_changes_query
+    sql      = local.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes
+    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -368,11 +442,10 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam
   }
 }
 
-pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
-  title       = "Correct CloudWatch log groups without metric filter for IAM changes"
-  description = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for IAM changes."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes" {
+  title       = "Correct CloudWatch log groups without metric filter for IAM policy changes"
+  description = "Enable IAM policy changes metric filter for CloudWatch log groups without metric filter for IAM policy changes."
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -403,103 +476,103 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_default_actions
   }
 
   param "region" {
     type        = string
     description = local.description_region
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_region
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_region
   }
 
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_log_group_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_log_group_name
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_name
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_role_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_role_name
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_trail_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_trail_name
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_s3_bucket_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_s3_bucket_name
   }
 
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_name
   }
 
   param "metric_namespace" {
     type        = string
     description = "The namespace of the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_namespace
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_namespace
   }
 
   param "metric_value" {
     type        = string
     description = "The value to publish to the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_value
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_value
   }
 
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_pattern
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_pattern
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_sns_topic_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_sns_topic_name
   }
 
   param "queue_name" {
     type        = string
     description = "The name of the SQS queue."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_queue_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_queue_name
   }
 
   param "protocol" {
     type        = string
     description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_protocol
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_protocol
   }
 
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_alarm_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_alarm_name
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for IAM changes."
+    text     = "Detected CloudWatch log group(s) ${length(param.items)} without metric filter for IAM policy changes."
   }
 
   step "transform" "items_by_id" {
@@ -509,7 +582,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_changes
+    pipeline        = pipeline.correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes
     args = {
       title              = each.value.title
       cred               = each.value.cred
@@ -536,11 +609,10 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
   }
 }
 
-pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_changes" {
-  title       = "Correct one CloudWatch log group without metric filter for IAM changes"
-  description = "Runs corrective action on a CloudWatch log group without metric filter for IAM changes."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes" {
+  title       = "Correct one CloudWatch log group without metric filter for IAM policy changes"
+  description = "Enable IAM policy changes metric filter for a CloudWatch log group."
+  tags = local.cloudwatch_common_tags
 
   param "title" {
     type        = string
@@ -573,97 +645,97 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_change
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_action
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_default_actions
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_default_actions
   }
 
   param "region" {
     type        = string
     description = local.description_region
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_region
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_region
   }
 
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_log_group_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_log_group_name
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_name
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_role_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_role_name
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_trail_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_trail_name
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_s3_bucket_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_s3_bucket_name
   }
 
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_name
   }
 
   param "metric_namespace" {
     type        = string
     description = "The namespace of the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_namespace
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_namespace
   }
 
   param "metric_value" {
     type        = string
     description = "The value to publish to the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_value
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_value
   }
 
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_pattern
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_pattern
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_sns_topic_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_sns_topic_name
   }
 
   param "queue_name" {
     type        = string
     description = "The name of the SQS queue."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_queue_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_queue_name
   }
 
   param "protocol" {
     type        = string
     description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_protocol
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_protocol
   }
 
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_alarm_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_alarm_name
   }
 
   step "pipeline" "respond" {
@@ -672,7 +744,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_change
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected CloudWatch log group without metric filter for IAM changes for account ${param.title}."
+      detect_msg         = "Detected CloudWatch log group without metric filter for IAM policy changes for account ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -684,13 +756,13 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_iam_change
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped CloudWatch log group without metric filter for IAM changes for account ${param.title}."
+            text     = "Skipped CloudWatch log group without metric filter for IAM policy changes for account ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
         "enable_iam_policy_changes_metric_filter" = {
-          label        = "Enable IAM Changes Metric Filter"
+          label        = "Enable IAM policy changes metric filter"
           value        = "enable_iam_policy_changes_metric_filter"
           style        = local.style_alert
           pipeline_ref = pipeline.create_cloudwatch_metric_filter_iam_changes
@@ -796,37 +868,37 @@ pipeline "create_cloudwatch_metric_filter_iam_changes" {
   param "region" {
     type        = string
     description = local.description_region
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_region
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_region
   }
 
   param "log_group_name" {
     type        = string
     description = "The name of the log group to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_log_group_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_log_group_name
   }
 
   param "filter_name" {
     type        = string
     description = "The name of the metric filter."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_name
   }
 
   param "role_name" {
     type        = string
     description = "The name of the IAM role to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_role_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_role_name
   }
 
   param "trail_name" {
     type        = string
     description = "The name of the CloudTrail trail."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_trail_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_trail_name
   }
 
   param "s3_bucket_name" {
     type        = string
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_s3_bucket_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_s3_bucket_name
   }
 
   param "acl" {
@@ -838,49 +910,49 @@ pipeline "create_cloudwatch_metric_filter_iam_changes" {
   param "metric_name" {
     type        = string
     description = "The name of the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_name
   }
 
   param "metric_namespace" {
     type        = string
     description = "The namespace of the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_namespace
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_namespace
   }
 
   param "metric_value" {
     type        = string
     description = "The value to publish to the metric."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_metric_value
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_metric_value
   }
 
   param "filter_pattern" {
     type        = string
     description = "The filter pattern for the metric filter."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_filter_pattern
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_filter_pattern
   }
 
   param "sns_topic_name" {
     type        = string
     description = "The name of the Amazon SNS topic to create."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_sns_topic_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_sns_topic_name
   }
 
   param "queue_name" {
     type        = string
     description = "The name of the SQS queue."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_queue_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_queue_name
   }
 
   param "protocol" {
     type        = string
     description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_protocol
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_protocol
   }
 
   param "alarm_name" {
     type        = string
     description = "The name of the CloudWatch alarm."
-    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_changes_alarm_name
+    default     = var.cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes_alarm_name
   }
 
   param "assume_role_policy_document" {
