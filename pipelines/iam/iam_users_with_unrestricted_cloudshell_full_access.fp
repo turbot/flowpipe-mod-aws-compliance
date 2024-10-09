@@ -14,31 +14,48 @@ locals {
 
 variable "iam_users_with_unrestricted_cloudshell_full_access_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_unrestricted_cloudshell_full_access_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_unrestricted_cloudshell_full_access_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_unrestricted_cloudshell_full_access_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "detach_user_cloudshell_full_access_policy"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access" {
   title         = "Detect & correct IAM users with unrestricted CloudShellFullAccess policy"
   description   = "Detects IAM users with unrestricted CloudShellFullAccess policy attached and then detaches that policy."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_users_with_unrestricted_cloudshell_full_access_trigger_enabled
   schedule = var.iam_users_with_unrestricted_cloudshell_full_access_trigger_schedule
@@ -51,18 +68,12 @@ trigger "query" "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_users_with_unrestricted_cloudshell_full_access
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access" {
   title         = "Detect & correct IAM users with unrestricted CloudShellFullAccess policy"
   description   = "Detects IAM users with unrestricted CloudShellFullAccess policy attached and detaches that policy."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -121,7 +132,7 @@ pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access"
 pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
   title         = "Correct IAM users with unrestricted CloudShellFullAccess policy"
   description   = "Runs corrective action to detach the CloudShellFullAccess policy from IAM users."
-  tags          = merge(local.iam_common_tags, { class = "security" })
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -172,7 +183,7 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.title => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_iam_user_with_unrestricted_cloudshell_full_access
+    pipeline        = pipeline.correct_one_iam_user_with_unrestricted_cloudshell_full_access
     args = {
       title              = each.value.title
       user_name          = each.value.user_name
@@ -187,9 +198,10 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
   }
 }
 
-pipeline "correct_iam_user_with_unrestricted_cloudshell_full_access" {
-  title         = "Correct IAM user with unrestricted CloudShellFullAccess policy"
-  description   = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from IAM user."
+pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
+  title         = "Correct one IAM user with unrestricted CloudShellFullAccess policy"
+  description   = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from a IAM user."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

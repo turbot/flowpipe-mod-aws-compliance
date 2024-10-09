@@ -15,31 +15,48 @@ locals {
 
 variable "iam_users_with_iam_policy_attached_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_iam_policy_attached_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_iam_policy_attached_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_iam_policy_attached_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "detach_iam_policy"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_users_with_iam_policy_attached" {
   title         = "Detect & correct IAM users with IAM policy attached"
   description   = "Detects IAM users with a specific policy attached and detaches that policy."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_users_with_iam_policy_attached_trigger_enabled
   schedule = var.iam_users_with_iam_policy_attached_trigger_schedule
@@ -52,18 +69,12 @@ trigger "query" "detect_and_correct_iam_users_with_iam_policy_attached" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_users_with_iam_policy_attached
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
   title         = "Detect & correct IAM users with IAM policy attached"
   description   = "Detects IAM users with a specific policy attached and detaches that policy."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -121,7 +132,8 @@ pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
 
 pipeline "correct_iam_users_with_iam_policy_attached" {
   title         = "Correct IAM users with IAM policy attached"
-  description   = "Detaches IAM policies from IAM users with IAM policy attached."
+  description   = "Detaches IAM policy from IAM users with IAM policy attached."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -190,8 +202,9 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
 }
 
 pipeline "correct_one_iam_user_with_iam_policy_attached" {
-  title         = "Detach Policy from One IAM User"
-  description   = "Detaches IAM policies from a IAM user with IAM policy attached."
+  title         = "Correct one IAM user with IAM policy attached"
+  description   = "Detaches IAM policy from a IAM user with IAM policy attached."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -290,18 +303,18 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
 }
 
 pipeline "detach_iam_users_with_iam_policy_attached" {
-  title       = "Detach IAM User Policy"
+  title       = "Detach IAM user policy"
   description = "Detaches the specified managed policy from the specified IAM user."
 
   param "cred" {
     type        = string
-    description = "TO-DO"
+    description = local.description_credential
     default     = "default"
   }
 
   param "user_name" {
     type        = string
-    description = "TO-DO"
+    description = "The name of the IAM user."
   }
 
   param "policy_arn" {

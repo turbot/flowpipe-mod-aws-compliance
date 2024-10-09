@@ -19,31 +19,48 @@ locals {
 
 variable "iam_users_with_unused_login_profile_90_days_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_unused_login_profile_90_days_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_unused_login_profile_90_days_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_users_with_unused_login_profile_90_days_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_user_login_profile_unused_90_days"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_users_with_unused_login_profile_90_days" {
   title         = "Detect & correct IAM users with unused login profile from 90 days or more"
-  description   = "Detects IAM users login profile that have been unused for 90 days or more and delete them."
+  description   = "Detects IAM users with login profile that have been unused for 90 days or more and delete them."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_users_with_unused_login_profile_90_days_trigger_enabled
   schedule = var.iam_users_with_unused_login_profile_90_days_trigger_schedule
@@ -56,18 +73,12 @@ trigger "query" "detect_and_correct_iam_users_with_unused_login_profile_90_days"
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_users_with_unused_login_profile_90_days
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_users_with_unused_login_profile_90_days" {
   title         = "Detect & correct IAM users with unused login profile from 90 days or more"
-  description   = "Detects IAM users login profile that have been unused for 90 days or more and delete them."
+  description   = "Detects IAM users with login profile that have been unused for 90 days or more and delete them."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -126,6 +137,7 @@ pipeline "detect_and_correct_iam_users_with_unused_login_profile_90_days" {
 pipeline "correct_iam_users_with_unused_login_profile_90_days" {
   title         = "Correct IAM users with unused login profile from 90 days or more"
   description   = "Runs corrective action to delete IAM users login profile that have been unused for 90 days or more."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -199,8 +211,9 @@ pipeline "correct_iam_users_with_unused_login_profile_90_days" {
 }
 
 pipeline "correct_one_iam_user_with_unused_login_profile_90_days" {
-  title         = "Correct IAM user with unused login profile from 90 days or more"
-  description   = "Runs corrective action to delete IAM user login profile that have been unused for 90 days or more."
+  title         = "Correct one IAM user with unused login profile from 90 days or more"
+  description   = "Runs corrective action to delete a IAM user login profile that have been unused for 90 days or more."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

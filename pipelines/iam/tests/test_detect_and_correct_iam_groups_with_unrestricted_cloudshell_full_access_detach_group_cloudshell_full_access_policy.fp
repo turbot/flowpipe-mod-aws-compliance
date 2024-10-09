@@ -61,7 +61,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
     depends_on = [step.query.get_group_with_unrestricted_cloudshell_full_access]
     for_each        = { for item in step.query.get_group_with_unrestricted_cloudshell_full_access.rows : item.title => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_iam_group_with_unrestricted_cloudshell_full_access
+    pipeline        = pipeline.correct_one_iam_group_with_unrestricted_cloudshell_full_access
     args = {
       title                  = each.value.title
       group_name             = each.value.group_name

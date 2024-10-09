@@ -1,6 +1,6 @@
-pipeline "test_detect_and_correct_iam_accounts_password_policy_without_min_length_14_update_password_policy_min_length" {
+pipeline "test_detect_and_correct_iam_account_password_policies_without_min_length_14_update_password_policy_min_length" {
   title       = "Test detect and correct IAM account password policies without minimum length of 14"
-  description = "Test detect_and_correct_iam_accounts_password_policy_without_min_length_14 pipeline ."
+  description = "Test detect_and_correct_iam_account_password_policies_without_min_length_14 pipeline ."
 
   tags = {
     type = "test"

@@ -1,6 +1,6 @@
-pipeline "test_detect_and_correct_iam_accounts_password_policies_without_one_uppercase_letter_update_password_policy_require_uppercase" {
+pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppercase_letter_update_password_policy_require_uppercase" {
   title       = "Test detect and correct IAM account password policies without one uppercase letter requirement"
-  description = "Test detect_and_correct_iam_accounts_password_policies_without_one_uppercase_letter pipeline."
+  description = "Test detect_and_correct_iam_account_password_policies_without_one_uppercase_letter pipeline."
 
   tags = {
     type = "test"

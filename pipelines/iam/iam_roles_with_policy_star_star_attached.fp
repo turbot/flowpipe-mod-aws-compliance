@@ -38,31 +38,48 @@ locals {
 
 variable "iam_roles_with_policy_star_star_attached_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_roles_with_policy_star_star_attached_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_roles_with_policy_star_star_attached_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_roles_with_policy_star_star_attached_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "detach_role_star_star_policy"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_roles_with_policy_star_star_attached" {
   title         = "Detect & correct IAM roles attached with *:* policy"
   description   = "Detects IAM roles attached with the *:* policy and then detaches the policy."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_roles_with_policy_star_star_attached_trigger_enabled
   schedule = var.iam_roles_with_policy_star_star_attached_trigger_schedule
@@ -75,18 +92,12 @@ trigger "query" "detect_and_correct_iam_roles_with_policy_star_star_attached" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_roles_with_policy_star_star_attached
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_roles_with_policy_star_star_attached" {
   title         = "Detect & correct IAM roles attached with *:* policy"
   description   = "Detects IAM roles attached with the *:* policy and then detaches the policy."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -145,6 +156,7 @@ pipeline "detect_and_correct_iam_roles_with_policy_star_star_attached" {
 pipeline "correct_iam_roles_with_policy_star_star_attached" {
   title         = "Correct IAM roles attached with *:* policy"
   description   = "Runs corrective action to detach the *:* policy from IAM roles."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -196,7 +208,7 @@ pipeline "correct_iam_roles_with_policy_star_star_attached" {
   step "pipeline" "correct_item" {
     for_each        = { for row in param.items : row.title => row }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_iam_role_with_policy_star_star_attached
+    pipeline        = pipeline.correct_one_iam_role_with_policy_star_star_attached
     args = {
       title              = each.value.title
       role_name          = each.value.role_name
@@ -212,9 +224,10 @@ pipeline "correct_iam_roles_with_policy_star_star_attached" {
   }
 }
 
-pipeline "correct_iam_role_with_policy_star_star_attached" {
-  title         = "Correct IAM role attached with *:* policy"
-  description   = "Runs corrective action to detach the *:* policy from IAM role."
+pipeline "correct_one_iam_role_with_policy_star_star_attached" {
+  title         = "Correct one IAM role attached with *:* policy"
+  description   = "Runs corrective action to detach the *:* policy from a IAM role."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

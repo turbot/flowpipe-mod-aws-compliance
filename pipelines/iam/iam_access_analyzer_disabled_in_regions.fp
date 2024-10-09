@@ -15,37 +15,58 @@ locals {
 
 variable "iam_access_analyzer_disabled_in_regions_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_access_analyzer_disabled_in_regions_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_access_analyzer_disabled_in_regions_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_access_analyzer_disabled_in_regions_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_access_analyzer"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_access_analyzer_disabled_in_regions_analyzer_name" {
   type        = string
   description = "The name of the IAM Access Analyzer."
   default     = "accessanalyzer"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   title         = "Detect and correct regions with IAM Access Analyzer disabled"
   description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_access_analyzer_disabled_in_regions_trigger_enabled
   schedule = var.iam_access_analyzer_disabled_in_regions_trigger_schedule
@@ -58,18 +79,12 @@ trigger "query" "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_access_analyzer_disabled_in_regions
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   title         = "Detect and correct regions with IAM Access Analyzer disabled"
   description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -128,6 +143,7 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
 pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   title         = "Correct regions with IAM Access Analyzer disabled"
   description   = "Enable IAM Access Analyzer in regions with IAM Access Analyzer disabled."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -200,8 +216,9 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
 }
 
 pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
-  title         = "Correct region with IAM Access Analyzer disabled"
+  title         = "Correct one region with IAM Access Analyzer disabled"
   description   = "Enable IAM Access Analyzer in a region with IAM Access Analyzer disabled."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

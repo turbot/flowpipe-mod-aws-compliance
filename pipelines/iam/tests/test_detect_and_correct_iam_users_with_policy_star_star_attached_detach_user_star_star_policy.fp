@@ -136,7 +136,7 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
     depends_on = [step.query.get_user_with_iam_star_star_policy_attached]
     for_each        = { for item in step.query.get_user_with_iam_star_star_policy_attached.rows : item.title => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_iam_user_with_policy_star_star_attached
+    pipeline        = pipeline.correct_one_iam_user_with_policy_star_star_attached
     args = {
       title                  = each.value.title
       user_name              = each.value.user_name

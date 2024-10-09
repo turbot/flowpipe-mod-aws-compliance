@@ -1,5 +1,5 @@
 locals {
-  iam_accounts_password_policy_without_min_length_14_query = <<-EOQ
+  iam_account_password_policies_without_min_length_14_query = <<-EOQ
     select
       account_id as title,
       account_id,
@@ -12,57 +12,68 @@ locals {
   EOQ
 }
 
-variable "iam_accounts_password_policy_without_min_length_14_trigger_enabled" {
+variable "iam_account_password_policies_without_min_length_14_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-variable "iam_accounts_password_policy_without_min_length_14_trigger_schedule" {
+variable "iam_account_password_policies_without_min_length_14_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-variable "iam_accounts_password_policy_without_min_length_14_default_action" {
+variable "iam_account_password_policies_without_min_length_14_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-variable "iam_accounts_password_policy_without_min_length_14_enabled_actions" {
+variable "iam_account_password_policies_without_min_length_14_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "update_password_policy_min_length"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
-trigger "query" "detect_and_correct_iam_accounts_password_policy_without_min_length_14" {
+trigger "query" "detect_and_correct_iam_account_password_policies_without_min_length_14" {
   title         = "Detect & correct IAM account password policies without minimum length of 14"
   description   = "Detects IAM account password policies without minimum length of 14 and then updates to minimum length of 14."
+  tags          = local.iam_common_tags
 
-  enabled  = var.iam_accounts_password_policy_without_min_length_14_trigger_enabled
-  schedule = var.iam_accounts_password_policy_without_min_length_14_trigger_schedule
+  enabled  = var.iam_account_password_policies_without_min_length_14_trigger_enabled
+  schedule = var.iam_account_password_policies_without_min_length_14_trigger_schedule
   database = var.database
-  sql      = local.iam_accounts_password_policy_without_min_length_14_query
+  sql      = local.iam_account_password_policies_without_min_length_14_query
 
   capture "insert" {
-    pipeline = pipeline.correct_iam_accounts_password_policy_without_min_length_14
+    pipeline = pipeline.correct_iam_account_password_policies_without_min_length_14
     args = {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_accounts_password_policy_without_min_length_14
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
-pipeline "detect_and_correct_iam_accounts_password_policy_without_min_length_14" {
+pipeline "detect_and_correct_iam_account_password_policies_without_min_length_14" {
   title         = "Detect & correct IAM account password policies without minimum length of 14"
   description   = "Detects IAM account password policies without minimum length of 14 and then updates to minimum length of 14."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -91,22 +102,22 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_min_length_14"
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policy_without_min_length_14_default_action
+    default     = var.iam_account_password_policies_without_min_length_14_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policy_without_min_length_14_enabled_actions
+    default     = var.iam_account_password_policies_without_min_length_14_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_accounts_password_policy_without_min_length_14_query
+    sql      = local.iam_account_password_policies_without_min_length_14_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_iam_accounts_password_policy_without_min_length_14
+    pipeline = pipeline.correct_iam_account_password_policies_without_min_length_14
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -118,9 +129,10 @@ pipeline "detect_and_correct_iam_accounts_password_policy_without_min_length_14"
   }
 }
 
-pipeline "correct_iam_accounts_password_policy_without_min_length_14" {
+pipeline "correct_iam_account_password_policies_without_min_length_14" {
   title         = "Correct IAM account password policies without minimum length of 14"
   description   = "Update password policies to minimum length of 14 for IAM accounts without password policy of minimum length 14."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -152,13 +164,13 @@ pipeline "correct_iam_accounts_password_policy_without_min_length_14" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policy_without_min_length_14_default_action
+    default     = var.iam_account_password_policies_without_min_length_14_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policy_without_min_length_14_enabled_actions
+    default     = var.iam_account_password_policies_without_min_length_14_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -185,8 +197,9 @@ pipeline "correct_iam_accounts_password_policy_without_min_length_14" {
 }
 
 pipeline "correct_one_iam_account_password_policy_without_min_length_14" {
-  title         = "Correct IAM account password policy without minimum length of 14"
-  description   = "Update password policy to minimum length of 14 for a IAM account without password policy of minimum length 14."
+  title         = "Correct one IAM account password policy without minimum length of 14"
+  description   = "Update password policy to minimum length of 14 for an IAM account without password policy of minimum length 14."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -224,13 +237,13 @@ pipeline "correct_one_iam_account_password_policy_without_min_length_14" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.iam_accounts_password_policy_without_min_length_14_default_action
+    default     = var.iam_account_password_policies_without_min_length_14_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.iam_accounts_password_policy_without_min_length_14_enabled_actions
+    default     = var.iam_account_password_policies_without_min_length_14_enabled_actions
   }
 
   step "pipeline" "respond" {

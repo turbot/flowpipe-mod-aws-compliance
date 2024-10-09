@@ -1,6 +1,6 @@
-pipeline "test_detect_and_correct_iam_accounts_password_policies_without_one_number_update_password_policy_require_numbers" {
+pipeline "test_detect_and_correct_iam_account_password_policies_without_one_number_update_password_policy_require_numbers" {
   title       = "Test detect and correct IAM account password policies without one number requirement"
-  description = "Test detect_and_correct_iam_accounts_password_policies_without_one_number pipeline."
+  description = "Test detect_and_correct_iam_account_password_policies_without_one_number pipeline."
 
   tags = {
     type = "test"

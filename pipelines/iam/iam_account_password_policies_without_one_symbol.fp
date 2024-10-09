@@ -14,31 +14,48 @@ locals {
 
 variable "iam_account_password_policies_without_one_symbol_trigger_enabled" {
   type        = bool
-  default     = false
   description = "If true, the trigger is enabled."
+  default     = false
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_password_policies_without_one_symbol_trigger_schedule" {
   type        = string
-  default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+  default     = "15m"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_password_policies_without_one_symbol_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 variable "iam_account_password_policies_without_one_symbol_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "update_password_policy_require_symbols"]
+
+  tags = {
+    folder = "Advanced/IAM"
+  }
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policies_without_one_symbol" {
   title         = "Detect & correct IAM account password policies without requirement for any symbol"
   description   = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_account_password_policies_without_one_symbol_trigger_enabled
   schedule = var.iam_account_password_policies_without_one_symbol_trigger_schedule
@@ -51,18 +68,12 @@ trigger "query" "detect_and_correct_iam_account_password_policies_without_one_sy
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_iam_account_password_policies_without_one_symbol
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_iam_account_password_policies_without_one_symbol" {
   title         = "Detect & correct IAM account password policies without requirement for any symbol"
   description   = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
@@ -121,6 +132,7 @@ pipeline "detect_and_correct_iam_account_password_policies_without_one_symbol" {
 pipeline "correct_iam_account_password_policies_without_one_symbol" {
   title         = "Correct IAM account password policies without requirement for any symbol"
   description   = "Update password policy to at least one symbol for IAM accounts without requirement for any symbol."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -185,8 +197,9 @@ pipeline "correct_iam_account_password_policies_without_one_symbol" {
 }
 
 pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
-  title         = "Correct IAM account password policy without requirement for any symbol"
-  description   = "Update password policy to at least one symbol for a IAM account without requirement for any symbol."
+  title         = "Correct one IAM account password policy without requirement for any symbol"
+  description   = "Update password policy to at least one symbol for an IAM account without requirement for any symbol."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
