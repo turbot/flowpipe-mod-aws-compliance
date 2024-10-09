@@ -28,8 +28,8 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
     database = var.database
     sql = <<-EOQ
       select
-        account_id as title,
-        account_id,
+        a.account_id as title,
+        pol.account_id as password_policy_account_id,
         minimum_password_length,
         require_symbols,
         require_numbers,
@@ -40,11 +40,12 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
         password_reuse_prevention,
         coalesce(max_password_age, 0) as effective_max_password_age,
         coalesce(password_reuse_prevention, 0) as effective_password_reuse_prevention,
-        _ctx ->> 'connection_name' as cred
+        a._ctx ->> 'connection_name' as cred
       from
-        aws_iam_account_password_policy
+        aws_account as a
+        left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-        account_id = '${step.query.get_account_id.rows[0].account_id}'
+        a.account_id = '${step.query.get_account_id.rows[0].account_id}';
     EOQ
   }
 
@@ -53,17 +54,19 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
     database = var.database
     sql = <<-EOQ
       select
-        account_id
+        pol.account_id as password_policy_account_id
       from
-        aws_iam_account_password_policy
+        aws_account as a
+        left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
         minimum_password_length < 14
-        and account_id = '${step.query.get_account_id.rows[0].account_id}'
+        and a.account_id = '${step.query.get_account_id.rows[0].account_id}'
     EOQ
   }
 
   step "pipeline" "set_password_policy_length_7" {
-    if         = length(step.query.get_password_policy_with_minimum_password_length_less_than_14.rows) == 0
+    depends_on = [step.query.get_password_policy_with_minimum_password_length_less_than_14]
+     if        = length(step.query.get_password_policy_with_minimum_password_length_less_than_14.rows) == 0 && (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
@@ -80,12 +83,12 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
 
   step "pipeline" "run_detection" {
     depends_on = [step.pipeline.set_password_policy_length_7]
-    for_each        = { for item in step.query.get_password_policy.rows : item.account_id => item }
+    for_each        = { for item in step.query.get_password_policy.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_min_length_14
     args = {
       title                  = each.value.title
-      account_id             = each.value.account_id
+      account_id             = each.value.title
       cred                   = each.value.cred
       approvers              = []
       default_action         = "update_password_policy_min_length"
@@ -94,6 +97,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
   }
 
   step "query" "get_password_policy_after_detection" {
+    if        = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.pipeline.run_detection]
     database = var.database
     sql = <<-EOQ
@@ -104,18 +108,25 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
         aws_iam_account_password_policy
       where
         minimum_password_length = 14
-        and max_password_age = '${step.query.get_password_policy.rows[0].max_password_age}'
         and require_symbols = '${step.query.get_password_policy.rows[0].require_symbols}'
         and require_numbers = '${step.query.get_password_policy.rows[0].require_numbers}'
         and require_uppercase_characters = '${step.query.get_password_policy.rows[0].require_uppercase_characters}'
         and require_lowercase_characters = '${step.query.get_password_policy.rows[0].require_lowercase_characters}'
         and allow_users_to_change_password = '${step.query.get_password_policy.rows[0].allow_users_to_change_password}'
-        and password_reuse_prevention = '${step.query.get_password_policy.rows[0].password_reuse_prevention}'
-        and account_id = '${step.query.get_password_policy.rows[0].account_id}';
+        and (
+          -- Conditional check for null in password_reuse_prevention
+          ${step.query.get_password_policy.rows[0].password_reuse_prevention == null ? "password_reuse_prevention IS NULL" : "password_reuse_prevention = '" + step.query.get_password_policy.rows[0].password_reuse_prevention + "'"}
+        )
+        and (
+          -- Conditional check for null in max_password_age
+          ${step.query.get_password_policy.rows[0].max_password_age == null ? "max_password_age IS NULL" : "max_password_age = '" + step.query.get_password_policy.rows[0].max_password_age + "'"}
+        )
+        and account_id = '${step.query.get_password_policy.rows[0].title}';
     EOQ
   }
 
   step "pipeline" "set_password_policy_length_to_old_setting" {
+    if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.query.get_password_policy_after_detection]
     pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
@@ -131,13 +142,25 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
     }
   }
 
+  step "container" "delete_iam_account_password_policy" {
+    if     =(step.query.get_password_policy.rows[0].password_policy_account_id) == null
+    depends_on = [step.pipeline.set_password_policy_length_to_old_setting]
+    image = "public.ecr.aws/aws-cli/aws-cli"
+
+    cmd = [
+      "iam", "delete-account-password-policy"
+    ]
+
+    env = credential.aws[param.cred].env
+  }
+
   output "test_results" {
     description = "Test results for each step."
     value = {
       "get_account_id"                      = !is_error(step.query.get_account_id.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_account_id)}"
-      "get_password_policy"                 = !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}"
-      "set_password_policy_length_7"        = !is_error(step.pipeline.set_password_policy_length_7) ? "pass" : "fail: ${error_message(step.pipeline.set_password_policy_length_7)}"
-      "get_password_policy_after_detection" = length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
+      "get_password_policy"                 = (step.query.get_password_policy.rows[0].password_policy_account_id) != null ? !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}" : "No password policy set (Default settings)"
+      "set_password_policy_length_7"        = (step.query.get_password_policy.rows[0].password_policy_account_id) != null ? !is_error(step.pipeline.set_password_policy_length_7) ? "pass" : "fail: ${error_message(step.pipeline.set_password_policy_length_7)}" : "Not required to set policy length to 7"
+      "get_password_policy_after_detection" = (step.query.get_password_policy.rows[0].password_policy_account_id) != null ? length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1" : "Restored to default settings"
     }
   }
 }

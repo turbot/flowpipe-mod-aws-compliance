@@ -307,7 +307,7 @@ pipeline "update_iam_account_password_policy_password_reuse" {
     sql = <<-EOQ
       select
         a.account_id,
-        coalesce(minimum_password_length, 8) as minimum_password_length, // default lenght is 8
+        coalesce(minimum_password_length, 8) as minimum_password_length, 
         coalesce(require_symbols, false) as require_symbols,
         coalesce(require_numbers, false) as require_numbers,
         coalesce(require_uppercase_characters, false) as require_uppercase_characters,
