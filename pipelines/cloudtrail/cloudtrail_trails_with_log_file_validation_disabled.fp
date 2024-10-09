@@ -202,7 +202,7 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
 pipeline "correct_one_cloudtrail_trail_log_file_validation_disabled" {
   title       = "Correct one CloudTrail trail with log file validation disabled"
   description = "Enable log file validation for a CloudTrail trail."
-  tags        = local.cloudtrail_common_tags
+  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

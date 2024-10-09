@@ -603,7 +603,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes" {
   title       = "Correct one CloudWatch log group without metric filter for bucket policy changes"
   description = "Enable bucket policy changes metric filter for a CloudWatch log group metric filter."
-  tags        = local.cloudwatch_common_tags
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

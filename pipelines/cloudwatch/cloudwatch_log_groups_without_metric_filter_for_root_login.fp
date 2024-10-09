@@ -80,115 +80,186 @@ variable "cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_ena
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_default_actions" {
   type        = list(string)
   description = " The list of enabled actions approvers can select."
   default     = ["skip", "enable_root_login_metric_filter"]
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_log_group_name" {
   type        = string
   description = "The name of the log group to create."
   default     = "log_group_name_43"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_region" {
   type        = string
   description = "The region to create the log group in."
   default     = "us-east-1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_filter_name" {
   type        = string
   description = "The name of the metric filter."
   default     = "OrganizationChangesMetric"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_role_name" {
   type        = string
   description = "The name of the IAM role to create."
   default     = "OrganizationChangesMetricRole"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_s3_bucket_name" {
   type        = string
   description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
   default     = "organizationchangesnmetrics3bucket"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_metric_name" {
   type        = string
   description = "The name of the metric."
   default     = "OrganizationChangesMetrics"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_metric_namespace" {
   type        = string
   description = "The namespace of the metric."
   default     = "CISBenchmark"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_queue_name" {
   type        = string
   description = "The name of the SQS queue."
   default     = "flowpipeOrganizationChanges"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_metric_value" {
   type        = string
   description = "The value to publish to the metric."
   default     = "1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_filter_pattern" {
   type        = string
   description = "The filter pattern for the metric filter."
   default     = "{ ($.eventSource = \"organizations.amazonaws.com\") && (($.eventName = \"AcceptHandshake\") || ($.eventName = \"AttachPolicy\") || ($.eventName = \"CreateAccount\") || ($.eventName = \"CreateOrganizationalUnit\") || ($.eventName = \"CreatePolicy\") || ($.eventName = \"DeclineHandshake\") || ($.eventName = \"DeleteOrganization\") || ($.eventName = \"DeleteOrganizationalUnit\") || ($.eventName = \"DeletePolicy\") || ($.eventName = \"DetachPolicy\") || ($.eventName = \"DisablePolicyType\") || ($.eventName = \"EnablePolicyType\") || ($.eventName = \"InviteAccountToOrganization\") || ($.eventName = \"LeaveOrganization\") || ($.eventName = \"MoveAccount\") || ($.eventName = \"RemoveAccountFromOrganization\") || ($.eventName = \"UpdatePolicy\") || ($.eventName = \"UpdateOrganizationalUnit\")) }"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_sns_topic_name" {
   type        = string
   description = "The name of the Amazon SNS topic to create."
   default     = "organization_changes_metric_topic"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_alarm_name" {
   type        = string
   description = "The name of the CloudWatch alarm."
   default     = "organization_changes_alarm"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_trail_name" {
   type        = string
   description = "The name of the CloudTrail trail."
   default     = "OrganizationChangesMetricTrail"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_root_login_protocol" {
   type        = string
   description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
   default     = "SQS"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login" {
   title       = "Detect & correct CloudWatch log groups without metric filter for root login"
-  description = "Detects CloudWatch log groups that do not have a metric filter for Root Login and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login_trigger.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Detect CloudWatch log groups wihtout metric filter for root login and then enable root login metric filter."
+  tags        = local.cloudwatch_common_tags
 
   enabled  = var.cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_enabled
   schedule = var.cloudwatch_log_groups_without_metric_filter_for_root_login_trigger_schedule
@@ -205,9 +276,8 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login" {
   title       = "Detect & correct CloudWatch log groups without metric filter for root login"
-  description = "Detects CloudWatch log groups that do not have a metric filter for Root Login and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
+  description = "Detect CloudWatch log groups without metric filter for root login and then enable root login metric filter."
+  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
 
   param "region" {
     type        = string
@@ -362,9 +432,8 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_roo
 
 pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_root_login" {
   title       = "Correct CloudWatch log groups without metric filter for root login"
-  description = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Root Login."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_root_login.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable root login metric filter for CloudWatch log groups without metric filter for root login."
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -491,7 +560,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_root_login" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for root login."
+    text     = "Detected CloudWatch log group(s) ${length(param.items)} without metric filter for root login."
   }
 
   step "transform" "items_by_id" {
@@ -529,9 +598,8 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_root_login" {
 
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_root_login" {
   title       = "Correct one CloudWatch log group without metric filter for root login"
-  description = "Runs corrective action on a CloudWatch log group without metric filter for root login."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_root_login.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable root login metric filter for a CloudWatch log group."
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -681,7 +749,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_root_login
           error_msg   = ""
         },
         "enable_root_login_metric_filter" = {
-          label        = "Enable Root Login Metric Filter"
+          label        = "Enable root login metric filter"
           value        = "enable_root_login_metric_filter"
           style        = local.style_alert
           pipeline_ref = pipeline.create_cloudwatch_metric_filter_root_login
@@ -766,8 +834,8 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_root_login
               ]
             })
           }
-          success_msg = "Enabled Root Login metric filter for account ${param.title}."
-          error_msg   = "Error enabling Root Login metric filter for account ${param.title}."
+          success_msg = "Enabled root login metric filter for account ${param.title}."
+          error_msg   = "Error enabling root login metric filter for account ${param.title}."
         }
       }
     }

@@ -259,7 +259,7 @@ variable "cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk_
 trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk" {
   title       = "Detect & correct CloudWatch log groups without metric filter for disable or delete CMK "
   description = "Detect CloudWatch log groups without metric filter for disable or delete CMK and then enable disable or delete CMK metric filter."
-  tags = local.cloudwatch_common_tags
+  tags        = local.cloudwatch_common_tags
 
   enabled  = var.cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk_trigger_enabled
   schedule = var.cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk_trigger_schedule
@@ -277,7 +277,7 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk" {
   title       = "Detect & correct CloudWatch log groups without metric filter for disable or delete CMK "
   description = "Detect CloudWatch log groups without metric filter for disable or delete CMK and then enable disable or delete CMK metric filter."
-  tags = merge(local.cloudwatch_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
 
   param "region" {
     type        = string
@@ -433,7 +433,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_dis
 pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk" {
   title       = "Correct CloudWatch log groups without metric filter for disable or delete CMK "
   description = "Enable disable or delete CMK metric filter for CloudWatch log groups without metric filter for disable or delete CMK."
-  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -599,7 +599,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_del
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk" {
   title       = "Correct one CloudWatch log group without metric filter for disable or delete CMK "
   description = "Enable disable or delete CMK metric filter for a CloudWatch log group."
-  tags = local.cloudwatch_common_tags
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

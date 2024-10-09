@@ -231,7 +231,7 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
 pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
   title       = "Correct one CloudTrail trail with S3 logging disabled"
   description = "Enable S3 logging for a CloudTrail trail."
-  tags        = merge(local.cloudtrail_common_tags)
+  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

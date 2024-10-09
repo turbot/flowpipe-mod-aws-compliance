@@ -600,7 +600,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_console_login_
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes" {
   title       = "Correct one CloudWatch log group without metric filter for console login MFA changes"
   description = "Enable console login MFA changes metric filter for a CloudWatch log group."
-  tags        = local.cloudwatch_common_tags
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

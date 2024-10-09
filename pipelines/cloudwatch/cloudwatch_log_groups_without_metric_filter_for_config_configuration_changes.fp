@@ -601,7 +601,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_config_configu
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes" {
   title       = "Correct one CloudWatch log group without metric filter for Config configuration"
   description = "Enable Config configuration changes metric filter for a CloudWatch log group."
-  tags        = local.cloudwatch_common_tags
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

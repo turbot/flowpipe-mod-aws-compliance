@@ -235,7 +235,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
 pipeline "correct_one_account_without_alternate_security_contact" {
   title       = "Correct one account without alternate security contact"
   description = "Add alternate security contact for an account."
-  tags        = merge(local.account_common_tags)
+  tags        = merge(local.account_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

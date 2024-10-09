@@ -294,7 +294,7 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
 pipeline "correct_one_cloudtrail_trail_with_multi_region_read_write_disabled" {
   title       = "Correct one CloudTrail trail with multi-region read/write disabled"
   description = "Enabled multi-region read/write for a CloudTrail trail."
-  tags        = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

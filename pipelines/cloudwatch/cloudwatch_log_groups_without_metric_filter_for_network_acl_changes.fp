@@ -599,7 +599,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_network_acl_ch
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_network_acl_changes" {
   title       = "Correct one CloudWatch log group  without metric filter for network ACL changes"
   description = "Enable network ACL changes metric filter for a CloudWatch log group."
-  tags        = merge(local.cloudwatch_common_tags, { class = "unused" })
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
