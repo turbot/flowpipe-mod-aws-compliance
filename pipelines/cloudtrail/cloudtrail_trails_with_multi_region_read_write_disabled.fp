@@ -39,49 +39,76 @@ variable "cloudtrail_trail_multi_region_read_write_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_multi_region_read_write_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_multi_region_read_write_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_multi_region_read_write_disabled_default_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_multi_region_read_write"]
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_multi_region_read_write_disabled_default_enabled_region" {
   type        = string
   description = "The AWS region where the trail and bucket will be created."
   default     = "us-east-1"
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_multi_region_read_write_disabled_default_trail_name" {
   type        = string
   description = "The name of the trail."
   default     = "test-fp-multi-region-trail"
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_multi_region_read_write_disabled_default_bucket_name" {
   type        = string
   description = "The name of the bucket."
   default     = "test-fp-multi-region-trail-bucket"
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disabled" {
   title       = "Detect & correct CloudTrail trails with multi-region read/write disabled"
-  description = "Detect CloudTrail trails that do not have multi-region read/write enabled and then skip or enable multi-region read/write."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disabled_trigger.md")
-  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
+  description = "Detect CloudTrail trails that do not have multi-region read/write enabled and then  enable multi-region read/write."
+  tags = merge(local.cloudtrail_common_tags)
 
   enabled  = var.cloudtrail_trail_multi_region_read_write_disabled_trigger_enabled
   schedule = var.cloudtrail_trail_multi_region_read_write_disabled_trigger_schedule
@@ -94,20 +121,12 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_multi_region_read_wri
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_cloudtrail_trail_with_multi_region_read_write_disabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disabled" {
-  title       = "Detect & correct CloudTrail trails without multi-region read/write enabled"
-  description = "Detect CloudTrail trails that do not have multi-region read/write enabled and then skip or enable multi-region read/write."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trail_multi_region_read_write_enabled.md")
-  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "recommended" })
+  title       = "Detect & correct CloudTrail trails with multi-region read/write disabled"
+  description = "Detect CloudTrail trails with multi-region read/write disabled and then enable multi-region read/write."
+  tags = merge(local.cloudtrail_common_tags, { type = "recommended" })
 
   param "database" {
     type        = string
@@ -186,9 +205,8 @@ pipeline "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disa
 
 pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
   title       = "Correct CloudTrail trails with multi-region read/write disabled"
-  description = "Runs corrective action on a collection of CloudTrail trails that do not have multi-region read/write enabled."
-  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trail_multi_region_read_write_enabled.md")
-  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
+  description = "Enabled multi-region read/write for CloudTrail trails."
+  tags = merge(local.cloudtrail_common_tags)
 
   param "items" {
     type = list(object({
@@ -250,7 +268,7 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudTrail trail(s) without multi-region read/write enabled."
+    text     = "Detected ${length(param.items)} CloudTrail trail(s) with multi-region read/write disabled."
   }
 
   step "pipeline" "correct_item" {
@@ -275,8 +293,7 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
 
 pipeline "correct_one_cloudtrail_trail_with_multi_region_read_write_disabled" {
   title       = "Correct one CloudTrail trail with multi-region read/write disabled"
-  description = "Runs corrective action on a CloudTrail trail without multi-region read/write enabled."
-  // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_multi_region_read_write_enabled.md")
+  description = "Enabled multi-region read/write for a CloudTrail trail."
   tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "title" {
@@ -366,7 +383,7 @@ pipeline "correct_one_cloudtrail_trail_with_multi_region_read_write_disabled" {
           error_msg   = ""
         },
         "enable_multi_region_read_write" = {
-          label        = "Enable Multi-Region Read/Write"
+          label        = "Enable multi-region read/write"
           value        = "enable_multi_region_read_write"
           style        = local.style_alert
           pipeline_ref = pipeline.create_cloudtrail_trail_enable_read_write
