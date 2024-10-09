@@ -260,7 +260,7 @@ variable "cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_chan
 trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes" {
   title       = "Detect & correct CloudWatch log groups without metric filter for console login MFA changes"
   description = "Detect CloudWatch log groups that do not have a metric filter for Console Login MFA changes and then enable console login MFA changes metric filter."
-  tags = local.cloudwatch_common_tags
+  tags        = local.cloudwatch_common_tags
 
   enabled  = var.cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes_trigger_enabled
   schedule = var.cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes_trigger_schedule
@@ -278,7 +278,7 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes" {
   title       = "Detect & correct CloudWatch log groups without metric filter for console login MFA changes"
   description = "Detect CloudWatch log groups without metric filter for console login MFA changes and then enable console login MFA changes metric filter."
-  tags = merge(local.cloudwatch_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
 
   param "region" {
     type        = string
@@ -434,7 +434,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_con
 pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes" {
   title       = "Correct CloudWatch log groups without metric filter for console login MFA changes"
   description = "Enable console login MFA changes metric filter for CloudWatch log groups without metric filter for console login MFA changes."
-  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -600,7 +600,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_console_login_
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes" {
   title       = "Correct one CloudWatch log group without metric filter for console login MFA changes"
   description = "Enable console login MFA changes metric filter for a CloudWatch log group."
-  tags = local.cloudwatch_common_tags
+  tags        = local.cloudwatch_common_tags
 
   param "title" {
     type        = string
