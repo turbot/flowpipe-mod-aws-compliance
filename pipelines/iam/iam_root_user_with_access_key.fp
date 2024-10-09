@@ -1,14 +1,13 @@
 locals {
   iam_root_user_with_access_key_query = <<-EOQ
     select
-      concat(access_key_id, ' [', account_id, ']') as title,
-      user_name,
-      access_key_id,
+      concat('<root_account>', ' [', account_id, ']') as title,
+      (account_access_keys_present)::text as account_access_keys_present,
       _ctx ->> 'connection_name' as cred
     from
-      aws_iam_access_key
+      aws_iam_account_summary
     where
-      user_name = '<root_account>';
+      account_access_keys_present > 0;
   EOQ
 }
 
@@ -33,12 +32,12 @@ variable "iam_root_user_with_access_key_default_action" {
 variable "iam_root_user_with_access_key_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "delete_root_user_access_key"]
+  default     = ["notify"]
 }
 
 trigger "query" "detect_and_correct_iam_root_user_with_access_key" {
   title         = "Detect & correct IAM root user with access keys"
-  description   = "Detects IAM root user access keys and deletes them."
+  description   = "Detects IAM root user with access keys."
 
   enabled  = var.iam_root_user_with_access_key_trigger_enabled
   schedule = var.iam_root_user_with_access_key_trigger_schedule
@@ -61,8 +60,9 @@ trigger "query" "detect_and_correct_iam_root_user_with_access_key" {
 }
 
 pipeline "detect_and_correct_iam_root_user_with_access_key" {
-  title         = "Detect & correct IAM root user with access keys"
-  description   = "Detects IAM root user access keys and deletes them."
+  title       = "Detect & correct IAM root user with access keys"
+  description = "Detects IAM root user with access keys."
+
 
   param "database" {
     type        = string
@@ -119,16 +119,14 @@ pipeline "detect_and_correct_iam_root_user_with_access_key" {
 }
 
 pipeline "correct_iam_root_user_with_access_key" {
-  title         = "Correct IAM root user with access keys"
-  description   = "Runs corrective action to delete IAM root user access keys."
+  title       = "Correct IAM root user with access key"
+  description = "Detect IAM root user with access key"
 
   param "items" {
     type = list(object({
-      title          = string
-      user_id        = string
-      access_key_id  = string
-      region         = string
-      cred           = string
+      title                       = string
+      account_access_keys_present = string
+      cred                        = string
     }))
     description = local.description_items
   }
@@ -166,124 +164,13 @@ pipeline "correct_iam_root_user_with_access_key" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} IAM root user access key(s)."
+    text     = "Detected ${length(param.items)} IAM root user with access key."
   }
 
-  step "pipeline" "correct_item" {
-    for_each        = { for row in param.items : row.access_key_id => row }
-    max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_iam_root_user_access_key
-    args = {
-      title              = each.value.title
-      user_id            = each.value.user_id
-      access_key_id      = each.value.access_key_id
-      region             = each.value.region
-      cred               = each.value.cred
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
-    }
-  }
-}
-
-pipeline "correct_one_iam_root_user_access_key" {
-  title         = "Correct IAM root user access key"
-  description   = "Runs corrective action to delete IAM root user access key."
-
-  param "title" {
-    type        = string
-    description = local.description_title
-  }
-
-  param "user_id" {
-    type        = string
-    description = "The user ID of the IAM root user."
-  }
-
-  param "access_key_id" {
-    type        = string
-    description = "The access key ID of the IAM root user."
-  }
-
-  param "region" {
-    type        = string
-    description = local.description_region
-  }
-
-  param "cred" {
-    type        = string
-    description = local.description_credential
-  }
-
-  param "notifier" {
-    type        = string
-    description = local.description_notifier
-    default     = var.notifier
-  }
-
-  param "notification_level" {
-    type        = string
-    description = local.description_notifier_level
-    default     = var.notification_level
-  }
-
-  param "approvers" {
-    type        = list(string)
-    description = local.description_approvers
-    default     = var.approvers
-  }
-
-  param "default_action" {
-    type        = string
-    description = local.description_default_action
-    default     = var.iam_root_user_with_access_key_default_action
-  }
-
-  param "enabled_actions" {
-    type        = list(string)
-    description = local.description_enabled_actions
-    default     = var.iam_root_user_with_access_key_enabled_actions
-  }
-
-  step "pipeline" "respond" {
-    pipeline = detect_correct.pipeline.correction_handler
-    args = {
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-      detect_msg         = "Detected IAM root user access key ${param.title}."
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
-      actions = {
-        "skip" = {
-          label        = "Skip"
-          value        = "skip"
-          style        = local.style_info
-          pipeline_ref = detect_correct.pipeline.optional_message
-          pipeline_args = {
-            notifier = param.notifier
-            send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM root user access key ${param.title}."
-          }
-          success_msg = ""
-          error_msg   = ""
-        },
-        "delete_root_user_access_key" = {
-          label        = "Delete IAM root access key ${param.access_key_id}"
-          value        = "delete_root_user_access_key"
-          style        = local.style_alert
-          pipeline_ref = aws.pipeline.delete_iam_access_key
-          pipeline_args = {
-            access_key_id = param.access_key_id
-            region        = param.region
-            cred          = param.cred
-          }
-          success_msg = "Deleted IAM root user access key ${param.title}."
-          error_msg   = "Error deleting IAM root user access key ${param.title}."
-        }
-      }
-    }
+  step "message" "notify_items" {
+    if       = var.notification_level == local.level_info
+    for_each = param.items
+    notifier = notifier[param.notifier]
+    text     = "Detected IAM ${each.value.title} with ${each.value.account_access_keys_present} access key(s)."
   }
 }
