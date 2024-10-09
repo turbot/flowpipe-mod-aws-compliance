@@ -80,114 +80,186 @@ variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_default_actions" {
   type        = list(string)
   description = " The list of enabled actions approvers can select."
   default     = ["skip", "enable_bucket_policy_changes_metric_filter"]
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_log_group_name" {
   type        = string
   description = "The name of the log group to create."
   default     = "log_group_name_39"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_region" {
   type        = string
   description = "The region to create the log group in."
   default     = "us-east-1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_filter_name" {
   type        = string
   description = "The name of the metric filter."
   default     = "BucketPolicyChangesMetric"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_role_name" {
   type        = string
   description = "The name of the IAM role to create."
   default     = "BucketPolicyChangesMetricRole"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_s3_bucket_name" {
   type        = string
   description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
   default     = "bucketpolicychangemetrics3bucket"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_metric_name" {
   type        = string
   description = "The name of the metric."
   default     = "BucketPolicyChangeMetrics"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_metric_namespace" {
   type        = string
   description = "The namespace of the metric."
   default     = "CISBenchmark"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_queue_name" {
   type        = string
   description = "The name of the SQS queue."
   default     = "flowpipeBucketPolicyChanges"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_metric_value" {
   type        = string
   description = "The value to publish to the metric."
   default     = "1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_filter_pattern" {
   type        = string
   description = "The filter pattern for the metric filter."
   default     = "{ ($.eventSource = s3.amazonaws.com) && (($.eventName = PutBucketAcl) || ($.eventName = PutBucketPolicy) || ($.eventName = PutBucketCors) || ($.eventName = PutBucketLifecycle) || ($.eventName = PutBucketReplication) || ($.eventName = DeleteBucketPolicy) || ($.eventName = DeleteBucketCors) || ($.eventName = DeleteBucketLifecycle) || ($.eventName = DeleteBucketReplication)) }"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_sns_topic_name" {
   type        = string
   description = "The name of the Amazon SNS topic to create."
   default     = "bucket_policy_changes_metric_topic"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_alarm_name" {
   type        = string
   description = "The name of the CloudWatch alarm."
   default     = "bucket_policy_changes_alarm"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_trail_name" {
   type        = string
   description = "The name of the CloudTrail trail."
   default     = "BucketPolicyChangesMetricTrail"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_protocol" {
   type        = string
   description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
   default     = "SQS"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes" {
   title       = "Detect & correct CloudWatch log groups without metric filter for bucket policy changes"
-  description = "Detects CloudWatch log groups that do not have a metric filter for Bucket Policy changes and runs your chosen action."
-  tags        = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Detect CloudWatch log groups without metric filter for bucket policy changes and enable bucket policy changes metric filter."
+  tags        = merge(local.cloudwatch_common_tags)
 
   enabled  = var.cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_trigger_enabled
   schedule = var.cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes_trigger_schedule
@@ -204,8 +276,8 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes" {
   title       = "Detect & correct CloudWatch log groups without metric filter for bucket policy changes"
-  description = "Detects CloudWatch log groups that do not have a metric filter for Bucket Policy changes and runs your chosen action."
-  tags        = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
+  description = "Detects CloudWatch log groups without metric filter for Bucket Policy changes and enable bucket policy changes metric filter."
+  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
 
   param "region" {
     type        = string
@@ -361,9 +433,8 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_buc
 
 pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes" {
   title       = "Correct CloudWatch log groups without metric filter for bucket policy changes"
-  description = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Bucket Policy changes."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable bucket policy changes metric filter for CloudWatch log groups without metric filter for bucket policy changes."
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -491,7 +562,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for bucket policy changes."
+    text     = "Detected CloudWatch log group(s) ${length(param.items)} without metric filter for bucket policy changes."
   }
 
   step "transform" "items_by_id" {
@@ -531,9 +602,8 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_
 
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes" {
   title       = "Correct one CloudWatch log group without metric filter for bucket policy changes"
-  description = "Runs corrective action on a CloudWatch log group without metric filter for bucket policy changes."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable bucket policy changes metric filter for a CloudWatch log group metric filter."
+  tags        = local.cloudwatch_common_tags
 
   param "title" {
     type        = string
@@ -688,7 +758,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_bucket_pol
           error_msg   = ""
         },
         "enable_bucket_policy_changes_metric_filter" = {
-          label        = "Enable Bucket Policy changes Metric Filter"
+          label        = "Enable bucket policy changes metric filter"
           value        = "enable_bucket_policy_changes_metric_filter"
           style        = local.style_alert
           pipeline_ref = pipeline.create_cloudwatch_metric_filter_bucket_policy_changes
@@ -775,8 +845,8 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_bucket_pol
               ]
             })
           }
-          success_msg = "Enabled Bucket Policy changes metric filter for account ${param.title}."
-          error_msg   = "Error enabling Bucket Policy changes metric filter for account ${param.title}."
+          success_msg = "Enabled bucket policy changes metric filter for account ${param.title}."
+          error_msg   = "Error enabling bucket policy changes metric filter for account ${param.title}."
         }
       }
     }

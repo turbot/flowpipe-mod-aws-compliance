@@ -92,9 +92,9 @@ variable "accounts_without_alternate_security_contact_name" {
 }
 
 trigger "query" "detect_and_correct_accounts_without_alternate_security_contact" {
-  title         = "Detect & correct accounts without alternate security contact"
-  description   = "Detect accounts without alternate security contact and then add alternate security contact."
-  tags          = local.account_common_tags
+  title       = "Detect & correct accounts without alternate security contact"
+  description = "Detect accounts without alternate security contact and then add alternate security contact."
+  tags        = local.account_common_tags
 
   enabled  = var.accounts_without_alternate_security_contact_trigger_enabled
   schedule = var.accounts_without_alternate_security_contact_trigger_schedule
@@ -110,9 +110,9 @@ trigger "query" "detect_and_correct_accounts_without_alternate_security_contact"
 }
 
 pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
-  title         = "Detect & correct accounts without alternate security contact"
-  description   = "Detect accounts without alternate security contact and then add alternate security contact."
-  tags          = local.account_common_tags
+  title       = "Detect & correct accounts without alternate security contact"
+  description = "Detect accounts without alternate security contact and then add alternate security contact."
+  tags        = local.account_common_tags
 
   param "database" {
     type        = string
@@ -169,14 +169,14 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
 }
 
 pipeline "correct_accounts_without_alternate_security_contact" {
-  title         = "Correct accounts without alternate security contact"
-  description   = "Add alternate security contact for accounts without alternate security contact."
-  tags          = merge(local.account_common_tags, { type = "internal" })
+  title       = "Correct accounts without alternate security contact"
+  description = "Add alternate security contact for accounts without alternate security contact."
+  tags        = merge(local.account_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title      = string
-      cred       = string
+      title = string
+      cred  = string
     }))
   }
 
@@ -221,21 +221,21 @@ pipeline "correct_accounts_without_alternate_security_contact" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_account_without_alternate_security_contact
     args = {
-      title                   = each.value.title
-      cred                    = each.value.cred
-      notifier                = param.notifier
-      notification_level      = param.notification_level
-      approvers               = param.approvers
-      default_action          = param.default_action
-      enabled_actions         = param.enabled_actions
+      title              = each.value.title
+      cred               = each.value.cred
+      notifier           = param.notifier
+      notification_level = param.notification_level
+      approvers          = param.approvers
+      default_action     = param.default_action
+      enabled_actions    = param.enabled_actions
     }
   }
 }
 
 pipeline "correct_one_account_without_alternate_security_contact" {
-  title         = "Correct one account without alternate security contact"
-  description   = "Add alternate security contact for an account."
-  tags          = merge(local.account_common_tags)
+  title       = "Correct one account without alternate security contact"
+  description = "Add alternate security contact for an account."
+  tags        = merge(local.account_common_tags)
 
   param "title" {
     type        = string

@@ -80,114 +80,186 @@ variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configurati
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_default_actions" {
   type        = list(string)
   description = " The list of enabled actions approvers can select."
   default     = ["skip", "enable_cloudtrail_configuration_metric_filter"]
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_region" {
   type        = string
   description = "The region to create the log group in."
   default     = "us-east-1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_filter_name" {
   type        = string
   description = "The name of the metric filter."
   default     = "CloudTrailConfigurationMetric"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_role_name" {
   type        = string
   description = "The name of the IAM role to create."
   default     = "CloudTrailConfigurationMetricRole"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_s3_bucket_name" {
   type        = string
   description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
   default     = "cloudtrailconfigurationmetrics3bucket"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_metric_name" {
   type        = string
   description = "The name of the metric."
   default     = "CloudTrailConfigurationMetrics"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_metric_namespace" {
   type        = string
   description = "The namespace of the metric."
   default     = "CISBenchmark"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_queue_name" {
   type        = string
   description = "The name of the SQS queue."
   default     = "flowpipeCloudTrailConfiguration"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_metric_value" {
   type        = string
   description = "The value to publish to the metric."
   default     = "1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_filter_pattern" {
   type        = string
   description = "The filter pattern for the metric filter."
   default     = "{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail) || ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName = StopLogging) }"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_sns_topic_name" {
   type        = string
   description = "The name of the Amazon SNS topic to create."
   default     = "cloudtrail_configuration_metric_topic"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_alarm_name" {
   type        = string
   description = "The name of the CloudWatch alarm."
   default     = "cloudtrail_configuration_alarm"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_trail_name" {
   type        = string
   description = "The name of the CloudTrail trail."
   default     = "CloudTrailConfigurationMetricTrail"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_protocol" {
   type        = string
   description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
   default     = "SQS"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_log_group_name" {
   type        = string
   description = "The name of the log group to create."
   default     = "log_group_name_42"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Detect & correct CloudWatch log groups without metric filter for CloudTrail configuration"
-  description = "Detects CloudWatch log groups that do not have a metric filter for CloudTrail Configuration and runs your chosen action."
-  tags        = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Detect CloudWatch log groups without metric filter for CloudTrail configuration and runs your chosen action."
+  tags        = local.cloudwatch_common_tags
 
   enabled  = var.cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_trigger_enabled
   schedule = var.cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration_trigger_schedule
@@ -205,8 +277,8 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Detect & correct CloudWatch log groups without metric filter for CloudTrail configuration"
-  description = "Detects CloudWatch log groups that do not have a metric filter for CloudTrail Configuration and runs your chosen action."
-  tags        = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
+  description = "Detects CloudWatch log groups that do not have a metric filter for CloudTrail Configuration and then enable CloudTrail configuration metric filter."
+  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
 
   param "region" {
     type        = string
@@ -362,9 +434,8 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_clo
 
 pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Correct CloudWatch log groups without metric filter for CloudTrail configuration"
-  description = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for CloudTrail Configuration."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable CloudTrail configuration metric filter for CloudWatch log groups without metric filter for CloudTrail configuration."
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -491,7 +562,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_con
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for CloudTrail configuration."
+    text     = "Detected CloudWatch log group(s) ${length(param.items)} without metric filter for CloudTrail configuration."
   }
 
   step "transform" "items_by_id" {
@@ -530,9 +601,8 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_con
 
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Correct one CloudWatch log group without metric filter for CloudTrail configuration"
-  description = "Runs corrective action on a CloudWatch log group without metric filter for CloudTrail configuration."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable CloudTrail configuration metric filter for a CloudWatch log groups."
+  tags        = local.cloudwatch_common_tags
 
   param "title" {
     type        = string
@@ -682,7 +752,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_cloudtrail
           error_msg   = ""
         },
         "enable_cloudtrail_configuration_metric_filter" = {
-          label        = "Enable CloudTrail Configuration Metric Filter"
+          label        = "Enable CloudTrail configuration metric filter"
           value        = "enable_cloudtrail_configuration_metric_filter"
           style        = local.style_alert
           pipeline_ref = pipeline.create_cloudwatch_metric_filter_cloudtrail_configuration

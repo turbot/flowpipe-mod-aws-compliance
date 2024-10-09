@@ -80,115 +80,186 @@ variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_default_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_console_authentication_failure_metric_filter"]
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_group_name" {
   type        = string
   description = "The name of the log group to create."
   default     = "log_group_name_41"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_region" {
   type        = string
   description = "The region to create the log group in."
   default     = "us-east-1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_filter_name" {
   type        = string
   description = "The name of the metric filter."
   default     = "ConsoleAuthenticationFailureMetric"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_role_name" {
   type        = string
   description = "The name of the IAM role to create."
   default     = "ConsoleAuthenticationFailureMetricRole"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_s3_bucket_name" {
   type        = string
   description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
   default     = "consoleauthenticationfailuremetrics3bucket"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_metric_name" {
   type        = string
   description = "The name of the metric."
   default     = "ConsoleAuthenticationFailureMetrics"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_metric_namespace" {
   type        = string
   description = "The namespace of the metric."
   default     = "CISBenchmark"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_queue_name" {
   type        = string
   description = "The name of the SQS queue."
   default     = "flowpipeConsoleAuthenticationFailure"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_metric_value" {
   type        = string
   description = "The value to publish to the metric."
   default     = "1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_filter_pattern" {
   type        = string
   description = "The filter pattern for the metric filter."
   default     = "{ ($.eventName = \"ConsoleLogin\") && ($.errorMessage = \"Failed authentication\") }"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_sns_topic_name" {
   type        = string
   description = "The name of the Amazon SNS topic to create."
   default     = "console_authentication_failure_metric_topic"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_alarm_name" {
   type        = string
   description = "The name of the CloudWatch alarm."
   default     = "console_authentication_failure_alarm"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trail_name" {
   type        = string
   description = "The name of the CloudTrail trail."
   default     = "ConsoleAuthenticationFailureMetricTrail"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_protocol" {
   type        = string
   description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
   default     = "SQS"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure" {
   title       = "Detect & correct CloudWatch log groups without metric filter for console authentication failure"
-  description = "Detects CloudWatch log groups that do not have a metric filter for Console Authentication Failure and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trigger.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Detect CloudWatch log groups without metric filter for console authentication failure and then enable console authentication failure metric filter."
+  tags = local.cloudwatch_common_tags
 
   enabled  = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trigger_enabled
   schedule = var.cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure_trigger_schedule
@@ -205,9 +276,8 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure" {
   title       = "Detect & correct CloudWatch log groups without metric filter for console authentication failure"
-  description = "Detects CloudWatch log groups that do not have a metric filter for Console Authentication Failure and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
+  description = "Detects CloudWatch log groups without metric filter for console authentication failure and then enable console authentication failure metric filter."
+  tags = merge(local.cloudwatch_common_tags, { type = "recommended" })
 
   param "region" {
     type        = string
@@ -362,9 +432,8 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_con
 
 pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure" {
   title       = "Correct CloudWatch log groups without metric filter for console authentication failure"
-  description = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Console Authentication Failure."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable console authentication failure metric filter for CloudWatch log groups wihtout metric filter for console authentication failure."
+  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -491,7 +560,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_console_authen
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for console authentication failure."
+    text     = "Detected CloudWatch log group(s) ${length(param.items)} without metric filter for console authentication failure."
   }
 
   step "transform" "items_by_id" {
@@ -529,9 +598,8 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_console_authen
 
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure" {
   title       = "Correct one CloudWatch log group without metric filter for console authentication failure"
-  description = "Runs corrective action on a CloudWatch log group without metric filter for console authentication failure."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable console authentication failure metric filter for a CloudWatch log group."
+  tags = local.cloudwatch_common_tags
 
   param "title" {
     type        = string
@@ -681,7 +749,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_console_au
           error_msg   = ""
         },
         "enable_console_authentication_failure_metric_filter" = {
-          label        = "Enable Console Authentication Failure Metric Filter"
+          label        = "Enable console authentication failure metric filter"
           value        = "enable_console_authentication_failure_metric_filter"
           style        = local.style_alert
           pipeline_ref = pipeline.create_cloudwatch_metric_filter_console_authentication_failure

@@ -80,115 +80,186 @@ variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_c
   type        = string
   description = "The region to create the log group in."
   default     = "us-east-1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_group_name" {
   type        = string
   description = "The name of the log group to create."
   default     = "log_group_name_38"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_filter_name" {
   type        = string
   description = "The name of the metric filter."
   default     = "ConfigConfigurationChangesMetric"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_role_name" {
   type        = string
   description = "The name of the IAM role to create."
   default     = "ConfigConfigurationChangesMetricRole"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_trail_name" {
   type        = string
   description = "The name of the CloudTrail trail."
   default     = "ConfigConfigurationChangesMetricTrail"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_s3_bucket_name" {
   type        = string
   description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
   default     = "configconfigurationchangemetrics3bucket"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_metric_name" {
   type        = string
   description = "The name of the metric."
   default     = "ConfigConfigurationChangeMetrics"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_metric_namespace" {
   type        = string
   description = "The namespace of the metric."
   default     = "CISBenchmark"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_queue_name" {
   type        = string
   description = "The name of the SQS queue."
   default     = "flowpipeConfigConfigurationChanges"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_metric_value" {
   type        = string
   description = "The value to publish to the metric."
   default     = "1"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_filter_pattern" {
   type        = string
   description = "The filter pattern for the metric filter."
   default     = "{ ($.eventSource = config.amazonaws.com) && (($.eventName=StopConfigurationRecorder)||($.eventName=DeleteDeliveryChannel) ||($.eventName=PutDeliveryChannel)||($.eventName=PutConfigurationRecorder)) }"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_sns_topic_name" {
   type        = string
   description = "The name of the Amazon SNS topic to create."
   default     = "config_configuration_changes_metric_topic"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_protocol" {
   type        = string
   description = "The protocol to use for the subscription (e.g., email, sms, lambda, etc.)."
   default     = "SQS"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_alarm_name" {
   type        = string
   description = "The name of the CloudWatch alarm."
   default     = "config_configuration_changes_alarm"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 variable "cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_default_actions" {
   type        = list(string)
   description = " The list of enabled actions approvers can select."
   default     = ["skip", "enable_config_configuration_changes_metric_filter"]
+
+  tags = {
+    folder = "Advanced/CloudWatch"
+  }
 }
 
 trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes" {
   title       = "Detect & correct CloudWatch log groups without metric filter for Config configuration"
-  description = "Detects CloudWatch log groups that do not have a metric filter for Config Configuration changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_trigger.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Detect CloudWatch log groups without metric filter for Config Configuration changes and enable Config configuration changes metric filter."
+  tags        = merge(local.cloudwatch_common_tags)
 
   enabled  = var.cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_trigger_enabled
   schedule = var.cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes_trigger_schedule
@@ -205,9 +276,8 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes" {
   title       = "Detect & correct CloudWatch log groups without metric filter for Config configuration"
-  description = "Detects CloudWatch log groups that do not have a metric filter for Config Configuration changes and runs your chosen action."
-  // documentation = file("./cloudwatch/docs/detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused", type = "recommended" })
+  description = "Detects CloudWatch log groups without metric filter for Config Configuration changes and enable Config configuration changes metric filter."
+  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
 
   param "database" {
     type        = string
@@ -363,9 +433,8 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_con
 
 pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes" {
   title       = "Correct CloudWatch log groups without metric filter for Config configuration"
-  description = "Runs corrective action on a collection of CloudWatch log groups that do not have a metric filter for Config Configuration changes."
-  // documentation = file("./cloudwatch/docs/correct_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable Config configuration changes metric filter for CloudWatch log groups without metric filter for Config configuration changes."
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -492,7 +561,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_config_configu
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} CloudWatch log groups without metric filter for Config configuration."
+    text     = "Detected CloudWatch log group(s) ${length(param.items)} without metric filter for Config configuration."
   }
 
   step "transform" "items_by_id" {
@@ -531,9 +600,8 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_config_configu
 
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes" {
   title       = "Correct one CloudWatch log group without metric filter for Config configuration"
-  description = "Runs corrective action on a CloudWatch log group without metric filter for Config configuration."
-  // documentation = file("./cloudwatch/docs/correct_one_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes.md")
-  tags = merge(local.cloudwatch_common_tags, { class = "unused" })
+  description = "Enable Config configuration changes metric filter for a CloudWatch log group."
+  tags        = local.cloudwatch_common_tags
 
   param "title" {
     type        = string
@@ -683,7 +751,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_config_con
           error_msg   = ""
         },
         "enable_config_configuration_changes_metric_filter" = {
-          label        = "Enable Config Configuration changes Metric Filter"
+          label        = "Enable Config configuration changes metric filter"
           value        = "enable_config_configuration_changes_metric_filter"
           style        = local.style_alert
           pipeline_ref = pipeline.create_cloudwatch_metric_filter_config_configuration_changes
