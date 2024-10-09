@@ -1,11 +1,12 @@
 locals {
   iam_account_password_policies_without_one_symbol_query = <<-EOQ
     select
-      account_id as title,
-      account_id,
-      _ctx ->> 'connection_name' as cred
+      a.account_id as title,
+      a.account_id,
+      a._ctx ->> 'connection_name' as cred
     from
-      aws_iam_account_password_policy
+      aws_account as a
+      left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
     where
       require_symbols = false
       or require_symbols is null;
@@ -305,19 +306,20 @@ pipeline "update_iam_account_password_policy_symbol" {
     database = var.database
     sql = <<-EOQ
       select
-        account_id,
-        minimum_password_length,
-        require_symbols,
-        require_numbers,
-        require_uppercase_characters,
-        require_lowercase_characters,
-        allow_users_to_change_password,
+        a.account_id,
+        coalesce(minimum_password_length, 8) as minimum_password_length,
+        coalesce(require_symbols, false) as require_symbols,
+        coalesce(require_numbers, false) as require_numbers,
+        coalesce(require_uppercase_characters, false) as require_uppercase_characters,
+        coalesce(require_lowercase_characters, false) as require_lowercase_characters,
+        coalesce(allow_users_to_change_password, false) as allow_users_to_change_password,
         coalesce(max_password_age, 0) as max_password_age,
         coalesce(password_reuse_prevention, 0) as password_reuse_prevention
       from
-        aws_iam_account_password_policy
+        aws_account as a
+        left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-        _ctx ->> 'connection_name' = '${param.cred}'
+        a._ctx ->> 'connection_name' = '${param.cred}';
     EOQ
   }
 
