@@ -108,7 +108,7 @@ variable "cloudtrail_trail_multi_region_read_write_disabled_default_bucket_name"
 trigger "query" "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disabled" {
   title       = "Detect & correct CloudTrail trails with multi-region read/write disabled"
   description = "Detect CloudTrail trails that do not have multi-region read/write enabled and then  enable multi-region read/write."
-  tags = merge(local.cloudtrail_common_tags)
+  tags        = merge(local.cloudtrail_common_tags)
 
   enabled  = var.cloudtrail_trail_multi_region_read_write_disabled_trigger_enabled
   schedule = var.cloudtrail_trail_multi_region_read_write_disabled_trigger_schedule
@@ -126,7 +126,7 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_multi_region_read_wri
 pipeline "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disabled" {
   title       = "Detect & correct CloudTrail trails with multi-region read/write disabled"
   description = "Detect CloudTrail trails with multi-region read/write disabled and then enable multi-region read/write."
-  tags = merge(local.cloudtrail_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudtrail_common_tags, { type = "recommended" })
 
   param "database" {
     type        = string
@@ -206,7 +206,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disa
 pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
   title       = "Correct CloudTrail trails with multi-region read/write disabled"
   description = "Enabled multi-region read/write for CloudTrail trails with multi-region read/write disabled."
-  tags = merge(local.cloudtrail_common_tags)
+  tags        = merge(local.cloudtrail_common_tags)
 
   param "items" {
     type = list(object({
@@ -294,7 +294,7 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
 pipeline "correct_one_cloudtrail_trail_with_multi_region_read_write_disabled" {
   title       = "Correct one CloudTrail trail with multi-region read/write disabled"
   description = "Enabled multi-region read/write for a CloudTrail trail."
-  tags = merge(local.cloudtrail_common_tags, { class = "unused" })
+  tags        = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "title" {
     type        = string
