@@ -40,10 +40,10 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
     value = step.transform.get_vpc_id
   }
 
-	step "sleep" "sleep_10_seconds" {
-		depends_on = [ step.pipeline.correct_item ]
-		duration   = "10s"
-	}
+  step "sleep" "sleep_10_seconds" {
+    depends_on = [ step.pipeline.correct_item ]
+    duration   = "10s"
+  }
 
   step "query" "get_vpc_details" {
     depends_on = [step.container.create_vpc]
@@ -99,10 +99,10 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
     }
   }
 
-	step "sleep" "sleep_20_seconds" {
-		depends_on = [ step.pipeline.correct_item ]
-		duration   = "20s"
-	}
+  step "sleep" "sleep_20_seconds" {
+    depends_on = [ step.pipeline.correct_item ]
+    duration   = "20s"
+  }
 
   step "query" "get_vpc_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]

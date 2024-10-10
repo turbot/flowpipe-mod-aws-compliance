@@ -25,7 +25,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     default     = "flowpipe-test-${uuid()}"
   }
 
-	step "container" "create_dynamodb_table" {
+  step "container" "create_dynamodb_table" {
     image = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
@@ -37,7 +37,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     ]
 
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
-	}
+  }
 
   step "pipeline" "run_detection" {
     depends_on = [step.container.create_dynamodb_table]
@@ -62,19 +62,19 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     EOQ
   }
 
-	step "sleep" "sleep_300_seconds" {
-		depends_on = [ step.container.create_dynamodb_table ]
-		duration   = "100s"
-	}
+  step "sleep" "sleep_300_seconds" {
+    depends_on = [ step.container.create_dynamodb_table ]
+    duration   = "100s"
+  }
 
   step "pipeline" "delete_dynamodb_table" {
     depends_on = [step.sleep.sleep_300_seconds]
     pipeline = aws.pipeline.delete_dynamodb_table
     args = {
-			table_name  = param.table_name
-			region      = param.region
-			cred        = param.cred
-		}
+      table_name  = param.table_name
+      region      = param.region
+      cred        = param.cred
+    }
   }
 
   output "get_dynamodb_table" {

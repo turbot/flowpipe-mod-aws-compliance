@@ -18,7 +18,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
     default    = "us-east-1"
   }
 
-	step "container" "create_kms_key" {
+  step "container" "create_kms_key" {
     image = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
@@ -79,18 +79,18 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
     EOQ
   }
 
-	step "container" "delete_kms_key" {
-		depends_on = [step.query.get_kms_key_after_detection]
-			image = "public.ecr.aws/aws-cli/aws-cli"
+  step "container" "delete_kms_key" {
+    depends_on = [step.query.get_kms_key_after_detection]
+      image = "public.ecr.aws/aws-cli/aws-cli"
 
-			cmd = [
-				"kms", "schedule-key-deletion",
-				"--key-id", jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId,
-				"--pending-window-in-days", "7"
-			]
+      cmd = [
+        "kms", "schedule-key-deletion",
+        "--key-id", jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId,
+        "--pending-window-in-days", "7"
+      ]
 
-		env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
-	}
+    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+  }
 
   output "test_results" {
     description = "Test results for each step."

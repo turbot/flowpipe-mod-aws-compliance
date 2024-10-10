@@ -25,7 +25,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
     default     = "flowpipe-test-${uuid()}"
   }
 
-	step "container" "create_dynamodb_table" {
+  step "container" "create_dynamodb_table" {
     image = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
@@ -37,12 +37,12 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
     ]
 
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
-	}
+  }
 
-	step "sleep" "sleep_100_seconds" {
-		depends_on = [ step.container.create_dynamodb_table ]
-		duration   = "100s"
-	}
+  step "sleep" "sleep_100_seconds" {
+    depends_on = [ step.container.create_dynamodb_table ]
+    duration   = "100s"
+  }
 
   step "pipeline" "run_detection" {
     depends_on = [step.sleep.sleep_100_seconds]
@@ -75,10 +75,10 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
     depends_on = [step.query.get_dynamodb_table]
     pipeline = aws.pipeline.delete_dynamodb_table
     args = {
-			table_name  = param.table_name
-			region      = param.region
-			cred        = param.cred
-		}
+      table_name  = param.table_name
+      region      = param.region
+      cred        = param.cred
+    }
   }
 
   output "get_dynamodb_table" {

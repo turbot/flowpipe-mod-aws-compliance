@@ -64,10 +64,10 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
     value   = jsondecode(step.container.create_security_group.stdout).GroupId
   }
 
-	step "sleep" "sleep_10_seconds" {
-		depends_on = [ step.pipeline.correct_item ]
-		duration   = "10s"
-	}
+  step "sleep" "sleep_10_seconds" {
+    depends_on = [ step.pipeline.correct_item ]
+    duration   = "10s"
+  }
 
   step "query" "get_security_group_details" {
     depends_on = [step.container.add_ingress_rule]
@@ -127,10 +127,10 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
     }
   }
 
-	step "sleep" "sleep_20_seconds" {
-		depends_on = [ step.pipeline.correct_item ]
-		duration   = "20s"
-	}
+  step "sleep" "sleep_20_seconds" {
+    depends_on = [ step.pipeline.correct_item ]
+    duration   = "20s"
+  }
 
   step "query" "get_security_group_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]

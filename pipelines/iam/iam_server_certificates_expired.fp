@@ -140,7 +140,7 @@ pipeline "correct_iam_server_certificates_expired" {
       title                   = string
       server_certificate_name = string
       account_id              = string
-			expiration_date         = string
+      expiration_date         = string
       cred                    = string
     }))
     description = local.description_items
@@ -189,7 +189,7 @@ pipeline "correct_iam_server_certificates_expired" {
     args = {
       title                   = each.value.title
       server_certificate_name = each.value.server_certificate_name
-			expiration_date         = each.value.expiration_date
+      expiration_date         = each.value.expiration_date
       account_id              = each.value.account_id
       cred                    = each.value.cred
       notifier                = param.notifier
@@ -216,10 +216,10 @@ pipeline "correct_one_iam_server_certificate_expired" {
     description = "The name of the IAM server certificate."
   }
 
-	param "expiration_date" {
+  param "expiration_date" {
     type        = string
     description = "The expiration date of the IAM server certificate in the format YYYY-MM-DD."
-	}
+  }
 
   param "account_id" {
     type        = string

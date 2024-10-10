@@ -38,7 +38,7 @@ locals {
         k.user_name in (select name from users_with_more_than_one_active_key)
     )
     select
-			concat(access_key_id, ' [', account_id, ']') as title,
+      concat(access_key_id, ' [', account_id, ']') as title,
       access_key_id,
       user_name,
       access_key_last_used_date,
@@ -313,7 +313,7 @@ pipeline "correct_one_extra_iam_user_active_key" {
           pipeline_ref = aws.pipeline.delete_iam_access_key
           pipeline_args = {
             access_key_id = param.access_key_id
-						user_name  = param.user_name
+            user_name  = param.user_name
             cred          = param.cred
           }
           success_msg = "Deleted extra IAM user active key ${param.title}."

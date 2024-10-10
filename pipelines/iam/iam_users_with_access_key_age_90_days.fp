@@ -1,6 +1,6 @@
 locals {
   iam_users_with_access_key_age_90_days_query = <<-EOQ
-		select
+    select
       concat(access_key_id, ' [', account_id, ']') as title,
       access_key_id,
       user_name,
@@ -141,8 +141,8 @@ pipeline "correct_iam_users_with_access_key_age_90_days" {
       title                   = string
       user_name               = string
       account_id              = string
-			access_key_create_date  = string
-			access_key_create_day   = string
+      access_key_create_date  = string
+      access_key_create_day   = string
       access_key_id           = string
       cred                    = string
     }))
@@ -193,8 +193,8 @@ pipeline "correct_iam_users_with_access_key_age_90_days" {
       title                     = each.value.title
       user_name                 = each.value.user_name
       access_key_id             = each.value.access_key_id
-			access_key_create_date    = each.value.access_key_create_date
-			access_key_create_day     = each.value.access_key_create_day
+      access_key_create_date    = each.value.access_key_create_date
+      access_key_create_day     = each.value.access_key_create_day
       cred                      = each.value.cred
       notifier                  = param.notifier
       notification_level        = param.notification_level
@@ -225,15 +225,15 @@ pipeline "correct_one_iam_user_with_access_key_age_90_days" {
     description = "The access key ID of the IAM user."
   }
 
- 	param "access_key_create_date" {
+   param "access_key_create_date" {
     type        = string
     description = "The IAM user access key creation date."
   }
 
-	param "access_key_create_day" {
+  param "access_key_create_day" {
     type        = string
     description = "The number of days since the IAM user's access key was created."
-	}
+  }
 
   param "cred" {
     type        = string

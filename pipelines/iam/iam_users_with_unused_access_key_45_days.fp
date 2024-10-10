@@ -141,8 +141,8 @@ pipeline "correct_iam_users_with_unused_access_key_45_days" {
       title                      = string
       user_name                  = string
       account_id                 = string
-			access_key_last_used_date  = string
-			access_key_last_used_day   = string
+      access_key_last_used_date  = string
+      access_key_last_used_day   = string
       access_key_id              = string
       cred                       = string
     }))
@@ -193,8 +193,8 @@ pipeline "correct_iam_users_with_unused_access_key_45_days" {
       title                     = each.value.title
       user_name                 = each.value.user_name
       access_key_id             = each.value.access_key_id
-			access_key_last_used_date = each.value.access_key_last_used_date
-			access_key_last_used_day  = each.value.access_key_last_used_day
+      access_key_last_used_date = each.value.access_key_last_used_date
+      access_key_last_used_day  = each.value.access_key_last_used_day
       cred                      = each.value.cred
       notifier                  = param.notifier
       notification_level        = param.notification_level
@@ -225,15 +225,15 @@ pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
     description = "The access key ID of the IAM user."
   }
 
- 	param "access_key_last_used_date" {
+   param "access_key_last_used_date" {
     type        = string
     description = "The access key ID of the IAM user."
   }
 
-	param "access_key_last_used_day" {
+  param "access_key_last_used_day" {
     type        = string
     description = "The number of days since the IAM user's access key was last used."
-	}
+  }
 
   param "cred" {
     type        = string

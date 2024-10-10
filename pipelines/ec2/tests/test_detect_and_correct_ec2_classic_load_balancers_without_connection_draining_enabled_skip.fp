@@ -43,7 +43,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     ]
   }
 
-	step "pipeline" "create_elb_classic_load_balancer" {
+  step "pipeline" "create_elb_classic_load_balancer" {
     pipeline = aws.pipeline.create_elb_classic_load_balancer
     args = {
       region   = param.region

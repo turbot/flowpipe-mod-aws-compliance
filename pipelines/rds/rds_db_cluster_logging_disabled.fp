@@ -3,7 +3,7 @@ locals {
     select
       concat(db_cluster_identifier, ' [', account_id, '/', region, ']') as title,
       db_cluster_identifier,
-			engine,
+      engine,
       region,
       _ctx ->> 'connection_name' as cred
     from
@@ -101,7 +101,7 @@ pipeline "correct_rds_db_cluster_if_logging_disabled" {
       db_cluster_identifier  = string
       enabled_cloudwatch_logs_exports = list(string)
       region                 = string
-			engine                 = string
+      engine                 = string
       cred                   = string
     }))
     description = local.description_items
@@ -155,7 +155,7 @@ pipeline "correct_rds_db_cluster_if_logging_disabled" {
       title                          = each.value.title
       db_cluster_identifier          = each.value.db_cluster_identifier
       enable_logging                 = true
-			engine                         = each.value.engine
+      engine                         = each.value.engine
       region                         = each.value.region
       cred                           = each.value.cred
       notifier                       = param.notifier
@@ -263,7 +263,7 @@ pipeline "correct_one_rds_db_cluster_if_logging_disabled" {
           pipeline_args = {
             db_cluster_identifier              = param.db_cluster_identifier
             engine                             = param.engine
-						enable_logging                     = true
+            enable_logging                     = true
             region                             = param.region
             cred                               = param.cred
           }

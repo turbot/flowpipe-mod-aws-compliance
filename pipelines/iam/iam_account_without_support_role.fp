@@ -181,7 +181,7 @@ pipeline "detect_and_correct_iam_account_without_support_role" {
 }
 
 pipeline "correct_iam_account_without_support_role" {
- 	title         = "Correct IAM account without support role"
+   title         = "Correct IAM account without support role"
   description   = "Create a new support role for IAM account without support role"
   tags          = merge(local.iam_common_tags, { type = "internal" })
 

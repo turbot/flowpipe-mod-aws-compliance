@@ -57,10 +57,10 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
     }
   }
 
-	step "sleep" "sleep_10_seconds" {
-		depends_on = [ step.pipeline.create_vpc_security_rules ]
-		duration   = "10s"
-	}
+  step "sleep" "sleep_10_seconds" {
+    depends_on = [ step.pipeline.create_vpc_security_rules ]
+    duration   = "10s"
+  }
 
   step "query" "get_security_group_details" {
     depends_on = [step.pipeline.create_vpc_security_rules]
@@ -114,10 +114,10 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
     }
   }
 
-	step "sleep" "sleep_20_seconds" {
-		depends_on = [ step.pipeline.correct_item ]
-		duration   = "20s"
-	}
+  step "sleep" "sleep_20_seconds" {
+    depends_on = [ step.pipeline.correct_item ]
+    duration   = "20s"
+  }
 
   step "query" "get_security_group_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]

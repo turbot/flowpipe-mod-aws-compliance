@@ -60,7 +60,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_symb
         left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
         (require_symbols = false
-      	or require_symbols is null)
+        or require_symbols is null)
         and a.account_id = '${step.query.get_account_id.rows[0].account_id}';
     EOQ
   }

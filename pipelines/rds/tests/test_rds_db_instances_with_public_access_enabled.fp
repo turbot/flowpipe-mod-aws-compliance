@@ -146,10 +146,10 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
     depends_on = [step.container.get_default_security_group]
   }
 
-	step "sleep" "sleep_60_seconds_after_rds_creation" {
-		depends_on = [ step.container.create_rds_db_instance ]
-		duration   = "60s"
-	}
+  step "sleep" "sleep_60_seconds_after_rds_creation" {
+    depends_on = [ step.container.create_rds_db_instance ]
+    duration   = "60s"
+  }
 
   step "query" "get_rds_db_instance_details" {
     database   = var.database
@@ -182,10 +182,10 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
     }
   }
 
-	step "sleep" "sleep_60_seconds_after_remediation" {
-		depends_on = [ step.pipeline.correct_item ]
-		duration   = "60s"
-	}
+  step "sleep" "sleep_60_seconds_after_remediation" {
+    depends_on = [ step.pipeline.correct_item ]
+    duration   = "60s"
+  }
 
   step "query" "get_rds_db_instance_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]
@@ -213,10 +213,10 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
     value       = length(step.query.get_rds_db_instance_details_after_remediation.rows) == 0 ? "pass" : "fail"
   }
 
-	step "sleep" "sleep_60_seconds_after_verification" {
-		depends_on = [ step.query.get_rds_db_instance_details_after_remediation ]
-		duration   = "60s"
-	}
+  step "sleep" "sleep_60_seconds_after_verification" {
+    depends_on = [ step.query.get_rds_db_instance_details_after_remediation ]
+    duration   = "60s"
+  }
 
   # Step to delete the RDS DB instance
   step "container" "delete_rds_db_instance" {

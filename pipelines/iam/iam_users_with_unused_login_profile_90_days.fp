@@ -143,10 +143,10 @@ pipeline "correct_iam_users_with_unused_login_profile_90_days" {
     type = list(object({
       title                         = string
       user_name                     = string
-			password_last_used            = string
-			password_last_used_in_days    = string
-			password_last_changed_in_days = string
-			password_last_changed         = string
+      password_last_used            = string
+      password_last_used_in_days    = string
+      password_last_changed_in_days = string
+      password_last_changed         = string
       account_id                    = string
       cred                          = string
     }))
@@ -197,9 +197,9 @@ pipeline "correct_iam_users_with_unused_login_profile_90_days" {
       title                         = each.value.title
       user_name                     = each.value.user_name
       password_last_used            = each.value.password_last_used
-			password_last_changed         = each.value.password_last_changed
-			password_last_used_in_days    = each.value.password_last_used_in_days
-			password_last_changed_in_days = each.value.password_last_changed_in_days
+      password_last_changed         = each.value.password_last_changed
+      password_last_used_in_days    = each.value.password_last_used_in_days
+      password_last_changed_in_days = each.value.password_last_changed_in_days
       cred                          = each.value.cred
       notifier                      = param.notifier
       notification_level            = param.notification_level
@@ -228,22 +228,22 @@ pipeline "correct_one_iam_user_with_unused_login_profile_90_days" {
   param "password_last_used" {
     type        = string
     description = "The date when the IAM user's password was last used."
-	}
+  }
 
   param "password_last_used_in_days" {
     type        = string
     description = "The number of days since the IAM user's password was last used."
-	}
+  }
 
-	param "password_last_changed_in_days" {
-		type        = string
-		description = "The number of days since the IAM user's password was last changed."
-	}
+  param "password_last_changed_in_days" {
+    type        = string
+    description = "The number of days since the IAM user's password was last changed."
+  }
 
-	param "password_last_changed" {
+  param "password_last_changed" {
     type        = string
     description = "The date when the IAM user's password was last changed."
-	}
+  }
 
   param "cred" {
     type        = string
@@ -280,13 +280,13 @@ pipeline "correct_one_iam_user_with_unused_login_profile_90_days" {
     default     = var.iam_users_with_unused_login_profile_90_days_enabled_actions
   }
 
-	step "transform" "detect_msg" {
+  step "transform" "detect_msg" {
     value = <<-EOT
       ${param.password_last_used != "Never Used" ?
       format("Detected IAM user %s with password last used on %s (%s days).", param.user_name, param.password_last_used, param.password_last_used_in_days) :
       format("Detected IAM user %s with password never used and last changed on %s (%s days ).", param.user_name, param.password_last_changed, param.password_last_changed_in_days)}
     EOT
-	}
+  }
 
   step "pipeline" "respond" {
     pipeline = detect_correct.pipeline.correction_handler

@@ -139,7 +139,7 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
     type = list(object({
       title          = string
       user_name      = string
-			policy_arn     = string
+      policy_arn     = string
       account_id     = string
       cred           = string
     }))
@@ -189,7 +189,7 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
     args = {
       title              = each.value.title
       user_name          = each.value.user_name
-			policy_arn         = each.value.policy_arn
+      policy_arn         = each.value.policy_arn
       account_id         = each.value.account_id
       cred               = each.value.cred
       notifier           = param.notifier
@@ -216,7 +216,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
     description = "The name of the IAM user."
   }
 
- 	param "policy_arn" {
+   param "policy_arn" {
     type        = string
     description = "The name of the IAM user."
   }

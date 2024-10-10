@@ -25,7 +25,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     default     = "flowpipe-test-${uuid()}"
   }
 
-	step "container" "create_dynamodb_table" {
+  step "container" "create_dynamodb_table" {
     image = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
@@ -37,12 +37,12 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     ]
 
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
-	}
+  }
 
-	step "sleep" "sleep_150_seconds" {
-		depends_on = [ step.container.create_dynamodb_table ]
-		duration   = "100s"
-	}
+  step "sleep" "sleep_150_seconds" {
+    depends_on = [ step.container.create_dynamodb_table ]
+    duration   = "100s"
+  }
 
   step "pipeline" "respond" {
     depends_on = [step.sleep.sleep_150_seconds]
@@ -53,10 +53,10 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     }
   }
 
-	step "sleep" "sleep_50_seconds" {
-		depends_on = [ step.pipeline.respond ]
-		duration   = "50s"
-	}
+  step "sleep" "sleep_50_seconds" {
+    depends_on = [ step.pipeline.respond ]
+    duration   = "50s"
+  }
 
   step "query" "get_dynamodb_table" {
     depends_on = [step.sleep.sleep_50_seconds]
@@ -72,9 +72,9 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     EOQ
   }
 
-	step "container" "disable_deletion_protection" {
+  step "container" "disable_deletion_protection" {
     image = "public.ecr.aws/aws-cli/aws-cli"
-		depends_on = [step.query.get_dynamodb_table]
+    depends_on = [step.query.get_dynamodb_table]
 
     cmd = [
       "dynamodb", "update-table",
@@ -83,16 +83,16 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     ]
 
     env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
-	}
+  }
 
   step "pipeline" "delete_dynamodb_table" {
     depends_on = [step.container.disable_deletion_protection]
     pipeline = aws.pipeline.delete_dynamodb_table
     args = {
-			table_name  = param.table_name
-			region      = param.region
-			cred        = param.cred
-		}
+      table_name  = param.table_name
+      region      = param.region
+      cred        = param.cred
+    }
   }
 
   output "test_results" {
@@ -100,7 +100,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     value = {
       "create_dynamodb_table" = !is_error(step.container.create_dynamodb_table) ? "pass" : "fail: ${error_message(step.container.create_dynamodb_table)}"
       "get_dynamodb_table" = length(step.query.get_dynamodb_table.rows) == 1 ? "pass" : "fail: Row length is not 1"
-			"disable_deletion_protection" = !is_error(step.container.disable_deletion_protection) ? "pass" : "fail: ${error_message(step.container.disable_deletion_protection)}"
+      "disable_deletion_protection" = !is_error(step.container.disable_deletion_protection) ? "pass" : "fail: ${error_message(step.container.disable_deletion_protection)}"
       "delete_dynamodb_table" = !is_error(step.pipeline.delete_dynamodb_table) ? "pass" : "fail: ${error_message(step.pipeline.delete_dynamodb_table)}"
     }
   }

@@ -175,10 +175,10 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
     }
   }
 
-	step "sleep" "sleep_20_seconds" {
-		depends_on = [ step.pipeline.correct_item ]
-		duration   = "20s"
-	}
+  step "sleep" "sleep_20_seconds" {
+    depends_on = [ step.pipeline.correct_item ]
+    duration   = "20s"
+  }
 
   step "query" "get_nacl_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]
