@@ -319,7 +319,7 @@ pipeline "update_iam_account_password_policy_number" {
         aws_account as a
         left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-        a.sp_connection_name = ${param.conn};
+        a.sp_connection_name = ${param.conn}; -- TODO: Re-test this after param.conn change
     EOQ
   }
 
