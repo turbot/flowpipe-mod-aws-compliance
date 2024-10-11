@@ -1,9 +1,11 @@
 # Core options
-database           = "postgres://steampipe@localhost:9193/steampipe"
-notifier           = "default"
+approvers          = [notifier.default]
+notifier           = notifier.default
 notification_level = "info"
-approvers          = ["default"]
-max_concurrency    = 1
+
+# Advanced options
+database        = connection.steampipe.default
+max_concurrency = 1
 
 # API Gateway X-RAY Tracing Disabled
 apigateway_rest_api_stages_xray_tracing_disabled_default_action = "enable_xray_tracing"

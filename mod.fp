@@ -14,10 +14,10 @@ mod "aws_compliance" {
 
   require {
     mod "github.com/turbot/flowpipe-mod-detect-correct" {
-      version = "0.1.1-rc.0"
+      version = "1.0.0-rc.0"
     }
     mod "github.com/turbot/flowpipe-mod-aws" {
-      version = "0.5.0-rc.5"
+      version = "1.0.0-rc.3"
     }
   }
 }

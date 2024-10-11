@@ -1,7 +1,13 @@
+variable "approvers" {
+  type        = list(notifier)
+  description = "List of notifiers to be used for obtaining action/approval decisions, when empty list will perform the default response associated with the detection."
+  default     = [notifier.default]
+}
+
 variable "notifier" {
-  type        = string
-  description = "The name of the notifier to use for sending notification messages."
-  default     = "default"
+  type        = notifier
+  description = "The notifier to use for sending notification messages."
+  default     = notifier.default
 }
 
 variable "notification_level" {
@@ -10,16 +16,10 @@ variable "notification_level" {
   default     = "info"
 }
 
-variable "approvers" {
-  type        = list(string)
-  description = "List of notifiers to be used for obtaining action/approval decisions, when empty list will perform the default response associated with the detection."
-  default     = ["default"]
-}
-
 variable "database" {
-  type        = string
+  type        = connection.steampipe
   description = "Steampipe database connection string."
-  default     = "postgres://steampipe@localhost:9193/steampipe"
+  default     = connection.steampipe.default
 
   tags = {
     folder = "Advanced"
