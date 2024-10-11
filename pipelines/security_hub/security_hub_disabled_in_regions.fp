@@ -2,7 +2,7 @@ locals {
   security_hub_disabled_in_regions_query = <<-EOQ
     select
       concat('[', r.account_id, '/', r.name, ']') as title,
-      r._ctx ->> 'connection_name' as cred,
+      r.sp_connection_name as conn,
       r.name as region
     from
       aws_region as r
@@ -61,16 +61,16 @@ pipeline "detect_and_correct_security_hub_disabled_in_regions" {
   title       = "Detect & correct Security Hub disabled in regions"
   description = "Detect regions with Security Hub disabled and then skip or enable Security Hub."
   // // documentation = file("./securityhub/docs/detect_and_correct_security_hub_disabled_in_regions.md")
-  // tags          = merge(local.securityhub_common_tags, { class = "unused", type = "recommended" })
+  // tags          = merge(local.securityhub_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -82,7 +82,7 @@ pipeline "detect_and_correct_security_hub_disabled_in_regions" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -127,12 +127,12 @@ pipeline "correct_security_hub_disabled_in_regions" {
     type = list(object({
       title  = string
       region = string
-      cred   = string
+      conn   = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -144,7 +144,7 @@ pipeline "correct_security_hub_disabled_in_regions" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -163,7 +163,7 @@ pipeline "correct_security_hub_disabled_in_regions" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} region(s) with Security Hub disabled."
   }
 
@@ -174,7 +174,7 @@ pipeline "correct_security_hub_disabled_in_regions" {
     args = {
       title              = each.value.title
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -200,13 +200,13 @@ pipeline "correct_one_region_with_security_hub_disabled" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -218,7 +218,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -266,7 +266,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           pipeline_args = {
             region                   = param.region
             enable_default_standards = true
-            cred                     = param.cred
+            conn                     = param.conn
           }
           success_msg = "Enabled Security Hub with default standards in region ${param.title}."
           error_msg   = "Error enabling Security Hub with default standards in region ${param.title}."
@@ -279,7 +279,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           pipeline_args = {
             region                   = param.region
             enable_default_standards = false
-            cred                     = param.cred
+            conn                     = param.conn
           }
           success_msg = "Enabled Security Hub without default standards in region ${param.title}."
           error_msg   = "Error enabling Security Hub without default standards in region ${param.title}."

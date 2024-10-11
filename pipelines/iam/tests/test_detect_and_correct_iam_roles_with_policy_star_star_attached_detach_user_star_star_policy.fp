@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "role_name" {
@@ -60,7 +60,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
   step "pipeline" "create_iam_policy" {
     pipeline   = aws.pipeline.create_iam_policy
     args = {
-      cred            = param.cred
+      conn            = param.conn
       policy_name     = param.policy_name
       policy_document = param.policy_document
     }
@@ -70,7 +70,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
     depends_on = [step.pipeline.create_iam_policy]
     pipeline   = aws.pipeline.create_iam_role
     args = {
-      cred                        = param.cred
+      conn                        = param.conn
       role_name                   = param.role_name
       assume_role_policy_document = param.assume_role_policy_document
     }
@@ -103,7 +103,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
       "--policy-arn", step.query.get_iam_policy_arn.rows[0].arn
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "query" "get_role_with_iam_star_star_policy_attached" {
@@ -139,7 +139,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
         attached_arns.policy_arn,
         name as role_name,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_iam_role,
         lateral jsonb_array_elements_text(attached_policy_arns) as attached_arns(policy_arn)
@@ -159,7 +159,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
       role_name              = each.value.role_name
       policy_arn             = each.value.policy_arn
       account_id             = each.value.account_id
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "detach_role_star_star_policy"
       enabled_actions        = ["detach_role_star_star_policy"]
@@ -204,7 +204,7 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
         attached_arns.policy_arn,
         name as role_name,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_iam_role,
         lateral jsonb_array_elements_text(attached_policy_arns) as attached_arns(policy_arn)
@@ -222,14 +222,14 @@ pipeline "test_detect_and_correct_iam_roles_with_policy_star_star_attached_detac
       "--role-name", param.role_name
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "pipeline" "delete_iam_policy" {
     depends_on = [step.container.delete_iam_role]
     pipeline   = aws.pipeline.delete_iam_policy
     args = {
-      cred        = param.cred
+      conn        = param.conn
       policy_arn  = step.query.get_iam_policy_arn.rows[0].arn
     }
   }

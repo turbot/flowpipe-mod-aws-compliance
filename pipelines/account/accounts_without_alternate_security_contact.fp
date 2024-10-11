@@ -10,7 +10,7 @@ locals {
     )
     select
       concat(a.title, ' [', a.account_id, ']') as title,
-      a._ctx ->> 'connection_name' as cred
+      a.sp_connection_name as conn
     from
       aws_account as a,
       alternate_security_contact as c
@@ -115,13 +115,13 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
   tags        = local.account_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -133,7 +133,7 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -176,12 +176,12 @@ pipeline "correct_accounts_without_alternate_security_contact" {
   param "items" {
     type = list(object({
       title = string
-      cred  = string
+      conn  = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -193,7 +193,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -212,7 +212,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected account(s) ${length(param.items)} without alternate security contact."
   }
 
@@ -222,7 +222,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
     pipeline        = pipeline.correct_one_account_without_alternate_security_contact
     args = {
       title              = each.value.title
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -266,13 +266,13 @@ pipeline "correct_one_account_without_alternate_security_contact" {
     default     = var.accounts_without_alternate_security_contact_phone_number
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -284,7 +284,7 @@ pipeline "correct_one_account_without_alternate_security_contact" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -331,7 +331,7 @@ pipeline "correct_one_account_without_alternate_security_contact" {
           pipeline_ref = aws.pipeline.put_alternate_contact
           pipeline_args = {
             name                   = param.name
-            cred                   = param.cred
+            conn                   = param.conn
             alternate_contact_type = "SECURITY"
             email_address          = param.email_address
             phone_number           = param.phone_number

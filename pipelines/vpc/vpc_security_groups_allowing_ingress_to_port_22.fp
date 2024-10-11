@@ -6,7 +6,7 @@ locals {
         security_group_rule_id,
         region,
         account_id,
-        _ctx ->> 'connection_name' as cred    
+        sp_connection_name as conn    
       from
         aws_vpc_security_group_rule
       where
@@ -28,7 +28,7 @@ locals {
       sg.group_id as group_id,
       ingress_rdp_rules.security_group_rule_id as security_group_rule_id,
       sg.region as region,
-      sg._ctx ->> 'connection_name' as cred
+      sg.sp_connection_name as conn
     from
       aws_vpc_security_group as sg
       left join ingress_rdp_rules on ingress_rdp_rules.group_id = sg.group_id
@@ -86,13 +86,13 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22.md")
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -104,7 +104,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -150,13 +150,13 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
       group_id               = string,
       security_group_rule_id = string,
       region                 = string,
-      cred                   = string
+      conn                   = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -168,7 +168,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -187,7 +187,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to port 22 from 0.0.0.0/0."
   }
 
@@ -200,7 +200,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
       group_id               = each.value.group_id,
       security_group_rule_id = each.value.security_group_rule_id
       region                 = each.value.region,
-      cred                   = each.value.cred,
+      conn                   = connection.aws[each.value.conn],
       notifier               = param.notifier,
       notification_level     = param.notification_level,
       approvers              = param.approvers,
@@ -236,13 +236,13 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -254,7 +254,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -303,7 +303,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
             security_group_id      = param.group_id
             security_group_rule_id = param.security_group_rule_id
             region                 = param.region
-            cred                   = param.cred
+            conn                   = param.conn
           }
           success_msg = "Revoked ${param.security_group_rule_id} rule from security group ${param.title}."
           error_msg   = "Error revoking ${param.security_group_rule_id} rule from security group ${param.title}."

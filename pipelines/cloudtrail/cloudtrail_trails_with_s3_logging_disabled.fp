@@ -6,7 +6,7 @@ locals {
     t.name,
     t.region,
     t.account_id,
-    t._ctx ->> 'connection_name' as cred
+    t.sp_connection_name as conn
   from
     aws_cloudtrail_trail t
     inner join aws_s3_bucket b on t.s3_bucket_name = b.name
@@ -87,16 +87,16 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" 
 pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 logging disabled"
   description = "Detect CloudTrail trails with S3 logging disabled and then enable S3 logging."
-  tags        = merge(local.cloudtrail_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudtrail_common_tags, { recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -114,7 +114,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -161,13 +161,13 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
       name       = string
       region     = string
       account_id = string
-      cred       = string
+      conn       = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -185,7 +185,7 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -204,7 +204,7 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected CloudTrail trail(s) ${length(param.items)} with S3 logging disabled."
   }
 
@@ -218,7 +218,7 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
       bucket_name        = param.bucket_name
       region             = each.value.region
       account_id         = each.value.account_id
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -258,13 +258,13 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
     description = "The ID of the AWS account."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -276,7 +276,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -322,7 +322,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
           style        = local.style_alert
           pipeline_ref = pipeline.enable_s3_logging_for_cloudtrail
           pipeline_args = {
-            cred           = param.cred
+            conn           = param.conn
             trail_name     = param.name
             s3_bucket_name = param.bucket_name
             region         = param.region
@@ -350,10 +350,10 @@ pipeline "enable_s3_logging_for_cloudtrail" {
     description = "The AWS account ID in which to create the CloudTrail trail."
   }
 
-  param "cred" {
-    type        = string
-    description = "The AWS credentials to use for creating the trail."
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "trail_name" {
@@ -370,7 +370,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
     pipeline = aws.pipeline.create_s3_bucket
     args = {
       region = param.region
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.s3_bucket_name
     }
   }
@@ -380,7 +380,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
     pipeline   = aws.pipeline.put_s3_bucket_policy
     args = {
       region = param.region
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.s3_bucket_name
       policy = "{\"Version\": \"2012-10-17\",\n\"Statement\": [\n{\n\"Sid\":\"AWSCloudTrailAclCheck\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:GetBucketAcl\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}\"\n},\n{\n\"Sid\": \"AWSCloudTrailWrite\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\": \"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutObject\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.account_id}/*\",\n\"Condition\": {\n\"StringEquals\": {\n\"s3:x-amz-acl\":\n\"bucket-owner-full-control\"\n}\n}\n}\n]\n}"
     }
@@ -392,7 +392,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
     args = {
       region         = param.region
       trail_name     = param.trail_name
-      cred           = param.cred
+      conn           = param.conn
       s3_bucket_name = param.s3_bucket_name
     }
   }
@@ -401,7 +401,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
     depends_on = [step.pipeline.create_s3_bucket, step.pipeline.put_s3_bucket_policy, step.pipeline.update_cloudtrail_trail]
     pipeline   = aws.pipeline.put_s3_bucket_logging
     args = {
-      cred                  = param.cred
+      conn                  = param.conn
       region                = param.region
       bucket                = param.s3_bucket_name
       bucket_logging_status = "{\"LoggingEnabled\": {\"TargetBucket\": \"${param.s3_bucket_name}\", \"TargetPrefix\": \"AWSLogs/\"}}"

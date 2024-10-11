@@ -21,7 +21,7 @@ locals {
     select
       concat(b.name, ' [', b.account_id, '/', b.region, ']') as title,
       b.name as bucket_name,
-      b._ctx ->> 'connection_name' as cred,
+      b.sp_connection_name as conn,
       b.region
     from
       aws_s3_bucket as b
@@ -79,13 +79,13 @@ pipeline "detect_and_correct_s3_buckets_without_ssl_enforcement" {
   // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_without_ssl_enforcement.md")
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -97,7 +97,7 @@ pipeline "detect_and_correct_s3_buckets_without_ssl_enforcement" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -142,13 +142,13 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
       title       = string
       bucket_name = string
       region      = string
-      cred        = string
+      conn        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -160,7 +160,7 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -179,7 +179,7 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} S3 bucket(s) without SSL enforcement."
   }
 
@@ -191,7 +191,7 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
       title              = each.value.title
       bucket_name        = each.value.bucket_name
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -221,13 +221,13 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -239,7 +239,7 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -287,7 +287,7 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
           pipeline_args = {
             bucket      = param.bucket_name
             region      = param.region
-            cred        = param.cred
+            conn        = param.conn
             policy      = "{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Deny\", \"Principal\": \"*\", \"Action\": \"s3:*\", \"Resource\": [ \"arn:aws:s3:::${param.bucket_name}\", \"arn:aws:s3:::${param.bucket_name}/*\" ], \"Condition\": { \"Bool\": { \"aws:SecureTransport\": \"false\" } } } ] }"
           }
           success_msg = "Added bucket policy statement to enforce SSL to S3 bucket ${param.bucket_name}."

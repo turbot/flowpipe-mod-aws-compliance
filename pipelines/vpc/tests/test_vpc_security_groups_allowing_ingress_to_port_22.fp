@@ -2,10 +2,10 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
   title       = "Test Detect and Correct VPC Default Security Group Allowing Ingress to port 22 - Revoke security group rule"
   description = "Test the  Revoke security group rule action for VPC Default Security Group Allowing Ingress to port 22."
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -28,7 +28,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       "--cidr-block", param.cidr_block
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "create_security_group" {
@@ -41,7 +41,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_vpc]
   }
 
@@ -56,7 +56,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       "--cidr", "0.0.0.0/0"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_security_group]
   }
 
@@ -79,7 +79,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
           security_group_rule_id,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred    
+          sp_connection_name as conn    
         from
           aws_vpc_security_group_rule
         where
@@ -101,7 +101,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
         sg.group_id as group_id,
         ingress_rdp_rules.security_group_rule_id as security_group_rule_id,
         sg.region as region,
-        sg._ctx ->> 'connection_name' as cred
+        sg.sp_connection_name as conn
       from
         aws_vpc_security_group as sg
         left join ingress_rdp_rules on ingress_rdp_rules.group_id = sg.group_id
@@ -120,7 +120,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       group_id               = each.value.group_id
       security_group_rule_id = each.value.security_group_rule_id
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "revoke_security_group_rule"
       enabled_actions        = ["revoke_security_group_rule"]
@@ -142,7 +142,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
           security_group_rule_id,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred    
+          sp_connection_name as conn    
         from
           aws_vpc_security_group_rule
         where
@@ -164,7 +164,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
         sg.group_id as group_id,
         ingress_rdp_rules.security_group_rule_id as security_group_rule_id,
         sg.region as region,
-        sg._ctx ->> 'connection_name' as cred
+        sg.sp_connection_name as conn
       from
         aws_vpc_security_group as sg
         left join ingress_rdp_rules on ingress_rdp_rules.group_id = sg.group_id
@@ -191,7 +191,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_security_group_details_after_remediation]
   }
 
@@ -203,7 +203,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_security_group]
   }
 }

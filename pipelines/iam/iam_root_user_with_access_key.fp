@@ -3,7 +3,7 @@ locals {
     select
       concat('<root_account>', ' [', account_id, ']') as title,
       (account_access_keys_present)::text as account_access_keys_present,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_iam_account_summary
     where
@@ -75,13 +75,13 @@ pipeline "detect_and_correct_iam_root_user_with_access_key" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -93,7 +93,7 @@ pipeline "detect_and_correct_iam_root_user_with_access_key" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -137,13 +137,13 @@ pipeline "correct_iam_root_user_with_access_key" {
     type = list(object({
       title                       = string
       account_access_keys_present = string
-      cred                        = string
+      conn                        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -155,7 +155,7 @@ pipeline "correct_iam_root_user_with_access_key" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -174,14 +174,14 @@ pipeline "correct_iam_root_user_with_access_key" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM root user with access key."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected IAM ${each.value.title} with ${each.value.account_access_keys_present} access key(s)."
   }
 }

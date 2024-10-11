@@ -4,7 +4,7 @@ locals {
     concat(name, ' [', account_id, '/', region, ']') as title,
     name,
     region,
-    _ctx ->> 'connection_name' as cred
+    sp_connection_name as conn
   from
     aws_dynamodb_table
   where
@@ -59,16 +59,16 @@ pipeline "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" 
   title         = "Detect & correct DynamoDB tables with deletion protection disabled"
   description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
   // documentation = file("./dynamodb/docs/detect_and_correct_dynamodb_tables_with_deletion_protection_disabled.md")
-  tags          = merge(local.dynamodb_common_tags, { class = "unused", type = "recommended" })
+  tags          = merge(local.dynamodb_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -80,7 +80,7 @@ pipeline "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" 
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -126,13 +126,13 @@ pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
       title       = string
       name        = string
       region      = string
-      cred        = string
+      conn        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -144,7 +144,7 @@ pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -163,7 +163,7 @@ pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} DynamoDB table(s) with deletion protection disabled."
   }
 
@@ -175,7 +175,7 @@ pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
       title              = each.value.title
       name               = each.value.name
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -206,13 +206,13 @@ pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -224,7 +224,7 @@ pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -272,7 +272,7 @@ pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
           pipeline_args = {
             table_name  = param.name
             region      = param.region
-            cred        = param.cred
+            conn        = param.conn
           }
           success_msg = "Enabled deletion protection for DynamoDB table ${param.title}."
           error_msg   = "Error enabling deletion protection for DynamoDB table ${param.title}."

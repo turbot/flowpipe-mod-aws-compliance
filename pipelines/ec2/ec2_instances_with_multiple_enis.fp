@@ -5,7 +5,7 @@ locals {
       instance_id, 
       eni -> 'Attachment' ->> 'AttachmentId' as attachment_id,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
     aws_ec2_instance,
       jsonb_array_elements(network_interfaces) as eni
@@ -62,16 +62,16 @@ pipeline "detect_and_correct_ec2_instances_with_multiple_enis" {
   title         = "Detect & correct EC2 instances with multiple ENIs"
   description   = "Detect EC2 instances with multiple Elastic Network Interfaces and then skip or detach the network interface(s)."
   // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_multiple_enis.md")
-  tags          = merge(local.ec2_common_tags, { class = "configuration", type = "recommended" })
+  tags          = merge(local.ec2_common_tags, { class = "configuration", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -83,7 +83,7 @@ pipeline "detect_and_correct_ec2_instances_with_multiple_enis" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -129,14 +129,14 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
       title         = string,
       instance_id   = string,
       region        = string,
-      cred          = string,
+      conn          = string,
       attachment_id = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -148,7 +148,7 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -167,7 +167,7 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} EC2 Instance(s) with multiple ENIs."
   }
 
@@ -183,7 +183,7 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
       title              = each.value.title,
       instance_id        = each.value.instance_id,
       region             = each.value.region,
-      cred               = each.value.cred,
+      conn               = connection.aws[each.value.conn],
       attachment_id      = each.value.attachment_id,
       notifier           = param.notifier,
       notification_level = param.notification_level,
@@ -215,9 +215,9 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "attachment_id" {
@@ -226,7 +226,7 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -238,7 +238,7 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -286,7 +286,7 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
           pipeline_args = {
             attachment_id = param.attachment_id,
             region        = param.region,
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Reduced ENIs on EC2 instance ${param.title}."
           error_msg   = "Error reducing ENIs on EC2 instance ${param.title}."

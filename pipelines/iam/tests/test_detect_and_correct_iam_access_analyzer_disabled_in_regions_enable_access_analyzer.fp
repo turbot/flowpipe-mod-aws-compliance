@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   step "query" "get_access_analyzer_disabled_region" {
@@ -18,7 +18,7 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
       select
         concat(r.region, ' [', r.account_id, ']') as title,
         r.region,
-        r._ctx ->> 'connection_name' as cred
+        r.sp_connection_name as conn
       from
         aws_region as r
         left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
@@ -42,7 +42,7 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
       title                  = each.value.title
       analyzer_name          = "flowpipe-test-access-analyser"
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "enable_access_analyzer"
       enabled_actions        = ["enable_access_analyzer"]
@@ -56,7 +56,7 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
       select
         concat(r.region, ' [', r.account_id, ']') as title,
         r.region,
-        r._ctx ->> 'connection_name' as cred
+        r.sp_connection_name as conn
       from
         aws_region as r
         left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
@@ -73,7 +73,7 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
     args = {
       analyzer_name  = "flowpipe-test-access-analyser"
       region         = step.query.get_access_analyzer_disabled_region.rows[0].region
-      cred           = param.cred
+      conn           = param.conn
     }
   }
 

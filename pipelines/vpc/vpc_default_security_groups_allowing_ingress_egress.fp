@@ -9,7 +9,7 @@ locals {
         region,
         account_id,
         is_egress,
-        _ctx ->> 'connection_name' as cred    
+        sp_connection_name as conn    
       from
         aws_vpc_security_group_rule
       where
@@ -21,7 +21,7 @@ locals {
       sg.group_id as group_id,
       ingress_and_egress_rules.security_group_rule_id as security_group_rule_id,
       sg.region as region,
-      sg._ctx ->> 'connection_name' as cred
+      sg.sp_connection_name as conn
     from
       aws_vpc_security_group as sg
       left join ingress_and_egress_rules on ingress_and_egress_rules.group_id = sg.group_id
@@ -80,13 +80,13 @@ pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_default_security_groups_allowing_ingress_egress.md")
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -98,7 +98,7 @@ pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -145,13 +145,13 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
       security_group_rule_id = string,
       region                 = string,
       type                   = string,
-      cred                   = string
+      conn                   = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -163,7 +163,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -182,7 +182,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} default VPC Security group(s) allowing both ingress and egress traffic."
   }
 
@@ -196,7 +196,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
       security_group_rule_id = each.value.security_group_rule_id
       type                   = each.value.type
       region                 = each.value.region,
-      cred                   = each.value.cred,
+      conn                   = connection.aws[each.value.conn],
       notifier               = param.notifier,
       notification_level     = param.notification_level,
       approvers              = param.approvers,
@@ -236,13 +236,13 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -254,7 +254,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -303,7 +303,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
             security_group_id      = param.group_id
             security_group_rule_id = param.security_group_rule_id
             region                 = param.region
-            cred                   = param.cred
+            conn                   = param.conn
             type                   = param.type
           }
           success_msg = "Revoked security group rule ${param.security_group_rule_id} from security group ${param.title}."
@@ -323,10 +323,10 @@ pipeline "revoke_vpc_security_group_rule" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "security_group_id" {
@@ -351,7 +351,7 @@ pipeline "revoke_vpc_security_group_rule" {
       security_group_id      = param.security_group_id
       security_group_rule_id = param.security_group_rule_id
       region                 = param.region
-      cred                   = param.cred
+      conn                   = param.conn
     }
   }
 
@@ -362,7 +362,7 @@ pipeline "revoke_vpc_security_group_rule" {
       security_group_id      = param.security_group_id
       security_group_rule_id = param.security_group_rule_id
       region                 = param.region
-      cred                   = param.cred
+      conn                   = param.conn
     }
   }
 }

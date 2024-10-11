@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "user_name" {
@@ -57,7 +57,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
   step "pipeline" "create_iam_user" {
     pipeline   = aws.pipeline.create_iam_user
     args = {
-      cred        = param.cred
+      conn        = param.conn
       user_name   = param.user_name
     }
   }
@@ -66,7 +66,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
     depends_on = [step.pipeline.create_iam_user]
     pipeline   = aws.pipeline.create_iam_policy
     args = {
-      cred            = param.cred
+      conn            = param.conn
       policy_name     = param.policy_name
       policy_document = param.policy_document
     }
@@ -94,7 +94,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
       "--policy-arn", step.query.get_iam_policy_arn.rows[0].arn
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "query" "get_iam_users_with_iam_policy_attached" {
@@ -106,7 +106,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
         jsonb_array_elements_text(attached_policy_arns) as policy_arn,
         name as user_name,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_iam_user
       where
@@ -125,7 +125,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
       user_name              = each.value.user_name
       policy_arn             = each.value.policy_arn
       account_id             = each.value.account_id
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "detach_iam_policy"
       enabled_actions        = ["detach_iam_policy"]
@@ -155,7 +155,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
     depends_on = [step.query.get_user_details_after_detection]
     pipeline   = aws.pipeline.delete_iam_user
     args = {
-      cred        = param.cred
+      conn        = param.conn
       user_name   = param.user_name
     }
   }
@@ -164,7 +164,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
     depends_on = [step.pipeline.delete_iam_user]
     pipeline   = aws.pipeline.delete_iam_policy
     args = {
-      cred        = param.cred
+      conn        = param.conn
       policy_arn  = step.query.get_iam_policy_arn.rows[0].arn
     }
   }

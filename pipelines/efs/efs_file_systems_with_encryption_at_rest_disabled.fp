@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', account_id, '/', region, ']') as title,
       name as file_system_name,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_efs_file_system
     where
@@ -67,13 +67,13 @@ pipeline "detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled" 
   // documentation = file("./efs/docs/detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled.md")
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -85,7 +85,7 @@ pipeline "detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled" 
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -130,13 +130,13 @@ pipeline "correct_efs_file_systems_with_encryption_at_rest_disabled" {
       title       = string
       bucket_name = string
       region      = string
-      cred        = string
+      conn        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -148,7 +148,7 @@ pipeline "correct_efs_file_systems_with_encryption_at_rest_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -167,14 +167,14 @@ pipeline "correct_efs_file_systems_with_encryption_at_rest_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} EFS file system(s) with encryption at rest disabled."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected EFS file system ${each.value.title} with encryption at rest disabled."
   }
 }

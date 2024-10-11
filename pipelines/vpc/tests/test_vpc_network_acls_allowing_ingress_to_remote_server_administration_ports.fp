@@ -8,10 +8,10 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
     default     = "us-east-1"
   }
 
-  param "cred" {
-    type        = string
-    description = "The AWS credential profile to use."
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   step "container" "create_vpc" {
@@ -23,7 +23,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "create_subnet" {
@@ -36,7 +36,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "create_nacl" {
@@ -48,7 +48,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "transform" "nacl_id" {
@@ -70,7 +70,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "allow_rdp_ingress" {
@@ -88,7 +88,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "query" "get_nacl_details" {
@@ -101,7 +101,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
           att ->> 'RuleNumber' as bad_rule_number,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred
+          sp_connection_name as conn
         from
           aws_vpc_network_acl,
           jsonb_array_elements(entries) as att
@@ -135,21 +135,21 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
           partition,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred
+          sp_connection_name as conn
         from
           aws_vpc_network_acl
         order by
           network_acl_id,
           region,
           account_id,
-          cred
+          conn
       )
       select
         concat(acl.network_acl_id, '/', bad_rules.bad_rule_number, ' [', acl.account_id, '/', acl.region, ']') as title,
         acl.network_acl_id as network_acl_id,
         (bad_rules.bad_rule_number)::int as rule_number,
         acl.region as region,
-        acl.cred as cred
+        acl.conn as conn
       from
         aws_vpc_network_acls as acl
         left join bad_rules on bad_rules.network_acl_id = acl.network_acl_id
@@ -168,7 +168,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       network_acl_id         = each.value.network_acl_id
       rule_number            = each.value.rule_number
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "delete_network_acl_entry"
       enabled_actions        = ["delete_network_acl_entry"]
@@ -190,7 +190,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
           att ->> 'RuleNumber' as bad_rule_number,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred
+          sp_connection_name as conn
         from
           aws_vpc_network_acl,
           jsonb_array_elements(entries) as att
@@ -224,21 +224,21 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
           partition,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred
+          sp_connection_name as conn
         from
           aws_vpc_network_acl
         order by
           network_acl_id,
           region,
           account_id,
-          cred
+          conn
       )
       select
         concat(acl.network_acl_id, '/', bad_rules.bad_rule_number, ' [', acl.account_id, '/', acl.region, ']') as title,
         acl.network_acl_id as network_acl_id,
         (bad_rules.bad_rule_number)::int as rule_number,
         acl.region as region,
-        acl.cred as cred
+        acl.conn as conn
       from
         aws_vpc_network_acls as acl
         left join bad_rules on bad_rules.network_acl_id = acl.network_acl_id
@@ -257,7 +257,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_nacl_details_after_remediation]
   }
 
@@ -270,7 +270,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_nacl]
   }
 
@@ -283,7 +283,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_subnet]
   }
 

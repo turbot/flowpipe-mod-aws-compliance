@@ -2,10 +2,10 @@ pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl
   title       = "Test Detect and Correct S3 Buckets if Publicly Accessible - Enforce SSL"
   description = "Test the enforce SSL action for S3 buckets."
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -24,7 +24,7 @@ pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl
     output "base_args" {
       value = {
         bucket = param.bucket
-        cred   = param.cred
+        conn   = param.conn
         region = param.region
       }
     }
@@ -70,7 +70,7 @@ pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl
   //     select
   //       concat(b.name, ' [', b.region, '/', b.account_id, ']') as title,
   //       b.name as bucket_name,
-  //       b._ctx ->> 'connection_name' as cred,
+  //       b.sp_connection_name as conn,
   //       b.region
   //     from
   //       aws_s3_bucket as b
@@ -92,7 +92,7 @@ pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl
     args = {
       title            = param.bucket
       bucket_name      = param.bucket
-      cred             = param.cred
+      conn             = param.conn
       region           = param.region
       approvers        = []
       default_action   = "enforce_ssl"
@@ -126,7 +126,7 @@ pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl
       select
         concat(b.name, ' [', b.region, '/', b.account_id, ']') as title,
         b.name as bucket_name,
-        b._ctx ->> 'connection_name' as cred,
+        b.sp_connection_name as conn,
         b.region
       from
         aws_s3_bucket as b

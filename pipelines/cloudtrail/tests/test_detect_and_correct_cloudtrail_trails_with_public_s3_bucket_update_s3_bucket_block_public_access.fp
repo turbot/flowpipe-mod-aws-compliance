@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -45,7 +45,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
     pipeline   = aws.pipeline.create_s3_bucket
     args = {
       region = param.region
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
     }
   }
@@ -55,7 +55,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
     pipeline   = aws.pipeline.put_s3_bucket_policy
     args = {
       region = param.region
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
       policy = "{\"Version\": \"2012-10-17\",\n\"Statement\": [\n{\n\"Sid\":\"AWSCloudTrailAclCheck\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:GetBucketAcl\",\n\"Resource\": \"arn:aws:s3:::${param.bucket_name}\"\n},\n{\n\"Sid\": \"AWSCloudTrailWrite\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\": \"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutObject\",\n\"Resource\": \"arn:aws:s3:::${param.bucket_name}/AWSLogs/${step.query.get_account_id.rows[0].account_id}/*\",\n\"Condition\": {\n\"StringEquals\": {\n\"s3:x-amz-acl\":\n\"bucket-owner-full-control\"\n}\n}\n},\n{\n\"Sid\":\"AWSCloudTrailPublicAccessBlock\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutBucketPublicAccessBlock\",\n\"Resource\": \"arn:aws:s3:::${param.bucket_name}\"\n},\n{\n\"Sid\":\"Public\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"AWS\":\"*\"\n},\n\"Action\": \"s3:PutBucketPublicAccessBlock\",\n\"Resource\": \"arn:aws:s3:::${param.bucket_name}\"\n} \n]\n}"
     }
@@ -67,7 +67,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
     args = {
       bucket                  = param.bucket_name
       region                  = param.region
-      cred                    = param.cred
+      conn                    = param.conn
       block_public_acls       = false
       ignore_public_acls      = false
       block_public_policy     = false
@@ -80,7 +80,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
     pipeline   = aws.pipeline.create_cloudtrail_trail
     args = {
       region                        = param.region
-      cred                          = param.cred
+      conn                          = param.conn
       name                          = param.trail_name
       bucket_name                   = param.bucket_name
       is_multi_region_trail         = false
@@ -99,7 +99,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
       bucket_name     = param.bucket_name
       region          = param.region
       account_id      = step.query.get_account_id.rows[0].account_id
-      cred            = param.cred
+      conn            = param.conn
       approvers       = []
       default_action  = "update_s3_bucket_block_public_access"
       enabled_actions = ["update_s3_bucket_block_public_access"]
@@ -117,7 +117,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
           t.region,
           t.account_id,
           t.tags,
-          t._ctx,
+          t.sp_connection_name,
           count(acl_grant) filter (where acl_grant -> 'Grantee' ->> 'URI' like '%acs.amazonaws.com/groups/global/AllUsers') as all_user_grants,
           count(acl_grant) filter (where acl_grant -> 'Grantee' ->> 'URI' like '%acs.amazonaws.com/groups/global/AuthenticatedUsers') as auth_user_grants,
           count(s) filter (where s ->> 'Effect' = 'Allow' and  p = '*' ) as anon_statements
@@ -133,7 +133,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
           t.region,
           t.account_id,
           t.tags,
-          t._ctx
+          t.sp_connection_name
       )
       select
         concat(name, ' [', account_id, '/', region, ']') as title,
@@ -144,7 +144,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
         end as bucket_arn,
         region,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         public_bucket_data
       where
@@ -160,7 +160,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
 
     pipeline = aws.pipeline.delete_cloudtrail_trail
     args = {
-      cred   = param.cred
+      conn   = param.conn
       name   = param.trail_name
       region = param.region
     }
@@ -172,7 +172,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
 
     pipeline = aws.pipeline.delete_s3_bucket_all_objects
     args = {
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
       region = param.region
     }
@@ -184,7 +184,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
 
     pipeline = aws.pipeline.delete_s3_bucket
     args = {
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
       region = param.region
     }

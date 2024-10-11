@@ -5,7 +5,7 @@ locals {
         'arn:' || a.partition || ':::' || a.account_id as resource,
         count(policy_arn),
         a.account_id,
-        a._ctx
+        a.sp_connection_name
       from
         aws_account as a
         left join aws_iam_role as r on r.account_id = a.account_id
@@ -16,12 +16,12 @@ locals {
       group by
         a.account_id,
         a.partition,
-        a._ctx
+        a.sp_connection_name
     )
     select
       account_id as title,
       account_id,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       support_role_count
     where
@@ -113,13 +113,13 @@ pipeline "detect_and_correct_iam_account_without_support_role" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -143,7 +143,7 @@ pipeline "detect_and_correct_iam_account_without_support_role" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -189,13 +189,13 @@ pipeline "correct_iam_account_without_support_role" {
     type = list(object({
       title          = string
       account_id     = string
-      cred           = string
+      conn           = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -219,7 +219,7 @@ pipeline "correct_iam_account_without_support_role" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -238,7 +238,7 @@ pipeline "correct_iam_account_without_support_role" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM account without support role."
   }
 
@@ -251,7 +251,7 @@ pipeline "correct_iam_account_without_support_role" {
       account_id         = each.value.account_id
       support_role_name  = param.support_role_name
       user_arn           = param.user_arn
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -288,13 +288,13 @@ pipeline "correct_one_iam_account_without_support_role" {
     default     = var.iam_account_without_support_role_support_role_name
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -306,7 +306,7 @@ pipeline "correct_one_iam_account_without_support_role" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -354,7 +354,7 @@ pipeline "correct_one_iam_account_without_support_role" {
           pipeline_args = {
             user_arn         = param.user_arn
             support_role_name = param.support_role_name
-            cred              = param.cred
+            conn              = param.conn
           }
           success_msg = "Created support role for IAM account ${param.title}."
           error_msg   = "Error creating support role for IAM account ${param.title}."
@@ -368,10 +368,10 @@ pipeline "create_iam_account_support_role" {
   title       = "Create IAM account support role"
   description = "Creates a new support role for your Amazon Web Services account."
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "aws"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "support_role_name" {
@@ -410,7 +410,7 @@ pipeline "create_iam_account_support_role" {
       "--assume-role-policy-document", step.transform.generate_assume_role_policy_document.output.policy
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "container" "attach_role_policy" {
@@ -422,7 +422,7 @@ pipeline "create_iam_account_support_role" {
       "--policy-arn", "arn:aws:iam::aws:policy/AWSSupportAccess",
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
 }

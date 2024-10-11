@@ -4,7 +4,7 @@ locals {
     concat(name, ' [', account_id, '/', region, ']') as title,
     name,
     region,
-    _ctx ->> 'connection_name' as cred
+    sp_connection_name as conn
   from
     aws_cloudtrail_trail
   where
@@ -77,13 +77,13 @@ pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled
   tags        = local.cloudtrail_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -140,13 +140,13 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
       title  = string
       name   = string
       region = string
-      cred   = string
+      conn   = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -158,7 +158,7 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -177,7 +177,7 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected CloudTrail trail(s) ${length(param.items)} with log file validation disabled."
   }
 
@@ -189,7 +189,7 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
       title              = each.value.title
       name               = each.value.name
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -219,13 +219,13 @@ pipeline "correct_one_cloudtrail_trail_log_file_validation_disabled" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -237,7 +237,7 @@ pipeline "correct_one_cloudtrail_trail_log_file_validation_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -286,7 +286,7 @@ pipeline "correct_one_cloudtrail_trail_log_file_validation_disabled" {
             trail_name                 = param.name
             enable_log_file_validation = true
             region                     = param.region
-            cred                       = param.cred
+            conn                       = param.conn
           }
           success_msg = "Enabled log file validation for CloudTrail trail ${param.title}."
           error_msg   = "Error enabling log file validation for CloudTrail trail ${param.title}."

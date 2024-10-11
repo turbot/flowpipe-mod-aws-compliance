@@ -10,7 +10,7 @@ locals {
     )
     select
       concat(b.name, ' [', b.account_id, '/', b.region, ']') as title,
-      b._ctx ->> 'connection_name' as cred,
+      b.sp_connection_name as conn,
       b.region
     from
       aws_s3_bucket as b
@@ -76,13 +76,13 @@ pipeline "detect_and_correct_s3_buckets_with_macie_disabled" {
   // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_macie_disabled.md")
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -94,7 +94,7 @@ pipeline "detect_and_correct_s3_buckets_with_macie_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -139,13 +139,13 @@ pipeline "correct_s3_buckets_with_macie_disabled" {
       title       = string
       bucket_name = string
       region      = string
-      cred        = string
+      conn        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -157,7 +157,7 @@ pipeline "correct_s3_buckets_with_macie_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -176,14 +176,14 @@ pipeline "correct_s3_buckets_with_macie_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} S3 bucket(s) with Macie disabled."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected S3 bucket ${each.value.title} with Macie disabled."
   }
 }

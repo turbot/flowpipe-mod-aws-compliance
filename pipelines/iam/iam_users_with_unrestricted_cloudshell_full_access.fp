@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', account_id,  ']') as title,
       name as user_name,
       account_id,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_iam_user
     where
@@ -76,13 +76,13 @@ pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access"
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -94,7 +94,7 @@ pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access"
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -139,13 +139,13 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
       title          = string
       user_name      = string
       account_id     = string
-      cred           = string
+      conn           = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -157,7 +157,7 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -176,7 +176,7 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM user(s) with unrestricted CloudShellFullAccess policy attached."
   }
 
@@ -188,7 +188,7 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
       title              = each.value.title
       user_name          = each.value.user_name
       account_id         = each.value.account_id
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -218,13 +218,13 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
     description = "The account ID of the AWS account."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -236,7 +236,7 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -284,7 +284,7 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
           pipeline_args = {
             user_name   = param.user_name
             policy_arn  = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
-            cred        = param.cred
+            conn        = param.conn
           }
           success_msg = "Detached policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM user ${param.title}."
           error_msg   = "Error detaching policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM user ${param.title}."

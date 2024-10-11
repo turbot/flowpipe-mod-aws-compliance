@@ -5,7 +5,7 @@ locals {
       jsonb_array_elements_text(attached_policy_arns) as policy_arn,
       name as user_name,
       account_id,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_iam_user
     where
@@ -77,13 +77,13 @@ pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -141,13 +141,13 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
       user_name      = string
       policy_arn     = string
       account_id     = string
-      cred           = string
+      conn           = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -159,7 +159,7 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -178,7 +178,7 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM user(s) with the specified policy attached."
   }
 
@@ -191,7 +191,7 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
       user_name          = each.value.user_name
       policy_arn         = each.value.policy_arn
       account_id         = each.value.account_id
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -226,13 +226,13 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
     description = "The account ID of the AWS account."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -244,7 +244,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -292,7 +292,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
           pipeline_args = {
             user_name  = param.user_name
             policy_arn = param.policy_arn
-            cred       = param.cred
+            conn       = param.conn
           }
           success_msg = "Detached IAM policy from IAM user ${param.title}."
           error_msg   = "Error detaching policy from IAM user ${param.title}."
@@ -306,10 +306,10 @@ pipeline "detach_iam_users_with_iam_policy_attached" {
   title       = "Detach IAM user policy"
   description = "Detaches the specified managed policy from the specified IAM user."
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "user_name" {
@@ -330,6 +330,6 @@ pipeline "detach_iam_users_with_iam_policy_attached" {
       "--policy-arn", param.policy_arn,
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 }

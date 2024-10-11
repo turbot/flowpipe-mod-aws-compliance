@@ -6,7 +6,7 @@ locals {
         security_group_rule_id,
         region,
         account_id,
-        _ctx ->> 'connection_name' as cred    
+        sp_connection_name as conn    
       from
         aws_vpc_security_group_rule
       where
@@ -34,7 +34,7 @@ locals {
       region,
       account_id,
       group_id,
-      _ctx
+      sp_connection_name
     from
       aws_vpc_security_group
     order by
@@ -45,7 +45,7 @@ locals {
     sg.group_id as group_id,
     bad_rules.security_group_rule_id as security_group_rule_id,
     sg.region as region,
-    sg._ctx ->> 'connection_name' as cred
+    sg.sp_connection_name as conn
   from
     security_groups as sg
     left join bad_rules on bad_rules.group_id = sg.group_id
@@ -102,13 +102,13 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_serv
   // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4.md")
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -120,7 +120,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_serv
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -166,13 +166,13 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
       group_id               = string,
       security_group_rule_id = string,
       region                 = string,
-      cred                   = string
+      conn                   = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -184,7 +184,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -203,7 +203,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from 0.0.0.0/0."
   }
 
@@ -216,7 +216,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
       group_id               = each.value.group_id,
       security_group_rule_id = each.value.security_group_rule_id
       region                 = each.value.region,
-      cred                   = each.value.cred,
+      conn                   = connection.aws[each.value.conn],
       notifier               = param.notifier,
       notification_level     = param.notification_level,
       approvers              = param.approvers,
@@ -251,13 +251,13 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -269,7 +269,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -318,7 +318,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
             security_group_id      = param.group_id
             security_group_rule_id = param.security_group_rule_id
             region                 = param.region
-            cred                   = param.cred
+            conn                   = param.conn
           }
           success_msg = "Revoked VPC security group rule ${param.security_group_rule_id} in ${param.title}."
           error_msg   = "Error revoking VPC security group rule ${param.security_group_rule_id} in ${param.title}."

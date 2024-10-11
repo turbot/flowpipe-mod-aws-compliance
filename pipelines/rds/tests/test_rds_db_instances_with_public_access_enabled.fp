@@ -8,10 +8,10 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
     default     = "us-east-1"
   }
 
-  param "cred" {
-    type        = string
-    description = "The AWS credentials profile to use."
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "db_instance_identifier" {
@@ -79,7 +79,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--output", "text"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   # Step to create an Internet Gateway (IGW) if necessary
@@ -90,7 +90,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "ec2", "create-internet-gateway"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_vpc]
   }
 
@@ -104,7 +104,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--vpc-id", step.container.get_default_vpc.stdout
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_internet_gateway]
   }
 
@@ -120,7 +120,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--output", "text"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_vpc]
   }
 
@@ -142,7 +142,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--publicly-accessible"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_security_group]
   }
 
@@ -158,7 +158,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
       db_instance_identifier,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_rds_db_instance
     where
@@ -175,7 +175,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       title                  = each.value.title
       db_instance_identifier = each.value.db_instance_identifier
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "disable_public_access"
       enabled_actions        = ["disable_public_access"]
@@ -195,7 +195,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
       db_instance_identifier,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_rds_db_instance
     where
@@ -228,7 +228,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--skip-final-snapshot"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_rds_db_instance_details_after_remediation]
   }
 
@@ -242,7 +242,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--vpc-id", step.container.get_default_vpc.stdout
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_rds_db_instance]
   }
 
@@ -255,7 +255,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--internet-gateway-id", jsondecode(step.container.create_internet_gateway.stdout).InternetGateway.InternetGatewayId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.detach_internet_gateway]
   }
 

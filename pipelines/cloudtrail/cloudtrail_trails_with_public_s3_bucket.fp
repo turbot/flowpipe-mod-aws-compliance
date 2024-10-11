@@ -7,7 +7,7 @@ locals {
       t.region,
       t.account_id,
       t.tags,
-      t._ctx,
+      t.sp_connection_name,
       count(acl_grant) filter (where acl_grant -> 'Grantee' ->> 'URI' like '%acs.amazonaws.com/groups/global/AllUsers') as all_user_grants,
       count(acl_grant) filter (where acl_grant -> 'Grantee' ->> 'URI' like '%acs.amazonaws.com/groups/global/AuthenticatedUsers') as auth_user_grants,
       count(s) filter (where s ->> 'Effect' = 'Allow' and  p = '*' ) as anon_statements
@@ -23,14 +23,14 @@ locals {
       t.region,
       t.account_id,
       t.tags,
-      t._ctx
+      t.sp_connection_name
   )
   select
     concat(name, ' [', account_id, '/', region, ']') as title,
     name,
     region,
     account_id,
-    _ctx ->> 'connection_name' as cred
+    sp_connection_name as conn
   from
     public_bucket_data
   where
@@ -94,16 +94,16 @@ pipeline "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
   title       = "Detect & correct CloudTrail trails with public S3 bucket access"
   description = "Detect CloudTrail trails with public S3 bucket and then skip or update S3 bucket public access block."
   // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_public_s3_bucket.md")
-  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "recommended" })
+  tags = merge(local.cloudtrail_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -115,7 +115,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -162,13 +162,13 @@ pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
       name       = string
       region     = string
       account_id = string
-      cred       = string
+      conn       = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -180,7 +180,7 @@ pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -199,7 +199,7 @@ pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} CloudTrail trail(s) with public S3 bucket."
   }
 
@@ -213,7 +213,7 @@ pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
       bucket_name        = each.value.name
       region             = each.value.region
       account_id         = each.value.account_id
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -254,13 +254,13 @@ pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
     description = "The AWS account ID."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -272,7 +272,7 @@ pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -319,7 +319,7 @@ pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
           pipeline_ref = aws.pipeline.put_s3_bucket_public_access_block
           pipeline_args = {
             region                  = param.region
-            cred                    = param.cred
+            conn                    = param.conn
             bucket                  = param.bucket_name
             block_public_policy     = true
             restrict_public_buckets = true

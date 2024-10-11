@@ -4,7 +4,7 @@ locals {
       concat(id, ' [', account_id, '/', region, ']') as title,
       id as key_id,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_kms_key
     where
@@ -61,13 +61,13 @@ pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
   description = "Detect KMS keys with rotation disabled and then enable rotation."
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -79,7 +79,7 @@ pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -123,12 +123,12 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
       title  = string
       key_id = string
       region = string
-      cred   = string
+      conn   = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -140,7 +140,7 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -159,7 +159,7 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} KMS key(s) with rotation disabled."
   }
 
@@ -172,7 +172,7 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
       title              = each.value.title
       key_id             = each.value.key_id
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -201,13 +201,13 @@ pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -219,7 +219,7 @@ pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -267,7 +267,7 @@ pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
           pipeline_args = {
             key_id = param.key_id
             region = param.region
-            cred   = param.cred
+            conn   = param.conn
           }
           success_msg = "Enabled key rotation for KMS key ${param.title}."
           error_msg   = "Error enabling key rotation for KMS key ${param.title}."

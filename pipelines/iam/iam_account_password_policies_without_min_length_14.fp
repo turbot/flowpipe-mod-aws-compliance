@@ -3,7 +3,7 @@ locals {
     select
       a.account_id as title,
       a.account_id,
-      a._ctx ->> 'connection_name' as cred
+      a.sp_connection_name as conn
     from
       aws_account as a
       left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
@@ -77,13 +77,13 @@ pipeline "detect_and_correct_iam_account_password_policies_without_min_length_14
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_iam_account_password_policies_without_min_length_14
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -139,13 +139,13 @@ pipeline "correct_iam_account_password_policies_without_min_length_14" {
     type = list(object({
       title          = string
       account_id     = string
-      cred           = string
+      conn           = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -157,7 +157,7 @@ pipeline "correct_iam_account_password_policies_without_min_length_14" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -176,7 +176,7 @@ pipeline "correct_iam_account_password_policies_without_min_length_14" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM account password policies with no minimum length of 14 requirement."
   }
 
@@ -187,7 +187,7 @@ pipeline "correct_iam_account_password_policies_without_min_length_14" {
     args = {
       title              = each.value.title
       account_id         = each.value.account_id
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -212,13 +212,13 @@ pipeline "correct_one_iam_account_password_policy_without_min_length_14" {
     description = "The account ID of the AWS account."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -230,7 +230,7 @@ pipeline "correct_one_iam_account_password_policy_without_min_length_14" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -277,7 +277,7 @@ pipeline "correct_one_iam_account_password_policy_without_min_length_14" {
           pipeline_ref = pipeline.update_iam_account_password_policy_min_length
           pipeline_args = {
             minimum_password_length = 14
-            cred                   = param.cred
+            conn                   = param.conn
           }
           success_msg = "Updated IAM account password policy in ${param.title} to have a minimum length of 14."
           error_msg   = "Error updating IAM account password policy in ${param.title}."
@@ -291,10 +291,10 @@ pipeline "update_iam_account_password_policy_min_length" {
   title       = "Update IAM account password policy minimumn length"
   description = "Updates the account password policy minimumn length for the AWS account."
 
-  param "cred" {
-    type        = string
-   description  = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "minimum_password_length" {
@@ -319,7 +319,7 @@ pipeline "update_iam_account_password_policy_min_length" {
         aws_account as a
         left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-        a._ctx ->> 'connection_name' = '${param.cred}';
+        a.sp_connection_name = ${param.conn};
     EOQ
   }
 
@@ -328,7 +328,7 @@ pipeline "update_iam_account_password_policy_min_length" {
     pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
-      cred                           = param.cred
+      conn                           = param.conn
       max_password_age               = step.query.get_password_policy.rows[0].max_password_age
       minimum_password_length        = param.minimum_password_length
       password_reuse_prevention      = step.query.get_password_policy.rows[0].password_reuse_prevention

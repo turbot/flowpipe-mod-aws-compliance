@@ -4,7 +4,7 @@ locals {
       concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
       db_instance_identifier,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_rds_db_instance
     where
@@ -66,16 +66,16 @@ pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title         = "Detect & correct RDS DB instances with public access enabled"
   description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
   // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_public_access_enabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
+  tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -87,7 +87,7 @@ pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -134,13 +134,13 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
       db_instance_identifier = string
       publicly_accessible    = bool
       region                 = string
-      cred                   = string
+      conn                   = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -152,7 +152,7 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -171,7 +171,7 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} RDS DB instance(s) with public access enabled."
   }
 
@@ -184,7 +184,7 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
       db_instance_identifier = each.value.db_instance_identifier
       publicly_accessible    = false
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       notifier               = param.notifier
       notification_level     = param.notification_level
       approvers              = param.approvers
@@ -220,13 +220,13 @@ pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -238,7 +238,7 @@ pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -287,7 +287,7 @@ pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
             db_instance_identifier = param.db_instance_identifier
             publicly_accessible    = false
             region                 = param.region
-            cred                   = param.cred
+            conn                   = param.conn
           }
           success_msg = "Disabled public access for RDS DB instance ${param.title}."
           error_msg   = "Error disabling public access for RDS DB instance ${param.title}."

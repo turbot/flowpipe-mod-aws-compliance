@@ -8,10 +8,10 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
     default     = "us-east-1"
   }
 
-  param "cred" {
-    type        = string
-    description = "The AWS credentials profile to use."
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "db_instance_identifier" {
@@ -79,7 +79,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
       "--output", "text"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   # Step to get the default security group ID for the default VPC
@@ -94,7 +94,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
       "--output", "text"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_vpc]
   }
 
@@ -116,7 +116,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
       "--no-publicly-accessible"  # Optionally keep the instance private
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_security_group]
   }
 
@@ -127,7 +127,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
       concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
       db_instance_identifier,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_rds_db_instance
     where
@@ -144,7 +144,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
       title                  = each.value.title
       db_instance_identifier = each.value.db_instance_identifier
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "enable_auto_minor_version_upgrade"
       enabled_actions        = ["enable_auto_minor_version_upgrade"]
@@ -159,7 +159,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
         concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
         db_instance_identifier,
         region,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_rds_db_instance
       where
@@ -187,7 +187,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
       "--skip-final-snapshot"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_rds_db_instance_details_after_remediation]
   }
 }

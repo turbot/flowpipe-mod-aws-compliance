@@ -29,7 +29,7 @@ locals {
         k.user_name,
         k.create_date,
         k.access_key_last_used_date,
-        _ctx,
+        sp_connection_name,
         account_id,
         row_number() over (partition by k.user_name order by k.create_date desc) as rnk
       from
@@ -43,7 +43,7 @@ locals {
       user_name,
       access_key_last_used_date,
       create_date,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       ranked_keys
     where
@@ -103,16 +103,16 @@ trigger "query" "detect_and_delete_extra_iam_user_active_keys" {
 pipeline "detect_and_delete_extra_iam_user_active_keys" {
   title         = "Detect & correct Extra IAM User Active Keys"
   description   = "Detects IAM users with more than one active key and deletes the extra keys."
-  tags          = merge(local.iam_common_tags, { class = "security", type = "recommended" })
+  tags          = merge(local.iam_common_tags, { class = "security", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -124,7 +124,7 @@ pipeline "detect_and_delete_extra_iam_user_active_keys" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -169,13 +169,13 @@ pipeline "delete_extra_iam_user_active_keys" {
       title          = string
       user_name      = string
       access_key_id  = string
-      cred           = string
+      conn           = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -187,7 +187,7 @@ pipeline "delete_extra_iam_user_active_keys" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -206,7 +206,7 @@ pipeline "delete_extra_iam_user_active_keys" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} extra IAM user active keys."
   }
 
@@ -218,7 +218,7 @@ pipeline "delete_extra_iam_user_active_keys" {
       title              = each.value.title
       user_name          = each.value.user_name
       access_key_id      = each.value.access_key_id
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -248,13 +248,13 @@ pipeline "correct_one_extra_iam_user_active_key" {
     description = "The access key ID of the extra IAM user active key."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -266,7 +266,7 @@ pipeline "correct_one_extra_iam_user_active_key" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -314,7 +314,7 @@ pipeline "correct_one_extra_iam_user_active_key" {
           pipeline_args = {
             access_key_id = param.access_key_id
             user_name  = param.user_name
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Deleted extra IAM user active key ${param.title}."
           error_msg   = "Error deleting extra IAM user active key ${param.title}."

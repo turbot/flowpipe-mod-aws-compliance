@@ -2,10 +2,10 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
   title       = "Test Correct One CloudTrail Trail with S3 Object Level Logging for Write Events Disabled"
   description = "Tests the correction of a CloudTrail trail with S3 object level logging for write events disabled."
 
-  param "cred" {
-    type        = string
-    description = "The AWS credential to use."
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -38,7 +38,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
         bucket_selector,
         t.region,
         t.account_id,
-        t._ctx
+        t.sp_connection_name
       from
         aws_cloudtrail_trail as t,
         jsonb_array_elements(t.event_selectors) as event_selector,
@@ -58,12 +58,12 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
       concat(a.title, ' [', '/', t.account_id, ']') as title,
       count(t.trail_name) as bucket_selector_count,
       a.account_id,
-      a._ctx ->> 'connection_name' as cred
+      a.sp_connection_name as conn
     from
       aws_account as a
       left join s3_selectors as t on a.account_id = t.account_id
     group by
-      t.trail_name, t.region, a.account_id, t.account_id, a._ctx, a.title
+      t.trail_name, t.region, a.account_id, t.account_id, a.sp_connection_name, a.title
     having
       count(t.trail_name) = 0;
     EOQ
@@ -77,7 +77,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
       s3_bucket_name  = param.s3_bucket_name
       trail_name      = param.trail_name
       account_id      = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].account_id
-      cred            = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].cred
+      conn            = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].conn
       approvers       = []
       default_action  = "enable_s3_object_level_logging_for_write_events"
       enabled_actions = ["enable_s3_object_level_logging_for_write_events"]
@@ -98,7 +98,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
         bucket_selector,
         t.region,
         t.account_id,
-        t._ctx
+        t.sp_connection_name
       from
         aws_cloudtrail_trail as t,
         jsonb_array_elements(t.event_selectors) as event_selector,
@@ -118,12 +118,12 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
       concat(a.title, ' [', '/', t.account_id, ']') as title,
       count(t.trail_name) as bucket_selector_count,
       a.account_id,
-      a._ctx ->> 'connection_name' as cred
+      a.sp_connection_name as conn
     from
       aws_account as a
       left join s3_selectors as t on a.account_id = t.account_id
     group by
-      t.trail_name, t.region, a.account_id, t.account_id, a._ctx, a.title
+      t.trail_name, t.region, a.account_id, t.account_id, a.sp_connection_name, a.title
     having
       count(t.trail_name) > 0;
     EOQ
@@ -144,7 +144,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
       "--name", param.trail_name,
       "--region", param.region
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   # Step to empty the S3 bucket before deletion
@@ -155,7 +155,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
       "s3", "rm", "s3://${param.s3_bucket_name}", "--recursive",
       "--region", param.region
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   # Delete the S3 bucket
@@ -164,7 +164,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
     pipeline   = aws.pipeline.delete_s3_bucket
     args = {
       bucket = param.s3_bucket_name
-      cred   = param.cred
+      conn   = param.conn
       region = param.region
     }
   }

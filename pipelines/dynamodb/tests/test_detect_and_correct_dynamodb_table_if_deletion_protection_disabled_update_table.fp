@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -36,7 +36,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
       "--provisioned-throughput", "ReadCapacityUnits=5,WriteCapacityUnits=5"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "sleep" "sleep_150_seconds" {
@@ -82,7 +82,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
       "--no-deletion-protection-enabled"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "pipeline" "delete_dynamodb_table" {
@@ -91,7 +91,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
     args = {
       table_name  = param.table_name
       region      = param.region
-      cred        = param.cred
+      conn        = param.conn
     }
   }
 

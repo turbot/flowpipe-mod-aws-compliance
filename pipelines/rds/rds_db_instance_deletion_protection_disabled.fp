@@ -5,7 +5,7 @@ locals {
       concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
       db_instance_identifier,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_rds_db_instance
     where
@@ -37,16 +37,16 @@ pipeline "detect_and_correct_rds_db_instance_if_deletion_protection_disabled" {
   title         = "Detect & correct RDS DB instances if deletion protection disabled"
   description   = "Detects RDS DB instances if deletion protection disabled and runs your chosen action."
   // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_deletion_protection_disabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
+  tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -58,7 +58,7 @@ pipeline "detect_and_correct_rds_db_instance_if_deletion_protection_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -105,13 +105,13 @@ pipeline "correct_rds_db_instance_if_deletion_protection_disabled" {
       db_instance_identifier = string
       deletion_protection    = bool
       region                 = string
-      cred                   = string
+      conn                   = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -123,7 +123,7 @@ pipeline "correct_rds_db_instance_if_deletion_protection_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -142,7 +142,7 @@ pipeline "correct_rds_db_instance_if_deletion_protection_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} RDS DB instance if deletion protection disabled."
   }
 
@@ -159,7 +159,7 @@ pipeline "correct_rds_db_instance_if_deletion_protection_disabled" {
       db_instance_identifier = each.value.db_instance_identifier
       deletion_protection    = true
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       notifier               = param.notifier
       notification_level     = param.notification_level
       approvers              = param.approvers
@@ -195,13 +195,13 @@ pipeline "correct_one_rds_db_instance_if_deletion_protection_disabled" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -213,7 +213,7 @@ pipeline "correct_one_rds_db_instance_if_deletion_protection_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -262,7 +262,7 @@ pipeline "correct_one_rds_db_instance_if_deletion_protection_disabled" {
             db_instance_identifier = param.db_instance_identifier
             deletion_protection    = true
             region                 = param.region
-            cred                   = param.cred
+            conn                   = param.conn
           }
           success_msg = "Updated RDS DB instance ${param.title}."
           error_msg   = "Error updating RDS DB instance ${param.title}."

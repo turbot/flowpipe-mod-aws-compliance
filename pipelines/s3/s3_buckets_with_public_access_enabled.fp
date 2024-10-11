@@ -3,7 +3,7 @@ locals {
     select
       concat(bucket.name, ' [', bucket.account_id, '/', bucket.region, ']') as title,
       bucket.region,
-      bucket._ctx ->> 'connection_name' as cred,
+      bucket.sp_connection_name as conn,
       bucket.name as bucket_name
     from
       aws_s3_bucket as bucket,
@@ -66,13 +66,13 @@ pipeline "detect_and_correct_s3_buckets_with_public_access_enabled" {
   // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_public_access_enabled.md")
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -84,7 +84,7 @@ pipeline "detect_and_correct_s3_buckets_with_public_access_enabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -130,12 +130,12 @@ pipeline "correct_s3_buckets_with_public_access_enabled" {
       title       = string
       bucket_name = string
       region      = string
-      cred        = string
+      conn        = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -147,7 +147,7 @@ pipeline "correct_s3_buckets_with_public_access_enabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -166,7 +166,7 @@ pipeline "correct_s3_buckets_with_public_access_enabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} S3 bucket(s) with public access."
   }
 
@@ -178,7 +178,7 @@ pipeline "correct_s3_buckets_with_public_access_enabled" {
       title              = each.value.title
       bucket_name        = each.value.bucket_name
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -209,13 +209,13 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -227,7 +227,7 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -275,7 +275,7 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
           pipeline_args = {
             bucket                  = param.bucket_name
             region                  = param.region
-            cred                    = param.cred
+            conn                    = param.conn
             block_public_acls       = true
             ignore_public_acls      = true
             block_public_policy     = true

@@ -11,7 +11,7 @@ locals {
         coalesce(cidr_ipv6::text, '') as cidr_ipv6,
         region,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_vpc_security_group_rule
       where
@@ -38,7 +38,7 @@ locals {
       ingress_rdp_rules.to_port as to_port,
       ingress_rdp_rules.cidr_ipv4 as cidr_ipv4,
       ingress_rdp_rules.cidr_ipv6 as cidr_ipv6,
-      sg._ctx ->> 'connection_name' as cred
+      sg.sp_connection_name as conn
     from
       aws_vpc_security_group as sg
       left join ingress_rdp_rules on ingress_rdp_rules.group_id = sg.group_id
@@ -97,13 +97,13 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" 
   tags          = merge(local.vpc_common_tags, { class = "security", type = "audit" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -115,7 +115,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" 
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -166,13 +166,13 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
       cidr_ipv4              = string,
       cidr_ipv6              = string,
       region                 = string,
-      cred                   = string
+      conn                   = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -184,7 +184,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -203,7 +203,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} VPC security group rule(s) allowing ingress to port 3389 from 0.0.0.0/0 or ::/0."
   }
 
@@ -221,7 +221,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
       cidr_ipv4              = each.value.cidr_ipv4,
       cidr_ipv6              = each.value.cidr_ipv6,
       region                 = each.value.region,
-      cred                   = each.value.cred,
+      conn                   = connection.aws[each.value.conn],
       notifier               = param.notifier,
       notification_level     = param.notification_level,
       approvers              = param.approvers,
@@ -281,13 +281,13 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -299,7 +299,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -363,7 +363,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
             security_group_id      = param.group_id
             security_group_rule_id = param.security_group_rule_id
             region                 = param.region
-            cred                   = param.cred
+            conn                   = param.conn
           }
           success_msg = "Revoked VPC security group ingress rule ${param.security_group_rule_id} from ${param.title}."
           error_msg   = "Error revoking ingress rule ${param.security_group_rule_id} from security group ${param.title}."

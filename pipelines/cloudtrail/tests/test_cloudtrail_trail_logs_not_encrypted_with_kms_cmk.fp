@@ -2,10 +2,10 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   title       = "Test CloudTrail Trail Logs Not Encrypted with KMS CMK"
   description = "Tests the CloudTrail Trail Logs Not Encrypted with KMS CMK."
 
-  param "cred" {
-    type        = string
-    description = "The AWS credential to use."
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -35,7 +35,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     pipeline = aws.pipeline.create_s3_bucket
     args = {
       bucket = param.s3_bucket
-      cred   = param.cred
+      conn   = param.conn
       region = param.region
     }
   }
@@ -94,7 +94,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     args = {
       bucket = param.s3_bucket
       policy = step.transform.generate_s3_bucket_policy.output.policy
-      cred   = param.cred
+      conn   = param.conn
       region = param.region
     }
   }
@@ -106,7 +106,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     args = {
       name                          = param.trail_name
       region                        = param.region
-      cred                          = param.cred
+      conn                          = param.conn
       bucket_name                   = param.s3_bucket
       is_multi_region_trail         = false
       include_global_service_events = true
@@ -125,7 +125,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
       "--region", param.region,
       "--output", "json"
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   # Step to check if the CloudTrail trail log is unencrypted
@@ -136,7 +136,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
       select
         concat(name, ' [', account_id, '/', region, ']') as title,
         region,
-        _ctx ->> 'connection_name' as cred,
+        sp_connection_name as conn,
         account_id,
         name
       from
@@ -154,11 +154,11 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     args = {
       title               = step.query.cloudtrail_logs_unencrypted.rows[0].title
       kms_key_id          = jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId
-      kms_key_policy_name = "default"
+      kms_key_policy_name = connection.aws.default
       account_id          = step.query.get_account_id.rows[0].account_id
       region              = param.region
       name                = param.trail_name
-      cred                = step.query.cloudtrail_logs_unencrypted.rows[0].cred
+      conn                = step.query.cloudtrail_logs_unencrypted.rows[0].conn
       approvers           = []
       default_action      = "encrypt_cloud_trail_logs"
       enabled_actions     = ["encrypt_cloud_trail_logs"]
@@ -194,7 +194,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
       "s3", "rm", "s3://${param.s3_bucket}", "--recursive",
       "--region", param.region
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   # Cleanup steps
@@ -207,7 +207,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
       "--name", param.trail_name,
       "--region", param.region
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   # Delete the KMS key after the CloudTrail trail has been deleted
@@ -220,7 +220,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
       "--pending-window-in-days", "7",
       "--region", param.region
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   # Delete the S3 bucket after it has been emptied
@@ -229,7 +229,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     pipeline   = aws.pipeline.delete_s3_bucket
     args = {
       bucket = param.s3_bucket
-      cred   = param.cred
+      conn   = param.conn
       region = param.region
     }
   }
