@@ -20,7 +20,7 @@ locals {
 // Common Texts
 locals {
   description_approvers        = "List of notifiers to be used for obtaining action/approval decisions."
-  description_credential       = "Name of the credential to be used for any authenticated actions."
+  description_connection       = "Name of the AWS connection to be used for any authenticated actions."
   description_database         = "Database connection string."
   description_default_action   = "The default action to use when there are no approvers."
   description_enabled_actions  = "The list of enabled actions approvers can select."
