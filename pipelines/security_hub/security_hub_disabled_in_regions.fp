@@ -18,31 +18,46 @@ variable "security_hub_disabled_in_regions_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/SecurityHub"
+  }
 }
 
 variable "security_hub_disabled_in_regions_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/SecurityHub"
+  }
 }
 
 variable "security_hub_disabled_in_regions_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/SecurityHub"
+  }
 }
 
 variable "security_hub_disabled_in_regions_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_with_default_standards", "enable_without_default_standards"]
+
+  tags = {
+    folder = "Advanced/SecurityHub"
+  }
 }
 
 trigger "query" "detect_and_correct_security_hub_disabled_in_regions" {
   title       = "Detect & correct Security Hub disabled in regions"
   description = "Detect regions with Security Hub disabled and then skip or enable Security Hub."
-  
-  // tags          = merge(local.securityhub_common_tags, { class = "unused" })
+  tags        = local.security_hub_common_tags
 
   enabled  = var.security_hub_disabled_in_regions_trigger_enabled
   schedule = var.security_hub_disabled_in_regions_trigger_schedule
@@ -60,8 +75,7 @@ trigger "query" "detect_and_correct_security_hub_disabled_in_regions" {
 pipeline "detect_and_correct_security_hub_disabled_in_regions" {
   title       = "Detect & correct Security Hub disabled in regions"
   description = "Detect regions with Security Hub disabled and then skip or enable Security Hub."
-  
-  // tags          = merge(local.securityhub_common_tags, { class = "unused", recommended = "true" })
+  tags        = merge(local.security_hub_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -120,8 +134,7 @@ pipeline "detect_and_correct_security_hub_disabled_in_regions" {
 pipeline "correct_security_hub_disabled_in_regions" {
   title       = "Correct regions with Security Hub disabled"
   description = "Enable Security Hub in regions with Security Hub disabled."
-  
-  // tags          = merge(local.securityhub_common_tags, { class = "unused" })
+  tags          = merge(local.security_hub_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -187,8 +200,7 @@ pipeline "correct_security_hub_disabled_in_regions" {
 pipeline "correct_one_region_with_security_hub_disabled" {
   title       = "Correct one region with Security Hub disabled"
   description = "Enable Security Hub in a single region with Security Hub disabled."
-  
-  // tags          = merge(local.securityhub_common_tags, { class = "unused" })
+  tags          = merge(local.security_hub_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

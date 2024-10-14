@@ -31,30 +31,46 @@ variable "config_disabled_in_regions_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/Config"
+  }
 }
 
 variable "config_disabled_in_regions_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/Config"
+  }
 }
 
 variable "config_disabled_in_regions_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/Config"
+  }
 }
 
 variable "config_disabled_in_regions_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["notify"]
+
+  tags = {
+    folder = "Advanced/Config"
+  }
 }
 
 trigger "query" "detect_and_correct_config_disabled_in_regions" {
   title       = "Detect & correct Config disabled in regions"
   description = "Detect Config disabled in regions."
-  
+  tags        = local.config_common_tags
 
   enabled  = var.config_disabled_in_regions_trigger_enabled
   schedule = var.config_disabled_in_regions_trigger_schedule
@@ -72,7 +88,7 @@ trigger "query" "detect_and_correct_config_disabled_in_regions" {
 pipeline "detect_and_correct_config_disabled_in_regions" {
   title       = "Detect & correct Config disabled in regions"
   description = "Detect Config disabled in regions."
-  
+  tags        = merge(local.config_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -131,7 +147,7 @@ pipeline "detect_and_correct_config_disabled_in_regions" {
 pipeline "correct_config_disabled_in_regions" {
   title       = "Correct Config disabled in regions"
   description = "Detect Config disabled in regions."
-  
+  tags        = merge(local.config_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
