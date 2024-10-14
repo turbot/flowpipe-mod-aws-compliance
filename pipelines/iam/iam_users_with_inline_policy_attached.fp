@@ -73,8 +73,8 @@ trigger "query" "detect_and_correct_iam_users_with_inline_policy_attached" {
 
 pipeline "detect_and_correct_iam_users_with_inline_policy_attached" {
   title         = "Detect & correct IAM users with inline policy"
-  tags          = local.iam_common_tags
   description   = "Detects IAM user inline policy and deletes them."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = string
