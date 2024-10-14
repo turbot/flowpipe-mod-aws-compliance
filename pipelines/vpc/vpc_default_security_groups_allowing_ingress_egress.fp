@@ -35,31 +35,46 @@ variable "vpc_default_security_groups_allowing_ingress_egress_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_default_security_groups_allowing_ingress_egress_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_default_security_groups_allowing_ingress_egress_default_action" {
   type        = string
   default     = "notify"
   description = "The default action to use when there are no approvers."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_default_security_groups_allowing_ingress_egress_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "revoke_security_group_rule"]
-}
 
+  tags = {
+    folder = "Advanced/VPC"
+  }
+}
 
 trigger "query" "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress" {
   title         = "Detect & correct default VPC Security groups allowing ingress egress"
   description   = "Detect default Security group rules that allow both incoming and outgoing internet traffic and then skip or revoke the security group rule."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_default_security_groups_allowing_ingress_egress_trigger.md")
+  tags          = local.vpc_common_tags
 
   enabled  = var.vpc_default_security_groups_allowing_ingress_egress_trigger_enabled
   schedule = var.vpc_default_security_groups_allowing_ingress_egress_trigger_schedule
@@ -77,7 +92,7 @@ trigger "query" "detect_and_correct_vpc_default_security_groups_allowing_ingress
 pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress" {
   title         = "Detect & correct default VPC Security groups allowing ingress egress"
   description   = "Detect default Security groups that allow both incoming and outgoing internet traffic and then skip or revoke the security group rule."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_default_security_groups_allowing_ingress_egress.md")
+  tags          = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -136,7 +151,7 @@ pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress
 pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
   title         = "Correct default VPC Security groups allowing ingress egress"
   description   = "Revoke security group rule from the default security group to restrict incoming and outgoing internet traffic."
-  // // documentation = file("./vpc/docs/correct_vpc_default_security_groups_allowing_ingress_egress.md")
+  tags          = merge(local.vpc_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -209,7 +224,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
 pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
   title         = "Correct one default VPC Security group allowing ingress egress"
   description   = "Revoke the security group rule from the default security group Security group entry to restrict ingress and egress."
-  // // documentation = file("./vpc/docs/correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports.md")
+  tags          = merge(local.vpc_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -317,6 +332,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
 pipeline "revoke_vpc_security_group_rule" {
   title       = "Revoke VPC Security Group Rule"
   description = "Removes the specified inbound (ingress) or outbound (egress) rules from a security group."
+  tags          = merge(local.vpc_common_tags, { type = "internal" })
 
   param "region" {
     type        = string

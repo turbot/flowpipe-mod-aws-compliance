@@ -39,7 +39,7 @@ variable "ec2_classic_load_balancers_with_connection_draining_disabled_enabled_a
 trigger "query" "detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled" {
   title       = "Detect & correct EC2 classic load balancers with connection draining disabled"
   description = "Detect EC2 classic load balancers with connection draining disabled and then skip or enable connection draining."
-  // documentation = file("./ec2/docs/detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled_trigger.md")
+  
   tags          = merge(local.ec2_common_tags, { class = "unused" })
 
   enabled  = var.ec2_classic_load_balancers_with_connection_draining_disabled_trigger_enabled
@@ -58,8 +58,8 @@ trigger "query" "detect_and_correct_ec2_classic_load_balancers_with_connection_d
 pipeline "detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled" {
   title         = "Detect & correct EC2 classic load balancers with connection draining disabled"
   description   = "Detect EC2 classic load balancers with connection draining disabled and then skip or enable connection draining."
-  // documentation = file("./ec2/docs/detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled.md")
-  tags          = merge(local.ec2_common_tags, { class = "unused", type = "recommended" })
+  
+  tags          = merge(local.ec2_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
     type        = string
@@ -118,7 +118,7 @@ pipeline "detect_and_correct_ec2_classic_load_balancers_with_connection_draining
 pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" {
   title         = "Correct EC2 classic load balancers with connection draining disabled"
   description   = "Executes corrective actions on EC2 classic load balancers with connection draining disabled."
-  // documentation = file("./ec2/docs/correct_ec2_classic_load_balancers_with_connection_draining_disabled.md")
+  
   tags          = merge(local.ec2_common_tags, { class = "unused" })
 
   param "items" {
@@ -187,7 +187,7 @@ pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" 
 pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disabled" {
   title       = "Correct one EC2 classic load balancer with connection draining disabled"
   description = "Runs corrective action on a single EC2 classic load balancer with connection draining disabled."
-  // documentation = file("./ec2/docs/correct_one_ec2_classic_load_balancer_without_connection_draining_disabled.md")
+  
 
   param "title" {
     type        = string

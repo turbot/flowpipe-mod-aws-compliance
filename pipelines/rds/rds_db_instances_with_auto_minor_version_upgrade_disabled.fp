@@ -40,7 +40,7 @@ variable "rds_db_instances_with_auto_minor_version_upgrade_disabled_enabled_acti
 trigger "query" "detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
   title         = "Detect & correct RDS DB instances with auto minor version upgrade disabled"
   description   = "Detect RDS DB instances with auto minor version upgrade disabled and then skip or enable auto minor version upgrade."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled_trigger.md")
+  
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   enabled  = var.rds_db_instances_with_auto_minor_version_upgrade_disabled_trigger_enabled
@@ -54,20 +54,13 @@ trigger "query" "detect_and_correct_rds_db_instances_with_auto_minor_version_upg
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_rds_db_instances_with_auto_minor_version_upgrade_disabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
   title         = "Detect & correct RDS DB instances with auto minor version upgrade disabled"
   description   = "Detect RDS DB instances with auto minor version upgrade disabled and then skip or enable auto minor version upgrade."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
+  
+  tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
     type        = string
@@ -126,7 +119,7 @@ pipeline "detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_di
 pipeline "correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
   title         = "Correct RDS DB instance with auto minor version upgrade disabled"
   description   = "Enable auto minor version upgrade on a collection of RDS DB instances with auto minor version upgrade disabled."
-  // // documentation = file("./rds/docs/correct_rds_db_instances_with_auto_minor_version_upgrade_disabled.md")
+  
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "items" {
@@ -198,7 +191,7 @@ pipeline "correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
 pipeline "correct_one_rds_db_instance_with_auto_minor_version_upgrade_disabled" {
   title         = "Correct one RDS DB instance with auto minor version upgrade disabled"
   description   = "Enable auto minor version upgrade on an RDS DB instance with auto minor version upgrade disabled."
-  // // documentation = file("./rds/docs/correct_one_rds_db_instance_with_auto_minor_version_upgrade_disabled.md")
+  
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "title" {

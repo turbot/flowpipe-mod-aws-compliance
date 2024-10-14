@@ -41,7 +41,7 @@ variable "security_hub_disabled_in_regions_enabled_actions" {
 trigger "query" "detect_and_correct_security_hub_disabled_in_regions" {
   title       = "Detect & correct Security Hub disabled in regions"
   description = "Detect regions with Security Hub disabled and then skip or enable Security Hub."
-  // // documentation = file("./securityhub/docs/detect_and_correct_security_hub_disabled_in_regions_trigger.md")
+  
   // tags          = merge(local.securityhub_common_tags, { class = "unused" })
 
   enabled  = var.security_hub_disabled_in_regions_trigger_enabled
@@ -60,8 +60,8 @@ trigger "query" "detect_and_correct_security_hub_disabled_in_regions" {
 pipeline "detect_and_correct_security_hub_disabled_in_regions" {
   title       = "Detect & correct Security Hub disabled in regions"
   description = "Detect regions with Security Hub disabled and then skip or enable Security Hub."
-  // // documentation = file("./securityhub/docs/detect_and_correct_security_hub_disabled_in_regions.md")
-  // tags          = merge(local.securityhub_common_tags, { class = "unused", type = "recommended" })
+  
+  // tags          = merge(local.securityhub_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
     type        = string
@@ -120,7 +120,7 @@ pipeline "detect_and_correct_security_hub_disabled_in_regions" {
 pipeline "correct_security_hub_disabled_in_regions" {
   title       = "Correct regions with Security Hub disabled"
   description = "Enable Security Hub in regions with Security Hub disabled."
-  // // documentation = file("./securityhub/docs/correct_security_hub_disabled_in_regions_.md")
+  
   // tags          = merge(local.securityhub_common_tags, { class = "unused" })
 
   param "items" {
@@ -187,7 +187,7 @@ pipeline "correct_security_hub_disabled_in_regions" {
 pipeline "correct_one_region_with_security_hub_disabled" {
   title       = "Correct one region with Security Hub disabled"
   description = "Enable Security Hub in a single region with Security Hub disabled."
-  // // documentation = file("./securityhub/docs/correct_one_region_with_security_hub_disabled_.md")
+  
   // tags          = merge(local.securityhub_common_tags, { class = "unused" })
 
   param "title" {

@@ -54,7 +54,7 @@ variable "config_disabled_in_regions_enabled_actions" {
 trigger "query" "detect_and_correct_config_disabled_in_regions" {
   title       = "Detect & correct Config disabled in regions"
   description = "Detect Config disabled in regions."
-  // documentation = file("./config/docs/detect_and_correct_config_disabled_in_regions_trigger.md")
+  
 
   enabled  = var.config_disabled_in_regions_trigger_enabled
   schedule = var.config_disabled_in_regions_trigger_schedule
@@ -67,19 +67,12 @@ trigger "query" "detect_and_correct_config_disabled_in_regions" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_config_disabled_in_regions
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_config_disabled_in_regions" {
   title       = "Detect & correct Config disabled in regions"
   description = "Detect Config disabled in regions."
-  // documentation = file("./config/docs/detect_and_correct_config_disabled_in_regions.md")
+  
 
   param "database" {
     type        = string
@@ -138,7 +131,7 @@ pipeline "detect_and_correct_config_disabled_in_regions" {
 pipeline "correct_config_disabled_in_regions" {
   title       = "Correct Config disabled in regions"
   description = "Detect Config disabled in regions."
-  // documentation = file("./config/docs/correct_config_disabled_in_regions.md")
+  
 
   param "items" {
     type = list(object({

@@ -41,31 +41,46 @@ variable "vpc_security_groups_allowing_ingress_to_port_22_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_security_groups_allowing_ingress_to_port_22_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_security_groups_allowing_ingress_to_port_22_default_action" {
   type        = string
   default     = "notify"
   description = "The default action to use when there are no approvers."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_security_groups_allowing_ingress_to_port_22_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "revoke_security_group_rule"]
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
   title         = "Detect & correct VPC Security groups allowing ingress to port 22"
   description   = "Detect security groups that allow ingress to port 22 and then skip or revoke the security group rule."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22_trigger.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
+  tags          = local.vpc_common_tags
 
   enabled  = var.vpc_security_groups_allowing_ingress_to_port_22_trigger_enabled
   schedule = var.vpc_security_groups_allowing_ingress_to_port_22_trigger_schedule
@@ -83,7 +98,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
   title         = "Detect & correct VPC security groups allowing ingress to port 22"
   description   = "Detect security groups that allow ingress to port 22 and then skip or revoke the security group rule."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22.md")
+  tags          = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -142,7 +157,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
 pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
   title         = "Correct VPC security groups allowing ingress to port 22"
   description   = "Revoke security group rules to restrict access to port 22 from 0.0.0.0/0."
-  // // documentation = file("./vpc/docs/correct_vpc_security_groups_allowing_ingress_to_port_22.md")
+  tags          = merge(local.vpc_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -213,8 +228,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
 pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
   title         = "Correct one VPC Security group allowing ingress to port 22"
   description   = "Revoke a VPC security group rule allowing ingress to port 22 from 0.0.0.0/0."
-  // // documentation = file("./vpc/docs/correct_one_vpc_security_group_allowing_ingress_to_port_22.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
+  tags          = merge(local.vpc_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

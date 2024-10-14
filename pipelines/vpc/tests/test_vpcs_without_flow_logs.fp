@@ -1,6 +1,9 @@
 pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
   title       = "Test Detect and Correct VPCs without Flow logs"
   description = "Test the  Revoke security group rule action for VPC Security Group rules Allowing Ingress to remote server administrator ports."
+  tags = {
+    type = "test"
+  }
 
   param "region" {
     type        = string

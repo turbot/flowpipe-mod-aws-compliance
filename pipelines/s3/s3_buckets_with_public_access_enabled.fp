@@ -21,18 +21,30 @@ variable "s3_bucket_public_access_enabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/S3"
+  }
 }
 
 variable "s3_bucket_public_access_enabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/S3"
+  }
 }
 
 variable "s3_bucket_public_access_enabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/S3"
+  }
 }
 
 variable "s3_bucket_public_access_enabled_enabled_actions" {
@@ -44,8 +56,7 @@ variable "s3_bucket_public_access_enabled_enabled_actions" {
 trigger "query" "detect_and_correct_s3_buckets_with_public_access_enabled" {
   title       = "Detect & correct S3 Buckets With Public Access Enabled"
   description = "Detect S3 buckets with public access enabled and then skip or block public access."
-  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_public_access_enabled_trigger.md")
-  // tags          = merge(local.s3_common_tags, { class = "unused" })
+  tags        = local.s3_common_tags
 
   enabled  = var.s3_bucket_public_access_enabled_trigger_enabled
   schedule = var.s3_bucket_public_access_enabled_trigger_schedule
@@ -63,7 +74,7 @@ trigger "query" "detect_and_correct_s3_buckets_with_public_access_enabled" {
 pipeline "detect_and_correct_s3_buckets_with_public_access_enabled" {
   title       = "Detect & correct S3 Buckets With Public Access Enabled"
   description = "Detect S3 buckets with public access enabled and then skip or block public access."
-  // // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_public_access_enabled.md")
+  tags = merge(local.s3_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -122,8 +133,7 @@ pipeline "detect_and_correct_s3_buckets_with_public_access_enabled" {
 pipeline "correct_s3_buckets_with_public_access_enabled" {
   title       = "Correct S3 Buckets With Public Access Enabled"
   description = "Executes corrective actions on publicly accessible S3 buckets."
-  // // documentation = file("./s3/docs/correct_s3_buckets_with_public_access_enabled.md")
-  // tags          = merge(local.s3_common_tags, { class = "unused" })
+  tags        = merge(local.s3_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -191,8 +201,7 @@ pipeline "correct_s3_buckets_with_public_access_enabled" {
 pipeline "correct_one_s3_bucket_if_publicly_accessible" {
   title       = "Correct One S3 Bucket With Public Access Enabled"
   description = "Runs corrective action on a single S3 bucket with public access enabled."
-  // // documentation = file("./s3/docs/correct_one_s3_bucket_if_publicly_accessible.md")
-  // tags          = merge(local.s3_common_tags, { class = "unused" })
+  tags        = merge(local.s3_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

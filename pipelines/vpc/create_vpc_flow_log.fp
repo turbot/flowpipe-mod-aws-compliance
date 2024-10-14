@@ -16,6 +16,10 @@ variable "vpc_flow_log_role_policy" {
       ]
     }
   EOF
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_flow_log_iam_policy" {
@@ -41,29 +45,43 @@ variable "vpc_flow_log_iam_policy" {
       ]
     }
   EOF
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "aws_vpc_flow_log_role_name" {
   type        = string
   description = "IAM role for AWS VPC Flow Log"
   default     = "FlowpipeRemediateEnableVPCFlowLogIAMRole"
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "aws_vpc_flow_log_iam_policy_name" {
   type        = string
   description = "IAM policy for AWS VPC Flow Log"
   default     = "FlowpipeRemediateEnableVPCFlowLogIAMPolicy"
+  tags = {
+    folder = "Advanced/VPC"
+  }  
 }
 
 variable "aws_cloudwatch_log_group_name" {
   type        = string
   description = "Cloud Watch Log name"
   default     = "FlowpipeRemediateEnableVPCFlowLogCloudWatchLogGroup"
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 pipeline "create_iam_role_and_policy" {
   title = "Create IAM role and policy"
   description = "Create IAM role and policy."
+  tags        = merge(local.vpc_common_tags, { type = "internal" })
 
   param "cred" {
     type        = string
@@ -134,6 +152,7 @@ pipeline "create_iam_role_and_policy" {
 pipeline "create_cloudwatch_log_group" {
   title = "Create Cloud Watch Log Group"
   description = "Create Cloud Watch log group."
+  tags        = merge(local.vpc_common_tags, { type = "internal" })
 
   param "region" {
     type        = string
@@ -171,6 +190,7 @@ pipeline "create_cloudwatch_log_group" {
 pipeline "create_vpc_flowlog" {
   title = "Create VPC Flow Log"
   description = "Create VPC flow log."
+  tags        = merge(local.vpc_common_tags, { type = "internal" })
 
   param "region" {
     type  = string

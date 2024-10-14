@@ -39,7 +39,7 @@ variable "efs_file_systems_with_encryption_at_rest_disabled_enabled_actions" {
 trigger "query" "detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled" {
   title       = "Detect & correct EFS file systems with encryption at rest disabled"
   description = "Detect EFS file systems with encryption at rest disabled."
-  // documentation = file("./efs/docs/detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled_trigger.md")
+  
 
   enabled  = var.efs_file_systems_with_encryption_at_rest_disabled_trigger_enabled
   schedule = var.efs_file_systems_with_encryption_at_rest_disabled_trigger_schedule
@@ -52,19 +52,12 @@ trigger "query" "detect_and_correct_efs_file_systems_with_encryption_at_rest_dis
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_efs_file_systems_with_encryption_at_rest_disabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled" {
   title       = "Detect & correct EFS file systems with encryption at rest disabled"
   description = "Detect EFS file systems with encryption at rest disabled."
-  // documentation = file("./efs/docs/detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled.md")
+  
 
   param "database" {
     type        = string
@@ -123,7 +116,7 @@ pipeline "detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled" 
 pipeline "correct_efs_file_systems_with_encryption_at_rest_disabled" {
   title       = "Correct EFS file systems with encryption at rest disabled"
   description = "Detect EFS file systems with encryption at rest disabled."
-  // documentation = file("./efs/docs/correct_efs_file_systems_with_encryption_at_rest_disabled.md")
+  
 
   param "items" {
     type = list(object({

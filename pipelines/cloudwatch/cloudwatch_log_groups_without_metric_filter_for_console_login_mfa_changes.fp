@@ -278,7 +278,7 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes" {
   title       = "Detect & correct CloudWatch log groups without metric filter for console login MFA changes"
   description = "Detect CloudWatch log groups without metric filter for console login MFA changes and then enable console login MFA changes metric filter."
-  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
 
   param "region" {
     type        = string

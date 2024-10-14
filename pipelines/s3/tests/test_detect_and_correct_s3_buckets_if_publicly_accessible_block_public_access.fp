@@ -1,6 +1,9 @@
 pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_block_public_access" {
   title       = "Test Detect and Correct S3 Buckets if Publicly Accessible - Block Public Access"
   description = "Test the block public access action for publicly accessible S3 buckets."
+  tags = {
+    type = "test"
+  }
 
   param "cred" {
     type        = string

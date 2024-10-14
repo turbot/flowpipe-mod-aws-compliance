@@ -58,13 +58,6 @@ variable "rds_db_instances_with_encryption_at_rest_disabled_enabled_actions" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_rds_db_instances_with_encryption_at_rest_disabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {

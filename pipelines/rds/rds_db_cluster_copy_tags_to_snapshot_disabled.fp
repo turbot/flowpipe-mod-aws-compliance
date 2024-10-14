@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_rds_db_cluster_if_copy_tags_to_snapshot_disa
 pipeline "detect_and_correct_rds_db_cluster_if_copy_tags_to_snapshot_disabled" {
   title         = "Detect & correct RDS DB clusters if copy tags to snapshot disabled"
   description   = "Detects RDS DB clusters if copy tags to snapshot disabled and runs your chosen action."
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
+  tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
     type        = string

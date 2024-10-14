@@ -83,7 +83,7 @@ variable "cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabl
 trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 object level logging for write events disabled"
   description = "Detect CloudTrail trails where S3 object level logging for write events is disabled, and then either skip or enable the logging of S3 object write events."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trigger.md")
+  
   tags = local.cloudtrail_common_tags
 
   enabled  = var.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled_trigger_enabled
@@ -97,19 +97,12 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_level_loggi
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 object level logging for write events disabled"
   description = "Detect CloudTrail trails where S3 object level logging for write events is disabled, and then either skip or enable the logging of S3 object write events."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.md")
+  
   tags = local.cloudtrail_common_tags
 
   param "database" {
@@ -190,7 +183,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_
 pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled" {
   title       = "Correct CloudTrail trails with S3 object write events audit disabled"
   description = "Runs corrective action on a collection of CloudTrail trails that do not have S3 Object-level logging for write events."
-  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.md")
+  
   tags = merge(local.cloudtrail_common_tags, { class = "internal" })
 
   param "items" {
@@ -281,7 +274,7 @@ pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_write_event
 pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_write_events_disabled" {
   title       = "Correct one CloudTrail trail with S3 object level logging for write events disabled"
   description = "Runs corrective action on a CloudTrail trail with S3 object level logging for write events disabled."
-  // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_s3_object_write_events_audit_disabled.md")
+  
   tags = merge(local.cloudtrail_common_tags, { class = "internal" })
 
   param "title" {

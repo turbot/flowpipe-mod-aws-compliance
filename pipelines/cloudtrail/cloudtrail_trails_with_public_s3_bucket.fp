@@ -67,7 +67,7 @@ variable "cloudtrail_trails_with_public_s3_bucket_enabled_actions" {
 trigger "query" "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
   title       = "Detect & correct CloudTrail trails using public S3 bucket"
   description = "Detect CloudTrail trails with public S3 buckets and then skip or update S3 bucket public access block."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_public_s3_bucket_trigger.md")
+  
   tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   enabled  = var.cloudtrail_trails_with_public_s3_bucket_trigger_enabled
@@ -81,20 +81,13 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_cloudtrail_trails_with_public_s3_bucket
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
   title       = "Detect & correct CloudTrail trails with public S3 bucket access"
   description = "Detect CloudTrail trails with public S3 bucket and then skip or update S3 bucket public access block."
-  // documentation = file("./cloudtrail/docs/detect_and_correct_cloudtrail_trails_with_public_s3_bucket.md")
-  tags = merge(local.cloudtrail_common_tags, { class = "unused", type = "recommended" })
+  
+  tags = merge(local.cloudtrail_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
     type        = string
@@ -153,7 +146,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_public_s3_bucket" {
 pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
   title       = "Correct CloudTrail trails with public S3 bucket access"
   description = "Runs corrective action on a collection of CloudTrail trails with public S3 buckets."
-  // documentation = file("./cloudtrail/docs/correct_cloudtrail_trails_with_public_s3_bucket.md")
+  
   tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "items" {
@@ -226,7 +219,7 @@ pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
 pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
   title       = "Correct one CloudTrail trail with public S3 bucket access"
   description = "Runs corrective action on a CloudTrail trail with a public S3 bucket."
-  // documentation = file("./cloudtrail/docs/correct_one_cloudtrail_trail_with_public_s3_bucket.md")
+  
   tags = merge(local.cloudtrail_common_tags, { class = "unused" })
 
   param "title" {

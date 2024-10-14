@@ -39,7 +39,7 @@ variable "default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions" {
 trigger "query" "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions" {
   title         = "Detect & correct default EBS encryption at rest disabled in regions"
   description   = "Detect regions with default encryption at rest disabled and then skip or enable encryption."
-  // // documentation = file("./ebs/docs/detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions_trigger.md")
+  
   tags          = merge(local.ebs_common_tags, { class = "security" })
 
   enabled  = var.default_ebs_encryption_at_rest_disabled_in_regions_trigger_enabled
@@ -53,20 +53,13 @@ trigger "query" "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_r
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_default_ebs_encryption_at_rest_disabled_in_regions
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions" {
   title         = "Detect & correct default EBS encryption at rest disabled in regions"
   description   = "Detect regions with default encryption at rest disabled and then skip or enable encryption."
-  // // documentation = file("./ebs/docs/detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions.md")
-  tags          = merge(local.ebs_common_tags, { class = "security", type = "recommended" })
+  
+  tags          = merge(local.ebs_common_tags, { class = "security", recommended = "true" })
 
   param "database" {
     type        = string
@@ -125,7 +118,7 @@ pipeline "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions"
 pipeline "correct_default_ebs_encryption_at_rest_disabled_in_regions" {
   title         = "Correct default EBS encryption at rest disabled in regions"
   description   = "Enable EBS default encryption at rest in regions with default encryption at rest disabled."
-  // // documentation = file("./ebs/docs/correct_default_ebs_encryption_at_rest_disabled_in_regions.md")
+  
   tags          = merge(local.ebs_common_tags, { class = "security" })
 
   param "items" {
@@ -193,7 +186,7 @@ pipeline "correct_default_ebs_encryption_at_rest_disabled_in_regions" {
 pipeline "correct_one_ebs_region_with_default_encryption_at_rest_disabled" {
   title         = "Correct one EBS region with default encryption at rest disabled"
   description   = "Enable default encryption at rest on a single EBS region with default encryption at rest disabled."
-  // // documentation = file("./ebs/docs/correct_one_ebs_region_with_default_encryption_at_rest_disabled.md")
+  
   tags          = merge(local.ebs_common_tags, { class = "security" })
 
   param "title" {

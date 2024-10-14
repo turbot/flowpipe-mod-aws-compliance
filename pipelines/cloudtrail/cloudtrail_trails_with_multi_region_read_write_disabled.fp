@@ -126,7 +126,7 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_multi_region_read_wri
 pipeline "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disabled" {
   title       = "Detect & correct CloudTrail trails with multi-region read/write disabled"
   description = "Detect CloudTrail trails with multi-region read/write disabled and then enable multi-region read/write."
-  tags        = merge(local.cloudtrail_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudtrail_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string

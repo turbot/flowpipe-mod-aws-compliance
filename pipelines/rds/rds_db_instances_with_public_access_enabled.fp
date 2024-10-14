@@ -39,7 +39,7 @@ variable "rds_db_instances_with_public_access_enabled_enabled_actions" {
 trigger "query" "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title         = "Detect & correct RDS DB instances with public access enabled"
   description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_public_access_enabled_trigger.md")
+  
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   enabled  = var.rds_db_instances_with_public_access_enabled_trigger_enabled
@@ -53,20 +53,13 @@ trigger "query" "detect_and_correct_rds_db_instances_with_public_access_enabled"
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_rds_db_instances_with_public_access_enabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title         = "Detect & correct RDS DB instances with public access enabled"
   description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_public_access_enabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
+  
+  tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
     type        = string
@@ -125,7 +118,7 @@ pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
 pipeline "correct_rds_db_instances_with_public_access_enabled" {
   title         = "Correct RDS DB instances with public access enabled"
   description   = "Disable public access on a collection of RDS DB instances with public access enabled."
-  // // documentation = file("./rds/docs/correct_rds_db_instances_with_public_access_enabled.md")
+  
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "items" {
@@ -197,7 +190,7 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
 pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
   title         = "Correct one RDS DB instance with public access enabled"
   description   = "Disable public access on an RDS DB instance with public access enabled."
-  // // documentation = file("./rds/docs/correct_one_rds_db_instance_with_public_access_enabled.md")
+  
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "title" {
