@@ -4,7 +4,7 @@ mod "aws_compliance" {
   color         = "#FF9900"
   documentation = file("./README.md")
   icon          = "/images/mods/turbot/aws-compliance.svg"
-  categories    = ["aws", "compliance", "public cloud"]
+  categories    = ["aws", "compliance", "public cloud", "standard"]
 
   opengraph {
     title       = "AWS Compliance Mod for Flowpipe"
