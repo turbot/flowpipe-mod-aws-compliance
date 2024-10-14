@@ -1,7 +1,10 @@
 pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
   title       = "Test detect and correct RDS DB instances with auto minor version upgrade disabled"
   description = "Test the enable auto minor version upgrade action for RDS DB instances with auto minor version upgrade disabled."
-
+  tags = {
+    type = "test"
+  }
+  
   param "region" {
     type        = string
     description = "The AWS region where the VPC will be created."

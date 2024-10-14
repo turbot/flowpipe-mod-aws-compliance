@@ -1,7 +1,10 @@
 pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title       = "Test detect and correct RDS DB instances with public access enabled"
   description = "Test the disable public access action for RDS DB instances with public access enabled."
-
+  tags = {
+    type = "test"
+  }
+  
   param "region" {
     type        = string
     description = "The AWS region where the VPC will be created."
