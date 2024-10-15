@@ -25,30 +25,46 @@ variable "s3_buckets_with_macie_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/S3"
+  }
 }
 
 variable "s3_buckets_with_macie_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/S3"
+  }
 }
 
 variable "s3_buckets_with_macie_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/S3"
+  }
 }
 
 variable "s3_buckets_with_macie_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["notify"]
+
+  tags = {
+    folder = "Advanced/S3"
+  }
 }
 
 trigger "query" "detect_and_correct_s3_buckets_with_macie_disabled" {
   title       = "Detect & correct S3 buckets with Macie disabled"
   description = "Detect S3 buckets with Macie disabled."
-  // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_macie_disabled_trigger.md")
+  tags        = local.s3_common_tags
 
   enabled  = var.s3_buckets_with_macie_disabled_trigger_enabled
   schedule = var.s3_buckets_with_macie_disabled_trigger_schedule
@@ -61,19 +77,12 @@ trigger "query" "detect_and_correct_s3_buckets_with_macie_disabled" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_s3_buckets_with_macie_disabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_s3_buckets_with_macie_disabled" {
   title       = "Detect & correct S3 buckets with Macie disabled"
   description = "Detect S3 buckets with Macie disabled."
-  // documentation = file("./s3/docs/detect_and_correct_s3_buckets_with_macie_disabled.md")
+  tags        = merge(local.s3_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -132,7 +141,7 @@ pipeline "detect_and_correct_s3_buckets_with_macie_disabled" {
 pipeline "correct_s3_buckets_with_macie_disabled" {
   title       = "Correct S3 buckets with Macie disabled"
   description = "Detect S3 buckets with Macie disabled."
-  // documentation = file("./s3/docs/correct_s3_buckets_with_macie_disabled.md")
+  tags        = merge(local.s3_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({

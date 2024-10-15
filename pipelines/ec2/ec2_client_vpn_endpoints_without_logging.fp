@@ -16,7 +16,7 @@
 // trigger "query" "detect_and_correct_ec2_client_vpn_endpoints_without_logging" {
 //   title         = "Detect & correct EC2 Client VPN endpoints without client connection logging"
 //   description   = "Detects EC2 Client VPN endpoints without connection logging enabled and executes the chosen action."
-//   // documentation = file("./ec2/docs/detect_and_correct_ec2_client_vpn_endpoints_without_logging_trigger.md")
+
 //   tags          = merge(local.vpn_common_tags, { class = "compliance" })
 
 //   enabled  = var.ec2_client_vpn_endpoints_without_logging_trigger_enabled
@@ -35,8 +35,8 @@
 // pipeline "detect_and_correct_ec2_client_vpn_endpoints_without_logging" {
 //   title         = "Detect & correct EC2 Client VPN endpoints without client connection logging"
 //   description   = "Detects EC2 Client VPN endpoints without connection logging enabled and performs the chosen action."
-//   // documentation = file("./ec2/docs/detect_and_correct_ec2_client_vpn_endpoints_without_logging.md")
-//   tags          = merge(local.vpn_common_tags, { class = "compliance", type = "recommended" })
+
+//   tags          = merge(local.vpn_common_tags, { class = "compliance", recommended = "true" })
 
 //   param "database" {
 //     type        = string
@@ -95,7 +95,7 @@
 // pipeline "correct_ec2_client_vpn_endpoints_without_logging" {
 //   title         = "Correct EC2 Client VPN endpoints without client connection logging"
 //   description   = "Executes corrective actions on EC2 Client VPN endpoints to enable connection logging."
-//   // documentation = file("./ec2/docs/correct_ec2_client_vpn_endpoints_without_logging.md")
+
 //   tags          = merge(local.vpn_common_tags, { class = "compliance" })
 
 //   param "items" {
@@ -170,7 +170,7 @@
 // pipeline "correct_one_ec2_client_vpn_endpoint_without_logging" {
 //   title         = "Correct one EC2 Client VPN endpoint without client connection logging"
 //   description   = "Runs corrective action to enable logging on a EC2 Client VPN endpoint."
-//   // documentation = file("./ec2/docs/correct_one_ec2_client_vpn_endpoint_without_logging.md")
+
 //   tags          = merge(local.vpn_common_tags, { class = "compliance" })
 
 //   param "title" {

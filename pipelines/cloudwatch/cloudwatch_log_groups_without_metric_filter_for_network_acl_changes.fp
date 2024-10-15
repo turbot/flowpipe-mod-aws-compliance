@@ -277,7 +277,7 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_acl_changes" {
   title       = "Detect & correct CloudWatch log groups  without metric filter for network ACL changes"
   description = "Detect CloudWatch log groups without metric filter for Network ACL changes and then enable network ACL changes metric filter."
-  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string

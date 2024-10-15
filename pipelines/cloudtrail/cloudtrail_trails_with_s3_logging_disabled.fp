@@ -87,7 +87,7 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" 
 pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 logging disabled"
   description = "Detect CloudTrail trails with S3 logging disabled and then enable S3 logging."
-  tags        = merge(local.cloudtrail_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudtrail_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string

@@ -16,31 +16,46 @@ variable "ebs_snapshots_when_publicly_restorable_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/EBS"
+  }
 }
 
 variable "ebs_snapshots_when_publicly_restorable_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/EBS"
+  }
 }
 
 variable "ebs_snapshots_when_publicly_restorable_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/EBS"
+  }
 }
 
 variable "ebs_snapshots_when_publicly_restorable_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "update_snapshot_permision_to_private", "delete_snapshot"]
+
+  tags = {
+    folder = "Advanced/EBS"
+  }
 }
 
 trigger "query" "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
   title         = "Detect & correct EBS snapshots when publicly restorable"
   description   = "Detect EBS snapshots that are publicly restorable and then skip or update snapshot permission to private or delete the snapshot."
-  // documentation = file("./ebs/docs/detect_and_correct_ebs_snapshots_when_publicly_restorable_trigger.md")
-  tags          = merge(local.ebs_common_tags, { class = "unused" })
+  tags        = local.ebs_common_tags
 
   enabled  = var.ebs_snapshots_when_publicly_restorable_trigger_enabled
   schedule = var.ebs_snapshots_when_publicly_restorable_trigger_schedule
@@ -58,8 +73,7 @@ trigger "query" "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
 pipeline "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
   title         = "Detect & correct EBS snapshots when publicly restorable"
   description   = "Detect EBS snapshots that are publicly restorable and then skip or update snapshot permission to private or delete the snapshot."
-  // documentation = file("./ebs/docs/detect_and_correct_ebs_snapshots_when_publicly_restorable.md")
-  tags          = merge(local.ebs_common_tags, { class = "unused", type = "recommended" })
+  tags          = merge(local.ebs_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -118,8 +132,7 @@ pipeline "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
 pipeline "correct_ebs_snapshots_when_publicly_restorable" {
   title         = "Correct EBS snapshots when publicly restorable"
   description   = "Update snapshot permission to private or delete the snapshot on a collection of EBS snapshots that are publicly restorable."
-  // documentation = file("./ebs/docs/correct_ebs_snapshots_when_publicly_restorable.md")
-  tags          = merge(local.ebs_common_tags, { class = "unused" })
+  tags          = merge(local.ebs_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -188,8 +201,8 @@ pipeline "correct_ebs_snapshots_when_publicly_restorable" {
 pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
   title         = "Correct one EBS snapshot when publicly restorable"
   description   = "Runs corrective action on an EBS snapshot if it is publicly restorable."
-  // documentation = file("./ebs/docs/correct_one_ebs_snapshot_when_publicly_restorable.md")
-
+  tags          = merge(local.ebs_common_tags, { type = "internal" })
+  
   param "title" {
     type        = string
     description = local.description_title

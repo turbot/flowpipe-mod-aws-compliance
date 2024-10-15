@@ -1,6 +1,9 @@
 pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports" {
   title       = "Test Detect & correct VPC network ACLs allowing ingress to remote server administration ports - Delete network ACL entry"
   description = "Test the Delete network ACL entry action for VPC network ACLs allowing ingress to remote server administration ports."
+  tags = {
+    type = "test"
+  }
 
   param "region" {
     type        = string

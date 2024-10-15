@@ -1,6 +1,9 @@
 pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_egress_revoke_security_group_rule" {
   title       = "Test Detect and Correct VPC Default Security Group Allowing Ingress Egress - Revoke security group rule"
   description = "Test the  Revoke security group rule action for VPC Default Security Group Allowing Ingress Egress."
+  tags = {
+    type = "test"
+  }
 
   param "cred" {
     type        = string

@@ -67,30 +67,46 @@ variable "vpc_network_acls_allowing_ingress_to_remote_server_administration_port
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_default_action" {
   type        = string
   default     = "notify"
   description = "The default action to use when there are no approvers."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_network_acl_entry"]
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 trigger "query" "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports" {
   title         = "Detect & correct VPC network ACLs allowing ingress to remote server administration ports"
   description   = "Detect VPC network ACL rules that allow ingress from 0.0.0.0/0 to remote server administration ports and then skip or delete network ACL entry."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_trigger.md")
+  tags          = local.vpc_common_tags
 
   enabled  = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_trigger_enabled
   schedule = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_trigger_schedule
@@ -108,7 +124,7 @@ trigger "query" "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_
 pipeline "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports" {
   title         = "Detect & correct VPC network ACLs allowing ingress to remote server administration ports"
   description   = "Detect VPC network ACL rules that allow ingress from 0.0.0.0/0 to remote server administration ports and then skip or delete network ACL entry."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports.md")
+  tags          = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -167,7 +183,7 @@ pipeline "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_
 pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports" {
   title         = "Correct VPC network ACLs allowing ingress to remote server administration ports"
   description   = "Delete network ACL entries allowing ingress to restrict access to remote server administration ports."
-  // // documentation = file("./vpc/docs/correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports.md")
+  tags          = merge(local.vpc_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -238,7 +254,7 @@ pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administrat
 pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administration_ports" {
   title         = "Correct one VPC network ACL allowing ingress to remote server administration ports"
   description   = "Delete a network ACL entry allowing ingress to restrict access to remote server administration ports."
-  // // documentation = file("./vpc/docs/correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administration_ports.md")
+  tags          = merge(local.vpc_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

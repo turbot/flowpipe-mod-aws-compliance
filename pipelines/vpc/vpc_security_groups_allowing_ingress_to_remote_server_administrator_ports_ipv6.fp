@@ -56,31 +56,46 @@ variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_p
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6_default_action" {
   type        = string
   default     = "notify"
   description = "The default action to use when there are no approvers."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "revoke_security_group_rule"]
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6" {
   title         = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv6"
   description   = "Detect VPC security group rules allowing ingress from 0.0.0.0/0 to remote server administration ports IPv6 and then skip or revoke the security group rules."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6_trigger.md")
-  tags          = merge(local.vpc_common_tags, { class = "security" })
+  tags          = local.vpc_common_tags
 
   enabled  = var.vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6_trigger_enabled
   schedule = var.vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6_trigger_schedule
@@ -98,7 +113,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remo
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6" {
   title         = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv6"
   description   = "Detect VPC security group rules allowing ingress from 0.0.0.0/0 to remote server administration ports IPv6 and then skip or revoke the security group rules."
-  // // documentation = file("./vpc/docs/detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6.md")
+  tags          = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -157,7 +172,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_serv
 pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6" {
   title         = "Correct VPC Security groups allowing ingress to remote server administration ports IPv6"
   description   = "Revoke security group rules allowing ingress to remote server administration ports IPv6."
-  // // documentation = file("./vpc/docs/correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6.md")
+  tags          = merge(local.vpc_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -228,7 +243,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
 pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports_ipv6" {
   title         = "Correct one VPC Security group allowing ingress to remote server administration ports IPv6"
   description   = "Revoke VPC Security group rule allowing ingress to remote server administration ports IPv6."
-  // // documentation = file("./vpc/docs/correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports_ipv6.md")
+  tags          = merge(local.vpc_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

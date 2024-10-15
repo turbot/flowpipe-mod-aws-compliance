@@ -277,7 +277,7 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk" {
   title       = "Detect & correct CloudWatch log groups without metric filter for disable or delete CMK "
   description = "Detect CloudWatch log groups without metric filter for disable or delete CMK and then enable disable or delete CMK metric filter."
-  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
 
   param "region" {
     type        = string

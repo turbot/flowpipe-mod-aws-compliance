@@ -1,6 +1,9 @@
 pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administrator_ports" {
   title       = "Test Detect and Correct VPC Security Group Allowing Ingress to remote server administrator ports"
   description = "Test the  Revoke security group rule action for VPC Security Group rules Allowing Ingress to remote server administrator ports."
+  tags = {
+    type = "test"
+  }
 
   param "region" {
     type        = string

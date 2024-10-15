@@ -16,7 +16,7 @@ locals {
 trigger "query" "detect_and_correct_rds_db_instance_if_iam_authentication_disabled" {
   title         = "Detect & correct RDS DB instances if IAM authentication disabled"
   description   = "Detects RDS DB instances if IAM authentication is disabled and runs your chosen action."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_iam_authentication_disabled_trigger.md")
+  
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   enabled  = var.rds_db_instance_if_iam_authentication_disabled_trigger_enabled
@@ -35,8 +35,8 @@ trigger "query" "detect_and_correct_rds_db_instance_if_iam_authentication_disabl
 pipeline "detect_and_correct_rds_db_instance_if_iam_authentication_disabled" {
   title         = "Detect & correct RDS DB instances if IAM authentication disabled"
   description   = "Detects RDS DB instances if IAM authentication is disabled and runs your chosen action."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instance_if_iam_authentication_disabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
+  
+  tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
     type        = string
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_rds_db_instance_if_iam_authentication_disabled" {
 pipeline "correct_rds_db_instance_if_iam_authentication_disabled" {
   title         = "Correct RDS DB instance if IAM authentication disabled"
   description   = "Runs corrective action on a collection of RDS DB instance if IAM authentication is disabled."
-  // // documentation = file("./rds/docs/correct_rds_db_instance_if_iam_authentication_disabled.md")
+  
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "items" {
@@ -171,7 +171,7 @@ pipeline "correct_rds_db_instance_if_iam_authentication_disabled" {
 pipeline "correct_one_rds_db_instance_if_iam_authentication_disabled" {
   title         = "Correct one RDS DB instance if IAM authentication is disabled"
   description   = "Runs corrective action on an RDS DB instance if IAM authentication is disabled."
-  // // documentation = file("./rds/docs/correct_one_rds_db_instance_if_iam_authentication_disabled.md")
+  
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "title" {

@@ -1,7 +1,10 @@
 pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_skip" {
   title       = "Test Detect and Correct S3 Buckets if Publicly Accessible - Skip"
   description = "Test the skip action for publicly accessible S3 buckets."
-
+  tags = {
+    type = "test"
+  }
+  
   param "cred" {
     type        = string
     description = local.description_credential

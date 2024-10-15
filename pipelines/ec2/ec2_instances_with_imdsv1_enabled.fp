@@ -39,7 +39,7 @@ variable "ec2_instances_with_imdsv1_enabled_enabled_actions" {
 trigger "query" "detect_and_correct_ec2_instances_with_imdsv1_enabled" {
   title         = "Detect & correct EC2 instances with IMDSv1 enabled"
   description   = "Detect EC2 instances and disable IMDSv1."
-  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_imdsv1_enabled_trigger.md")
+  
   tags          = local.ec2_common_tags
 
   enabled  = var.ec2_instances_with_imdsv1_enabled_trigger_enabled
@@ -53,19 +53,12 @@ trigger "query" "detect_and_correct_ec2_instances_with_imdsv1_enabled" {
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_ec2_instances_with_imdsv1_enabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_ec2_instances_with_imdsv1_enabled" {
   title         = "Detect & correct EC2 instances with IMDSv1 enabled"
   description   = "Detect EC2 instances and disable IMDSv1."
-  // documentation = file("./ec2/docs/detect_and_correct_ec2_instances_with_imdsv1_enabled.md")
+  
 
   param "database" {
     type        = string
@@ -124,7 +117,7 @@ pipeline "detect_and_correct_ec2_instances_with_imdsv1_enabled" {
 pipeline "correct_ec2_instances_with_imdsv1_enabled" {
   title         = "Correct EC2 instances with IMDSv1 enabled"
   description   = "Disable IMDSv1 for EC2 instances."
-  // documentation = file("./ec2/docs/correct_ec2_instances_with_imdsv1_enabled.md")
+  
   tags          = merge(local.ec2_common_tags, { type = "internal" })
 
   param "items" {
@@ -194,7 +187,7 @@ pipeline "correct_ec2_instances_with_imdsv1_enabled" {
 pipeline "correct_one_ec2_instance_with_imdsv1_enabled" {
   title         = "Correct one EC2 instance using IMDSv2"
   description   = "Disable IMDSv1 for an EC2 instance."
-  // documentation = file("./ec2/docs/correct_one_ec2_instance_with_imdsv1_enabled.md")
+  
   tags          = merge(local.ec2_common_tags, { type = "internal" })
 
   param "title" {

@@ -277,7 +277,7 @@ trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_
 pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes" {
   title       = "Detect & correct CloudWatch log groups without metric filter for bucket policy changes"
   description = "Detects CloudWatch log groups without metric filter for Bucket Policy changes and enable bucket policy changes metric filter."
-  tags        = merge(local.cloudwatch_common_tags, { type = "recommended" })
+  tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
 
   param "region" {
     type        = string

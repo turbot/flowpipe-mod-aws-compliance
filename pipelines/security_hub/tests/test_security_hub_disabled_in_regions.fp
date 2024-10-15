@@ -1,6 +1,9 @@
 pipeline "test_detect_and_correct_security_hub_disabled_in_regions" {
   title       = "Test detect and correct Security Hub disabled in regions"
   description = "Test the enable Security Hub action for regions that have security hub disabled."
+  tags = {
+    type = "test"
+  }
 
   param "region" {
     type        = string

@@ -16,31 +16,46 @@ variable "rds_db_instances_with_public_access_enabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/RDS"
+  }
 }
 
 variable "rds_db_instances_with_public_access_enabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/RDS"
+  }
 }
 
 variable "rds_db_instances_with_public_access_enabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+
+  tags = {
+    folder = "Advanced/RDS"
+  }
 }
 
 variable "rds_db_instances_with_public_access_enabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "disable_public_access"]
+
+  tags = {
+    folder = "Advanced/RDS"
+  }
 }
 
 trigger "query" "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title         = "Detect & correct RDS DB instances with public access enabled"
   description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_public_access_enabled_trigger.md")
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  tags          = local.rds_common_tags
 
   enabled  = var.rds_db_instances_with_public_access_enabled_trigger_enabled
   schedule = var.rds_db_instances_with_public_access_enabled_trigger_schedule
@@ -53,20 +68,12 @@ trigger "query" "detect_and_correct_rds_db_instances_with_public_access_enabled"
       items = self.inserted_rows
     }
   }
-
-  capture "update" {
-    pipeline = pipeline.correct_rds_db_instances_with_public_access_enabled
-    args = {
-      items = self.updated_rows
-    }
-  }
 }
 
 pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title         = "Detect & correct RDS DB instances with public access enabled"
   description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
-  // // documentation = file("./rds/docs/detect_and_correct_rds_db_instances_with_public_access_enabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused", type = "recommended" })
+  tags          = merge(local.rds_common_tags, { recommended = "true" })
 
   param "database" {
     type        = string
@@ -125,8 +132,7 @@ pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
 pipeline "correct_rds_db_instances_with_public_access_enabled" {
   title         = "Correct RDS DB instances with public access enabled"
   description   = "Disable public access on a collection of RDS DB instances with public access enabled."
-  // // documentation = file("./rds/docs/correct_rds_db_instances_with_public_access_enabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  tags          = merge(local.rds_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -197,8 +203,7 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
 pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
   title         = "Correct one RDS DB instance with public access enabled"
   description   = "Disable public access on an RDS DB instance with public access enabled."
-  // // documentation = file("./rds/docs/correct_one_rds_db_instance_with_public_access_enabled.md")
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  tags          = merge(local.rds_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
