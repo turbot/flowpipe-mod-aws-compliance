@@ -7,7 +7,7 @@ locals {
       r.password_last_changed,
       coalesce(((extract(day from now() - r.password_last_used))::text), 'Never Used') as password_last_used_in_days,
       (extract(day from now() - r.password_last_changed))::text as password_last_changed_in_days,
-      u._ctx ->> 'connection_name' as cred
+      u.sp_connection_name as conn
     from
       aws_iam_user as u
       left join aws_iam_credential_report as r on r.user_name = u.name and u.account_id = r.account_id
@@ -81,13 +81,13 @@ pipeline "detect_and_correct_iam_users_with_unused_login_profile_45_days" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -99,7 +99,7 @@ pipeline "detect_and_correct_iam_users_with_unused_login_profile_45_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -148,13 +148,13 @@ pipeline "correct_iam_users_with_unused_login_profile_45_days" {
       password_last_changed_in_days = string
       password_last_changed         = string
       account_id                    = string
-      cred                          = string
+      conn                          = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -166,7 +166,7 @@ pipeline "correct_iam_users_with_unused_login_profile_45_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -185,7 +185,7 @@ pipeline "correct_iam_users_with_unused_login_profile_45_days" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM user(s) login profile that have been unused for 45 days."
   }
 
@@ -200,7 +200,7 @@ pipeline "correct_iam_users_with_unused_login_profile_45_days" {
       password_last_changed         = each.value.password_last_changed
       password_last_used_in_days    = each.value.password_last_used_in_days
       password_last_changed_in_days = each.value.password_last_changed_in_days
-      cred                          = each.value.cred
+      conn                          = connection.aws[each.value.conn]
       notifier                      = param.notifier
       notification_level            = param.notification_level
       approvers                     = param.approvers
@@ -245,13 +245,13 @@ pipeline "correct_one_iam_user_with_unused_login_profile_45_days" {
     description = "The date when the IAM user's password was last changed."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -263,7 +263,7 @@ pipeline "correct_one_iam_user_with_unused_login_profile_45_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -318,7 +318,7 @@ pipeline "correct_one_iam_user_with_unused_login_profile_45_days" {
           pipeline_ref = pipeline.delete_user_login_profile
           pipeline_args = {
             user_name  = param.user_name
-            cred       = param.cred
+            conn       = param.conn
           }
           success_msg = "Deleted IAM user ${param.title} login profile."
           error_msg   = "Error deleting IAM user ${param.title} login profile."
@@ -332,10 +332,10 @@ pipeline "delete_user_login_profile" {
   title       = "Delete IAM user login profile"
   description = "Delete the IAM user's login profile."
 
-  param "cred" {
+  param "conn" {
     type        = string
-    description =  local.description_credential
-    default     = "default"
+    description =  local.description_connection
+    default     = connection.aws.default
   }
 
   param "user_name" {
@@ -350,7 +350,7 @@ pipeline "delete_user_login_profile" {
       "--user-name", param.user_name
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
 }

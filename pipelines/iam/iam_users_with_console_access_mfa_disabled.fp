@@ -4,7 +4,7 @@ locals {
       concat(user_name, ' [', account_id, ']') as title,
       user_name,
       account_id,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_iam_credential_report
     where
@@ -77,13 +77,13 @@ pipeline "detect_and_correct_iam_users_with_console_access_mfa_disabled" {
   tags        = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_iam_users_with_console_access_mfa_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -140,13 +140,13 @@ pipeline "correct_iam_users_with_console_access_mfa_disabled" {
       title       = string
       bucket_name = string
       region      = string
-      cred        = string
+      conn        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -158,7 +158,7 @@ pipeline "correct_iam_users_with_console_access_mfa_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -177,14 +177,14 @@ pipeline "correct_iam_users_with_console_access_mfa_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM user(s) with console access MFA disabled."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected IAM user ${each.value.title} with console access MFA disabled."
   }
 }

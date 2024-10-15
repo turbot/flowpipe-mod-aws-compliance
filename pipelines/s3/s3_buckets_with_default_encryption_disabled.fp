@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', account_id, '/', region, ']') as title,
       name as bucket_name,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_s3_bucket
     where
@@ -106,13 +106,13 @@ pipeline "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
   tags        = merge(local.s3_common_tags, { recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -124,7 +124,7 @@ pipeline "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -169,7 +169,7 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
       title       = string
       bucket_name = string
       region      = string
-      cred        = string
+      conn        = string
     }))
     description = local.description_items
   }
@@ -193,7 +193,7 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -205,7 +205,7 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -224,7 +224,7 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} S3 bucket(s) with default encryption disabled."
   }
 
@@ -239,7 +239,7 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
       kms_master_key_id  = param.kms_master_key_id
       bucket_key_enabled = param.bucket_key_enabled
       sse_algorithm      = param.sse_algorithm
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -269,9 +269,9 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "sse_algorithm" {
@@ -293,7 +293,7 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -305,7 +305,7 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -356,7 +356,7 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
             bucket_key_enabled = param.bucket_key_enabled
             sse_algorithm      = param.sse_algorithm
             region             = param.region
-            cred               = param.cred
+            conn               = param.conn
           }
           success_msg = "Enabled default encryption for S3 bucket ${param.bucket_name}."
           error_msg   = "Failed to enable default encryption for S3 bucket ${param.bucket_name}."

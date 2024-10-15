@@ -6,10 +6,9 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "aws"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "region" {
@@ -27,7 +26,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
       "--origin", "AWS_KMS",  # Specifies AWS-managed origin
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "query" "get_kms_key_with_rotation_disabled" {
@@ -38,7 +37,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
         concat(id, ' [', account_id, '/', region, ']') as title,
         id as key_id,
         region,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_kms_key
       where
@@ -58,7 +57,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
       title           = step.query.get_kms_key_with_rotation_disabled.rows[0].title
       key_id          = step.query.get_kms_key_with_rotation_disabled.rows[0].key_id
       region          = step.query.get_kms_key_with_rotation_disabled.rows[0].region
-      cred            = param.cred
+      conn            = param.conn
       approvers       = []
       default_action  = "enable_key_rotation"
       enabled_actions = ["enable_key_rotation"]
@@ -89,7 +88,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
         "--pending-window-in-days", "7"
       ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   output "test_results" {

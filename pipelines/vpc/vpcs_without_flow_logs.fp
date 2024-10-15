@@ -5,7 +5,7 @@ locals {
         vpc_id,
         region,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_vpc
       order by
@@ -25,7 +25,7 @@ locals {
       concat(v.vpc_id, ' [', v.account_id, '/', v.region, ']') as title,
       v.vpc_id as vpc_id,
       v.region as region,
-      v.cred as cred
+      v.conn as conn
     from
       vpcs v
       left join vpcs_with_flow_logs f on v.vpc_id = f.resource_id
@@ -82,13 +82,13 @@ pipeline "detect_and_correct_vpcs_without_flow_logs" {
   
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -100,7 +100,7 @@ pipeline "detect_and_correct_vpcs_without_flow_logs" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -145,13 +145,13 @@ pipeline "correct_vpcs_without_flow_logs" {
       title       = string
       vpc_id      = string
       region      = string
-      cred        = string
+      conn        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -163,7 +163,7 @@ pipeline "correct_vpcs_without_flow_logs" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -182,7 +182,7 @@ pipeline "correct_vpcs_without_flow_logs" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} VPC(s) without flow log(s)."
   }
 
@@ -198,7 +198,7 @@ pipeline "correct_vpcs_without_flow_logs" {
       title              = each.value.title
       vpc_id             = each.value.vpc_id
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -229,13 +229,13 @@ pipeline "correct_one_vpc_without_flowlog" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -247,7 +247,7 @@ pipeline "correct_one_vpc_without_flowlog" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -295,7 +295,7 @@ pipeline "correct_one_vpc_without_flowlog" {
           pipeline_args = {
             vpc_id      = param.vpc_id
             region      = param.region
-            cred        = param.cred
+            conn        = param.conn
           }
           success_msg = "Created Flow log ${param.title}."
           error_msg   = "Error creating Flow log ${param.title}."

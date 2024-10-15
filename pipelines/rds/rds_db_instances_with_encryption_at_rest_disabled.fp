@@ -6,7 +6,7 @@ locals {
       r.region,
       concat(r.db_instance_identifier, '-snapshot-', replace(cast(now() as varchar), ' ', '_')) as snapshot_identifier,
       k.arn as aws_managed_kms_key_arn,
-      r._ctx ->> 'connection_name' as cred
+      r.sp_connection_name as conn
     from
       aws_rds_db_instance as r
     left join
@@ -65,13 +65,13 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
   description   = "Detect RDS DB instances with encryption at rest disabled."
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -83,7 +83,7 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -129,13 +129,13 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
       snapshot_identifier     = string
       aws_managed_kms_key_arn = string
       region                  = string
-      cred                    = string
+      conn                    = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -147,7 +147,7 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -166,14 +166,14 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} RDS DB instance(s) with encryption at rest disabled."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected RDS DB instance ${each.value.title} with encryption at rest disabled."
   }
 }

@@ -6,10 +6,10 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
     type = "test"
   }
 
-  param "cred" {
+  param "conn" {
     type        = string
-    description = "The AWS credential to use."
-    default     = "default"
+    description = "The AWS connection to use."
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -45,7 +45,7 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
     pipeline   = aws.pipeline.create_s3_bucket
     args = {
       region = param.region
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
     }
   }
@@ -55,7 +55,7 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
     pipeline   = aws.pipeline.put_s3_bucket_policy
     args = {
       region = param.region
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
       policy = "{\"Version\": \"2012-10-17\",\n\"Statement\": [\n{\n\"Sid\":\"AWSCloudTrailAclCheck\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:GetBucketAcl\",\n\"Resource\": \"arn:aws:s3:::${param.bucket_name}\"\n},\n{\n\"Sid\": \"AWSCloudTrailWrite\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\": \"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutObject\",\n\"Resource\": \"arn:aws:s3:::${param.bucket_name}/AWSLogs/${step.query.get_account_id.rows[0].account_id}/*\",\n\"Condition\": {\n\"StringEquals\": {\n\"s3:x-amz-acl\":\n\"bucket-owner-full-control\"\n}\n}\n}\n]\n}"
     }
@@ -66,7 +66,7 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
     pipeline   = aws.pipeline.create_cloudtrail_trail
     args = {
       region                        = param.region
-      cred                          = param.cred
+      conn                          = param.conn
       name                          = param.trail_name
       bucket_name                   = param.bucket_name
       is_multi_region_trail         = false
@@ -96,7 +96,7 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
     depends_on = [step.query.verify_trail_log_file_validation_is_disabled]
     pipeline   = pipeline.correct_one_cloudtrail_trail_log_file_validation_disabled
     args = {
-      cred            = param.cred
+      conn            = param.conn
       title           = step.query.verify_trail_log_file_validation_is_disabled.rows[0].title
       name            = param.trail_name
       region          = param.region
@@ -127,7 +127,7 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
 
     pipeline = aws.pipeline.delete_cloudtrail_trail
     args = {
-      cred   = param.cred
+      conn   = param.conn
       name   = param.trail_name
       region = param.region
     }
@@ -139,7 +139,7 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
 
     pipeline = aws.pipeline.delete_s3_bucket_all_objects
     args = {
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
       region = param.region
     }
@@ -151,7 +151,7 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
 
     pipeline = aws.pipeline.delete_s3_bucket
     args = {
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
       region = param.region
     }

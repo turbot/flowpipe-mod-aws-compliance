@@ -4,7 +4,7 @@
 //       concat(client_vpn_endpoint_id, ' [', account_id, '/', region, ']') as title,
 //       client_vpn_endpoint_id,
 //       region,
-//       _ctx ->> 'connection_name' as cred,
+//       sp_connection_name as conn,
 //       connection_log_options ->> 'Enabled' as logging_enabled
 //     from
 //       aws_ec2_client_vpn_endpoint
@@ -103,7 +103,7 @@
 //       title                  = string,
 //       client_vpn_endpoint_id = string,
 //       region                 = string,
-//       cred                   = string,
+//       conn                   = string,
 //       logging_enabled        = string
 //     }))
 //     description = local.description_items
@@ -141,7 +141,7 @@
 
 //   step "message" "notify_detection_count" {
 //     if       = var.notification_level == local.level_info
-//     notifier = notifier[param.notifier]
+//     notifier = param.notifier
 //     text     = "Detected ${length(param.items)} EC2 Client VPN Endpoints."
 //   }
 
@@ -157,7 +157,7 @@
 //       title                  = each.value.title,
 //       client_vpn_endpoint_id = each.value.client_vpn_endpoint_id,
 //       region                 = each.value.region,
-//       cred                   = each.value.cred,
+//       conn                   = connection.aws[each.value.conn],
 //       notifier               = param.notifier,
 //       notification_level     = param.notification_level,
 //       approvers              = param.approvers,
@@ -188,9 +188,9 @@
 //     description = local.description_region
 //   }
 
-//   param "cred" {
+//   param "conn" {
 //     type        = string
-//     description = local.description_credential
+//     description = local.description_connection
 //   }
 
 //   param "notifier" {
@@ -229,7 +229,7 @@
 //       client_vpn_endpoint_id = param.client_vpn_endpoint_id,
 //       logging_enabled        = "true", // Set to 'true' to enable logging
 //       region                 = param.region,
-//       cred                   = param.cred
+//       conn                   = param.conn
 //     }
 //   }
 // }

@@ -19,7 +19,7 @@
 //       concat(t.launch_template_id, ' [', t.region, '/', t.account_id, ']') as title,
 //       t.launch_template_id,
 //       t.region,
-//       t._ctx ->> 'connection_name' as cred
+//       t.sp_connection_name as conn
 //     from
 //       aws_ec2_launch_template as t
 //       left join launch_templates_associated_instance as i on i.launch_template_id = t.launch_template_id
@@ -119,7 +119,7 @@
 //       title                 = string,
 //       launch_template_id    = string,
 //       region                = string,
-//       cred                  = string,
+//       conn                  = string,
 //       public_ip_association = string
 //     }))
 //     description = local.description_items
@@ -157,7 +157,7 @@
 
 //   step "message" "notify_detection_count" {
 //     if       = var.notification_level == local.level_info
-//     notifier = notifier[param.notifier]
+//     notifier = param.notifier
 //     text     = "Detected ${length(param.items)} EC2 launch templates with public IPs."
 //   }
 
@@ -173,7 +173,7 @@
 //       title                = each.value.title,
 //       launch_template_id   = each.value.launch_template_id,
 //       region               = each.value.region,
-//       cred                 = each.value.cred,
+//       conn                 = connection.aws[each.value.conn],
 //       notifier             = param.notifier,
 //       notification_level   = param.notification_level,
 //       approvers            = param.approvers,
@@ -204,9 +204,9 @@
 //     description = local.description_region
 //   }
 
-//   param "cred" {
+//   param "conn" {
 //     type        = string
-//     description = local.description_credential
+//     description = local.description_connection
 //   }
 
 //   param "notifier" {
@@ -245,7 +245,7 @@
 //       launch_template_id    = param.launch_template_id,
 //       associate_public_ip   = "false", // Set to 'false' to disable automatic public IP assignment
 //       region                = param.region,
-//       cred                  = param.cred
+//       conn                  = param.conn
 //     }
 //   }
 // }

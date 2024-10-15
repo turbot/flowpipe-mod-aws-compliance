@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_skip" {
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -27,7 +27,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_skip" {
       "--origin", "AWS_KMS",  # Specifies AWS-managed origin
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
  }
 
   step "pipeline" "run_detection" {
@@ -63,7 +63,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_skip" {
         "--pending-window-in-days", "7"
       ]
 
-      env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+      env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   output "test_results" {

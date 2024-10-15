@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   step "query" "get_account_id" {
@@ -40,7 +40,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
         password_reuse_prevention,
         coalesce(max_password_age, 0) as effective_max_password_age,
         coalesce(password_reuse_prevention, 0) as effective_password_reuse_prevention,
-        a._ctx ->> 'connection_name' as cred
+        a.sp_connection_name as conn
       from
         aws_account as a
         left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
@@ -70,7 +70,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
     pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
-      cred                           = param.cred
+      conn                           = param.conn
       max_password_age               = step.query.get_password_policy.rows[0].effective_max_password_age
       minimum_password_length        = 7
       password_reuse_prevention      = step.query.get_password_policy.rows[0].effective_password_reuse_prevention
@@ -89,7 +89,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
     args = {
       title                  = each.value.title
       account_id             = each.value.title
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "update_password_policy_min_length"
       enabled_actions        = ["update_password_policy_min_length"]
@@ -131,7 +131,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
     pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
-      cred                           = param.cred
+      conn                           = param.conn
       max_password_age               = step.query.get_password_policy.rows[0].effective_max_password_age
       minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
       password_reuse_prevention      = step.query.get_password_policy.rows[0].effective_password_reuse_prevention
@@ -151,7 +151,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
       "iam", "delete-account-password-policy"
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   output "test_results" {

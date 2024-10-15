@@ -3,7 +3,7 @@ locals {
     select
       a.account_id as title,
       a.account_id,
-      a._ctx ->> 'connection_name' as cred
+      a.sp_connection_name as conn
     from
       aws_account as a
       left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
@@ -77,13 +77,13 @@ pipeline "detect_and_correct_iam_account_password_policies_without_one_uppercase
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_iam_account_password_policies_without_one_uppercase
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -139,13 +139,13 @@ pipeline "correct_iam_account_password_policies_without_one_uppercase_letter" {
     type = list(object({
       title          = string
       account_id     = string
-      cred           = string
+      conn           = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -157,7 +157,7 @@ pipeline "correct_iam_account_password_policies_without_one_uppercase_letter" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -176,7 +176,7 @@ pipeline "correct_iam_account_password_policies_without_one_uppercase_letter" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM account password policies with no requirement for at least one uppercase letter."
   }
 
@@ -187,7 +187,7 @@ pipeline "correct_iam_account_password_policies_without_one_uppercase_letter" {
     args = {
       title              = each.value.title
       account_id         = each.value.account_id
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -212,13 +212,13 @@ pipeline "correct_one_iam_account_password_policy_without_one_uppercase_letter" 
     description = "The account ID of the AWS account."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -230,7 +230,7 @@ pipeline "correct_one_iam_account_password_policy_without_one_uppercase_letter" 
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -277,7 +277,7 @@ pipeline "correct_one_iam_account_password_policy_without_one_uppercase_letter" 
           pipeline_ref = pipeline.update_iam_account_password_policy_uppercase_letter
           pipeline_args = {
             require_uppercase_characters = true
-            cred                        = param.cred
+            conn                        = param.conn
           }
           success_msg = "Updated IAM account password policy for ${param.title} to require at least one uppercase letter."
           error_msg   = "Error updating IAM account password policy ${param.title}."
@@ -291,10 +291,10 @@ pipeline "update_iam_account_password_policy_uppercase_letter" {
   title       = "Update IAM Account password policy uppercase letter requirement"
   description = "Updates the account password policy uppercase letter requirement for the AWS account."
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "require_uppercase_characters" {
@@ -319,7 +319,7 @@ pipeline "update_iam_account_password_policy_uppercase_letter" {
         aws_account as a
         left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-        a._ctx ->> 'connection_name' = '${param.cred}';
+        a.sp_connection_name ->> 'connection_name' = '${param.conn}'; -- TODO: Fix this to work with sp_connection_name and param.conn
     EOQ
   }
 
@@ -328,7 +328,7 @@ pipeline "update_iam_account_password_policy_uppercase_letter" {
     pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
-      cred                           = param.cred
+      conn                           = param.conn
       max_password_age               = step.query.get_password_policy.rows[0].max_password_age
       minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
       password_reuse_prevention      = step.query.get_password_policy.rows[0].password_reuse_prevention

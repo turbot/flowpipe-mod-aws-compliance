@@ -3,7 +3,7 @@ locals {
     select
       concat(r.region, ' [', r.account_id, ']') as title,
       r.region,
-      r._ctx ->> 'connection_name' as cred
+      r.sp_connection_name as conn
     from
       aws_region as r
       left join aws_accessanalyzer_analyzer as aa on r.account_id = aa.account_id and r.region = aa.region
@@ -87,13 +87,13 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -105,7 +105,7 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -150,13 +150,13 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
       title          = string
       analyzer_name  = string
       region         = string
-      cred           = string
+      conn           = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -174,7 +174,7 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -193,7 +193,7 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} region(s) with IAM Access Analyzer disabled."
   }
 
@@ -205,7 +205,7 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
       title              = each.value.title
       analyzer_name      = param.analyzer_name
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -235,13 +235,13 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -253,7 +253,7 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -301,7 +301,7 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
           pipeline_args = {
             analyzer_name = param.analyzer_name
             region        = param.region
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Enabled IAM Access Analyzer in region ${param.title}."
           error_msg   = "Error enabling IAM Access Analyzer in region ${param.title}."

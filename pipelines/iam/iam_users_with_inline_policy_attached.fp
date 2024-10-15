@@ -5,7 +5,7 @@ locals {
       i ->> 'PolicyName' as inline_policy_name,
       name as user_name,
       account_id,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_iam_user,
       jsonb_array_elements(inline_policies) as i;
@@ -77,13 +77,13 @@ pipeline "detect_and_correct_iam_users_with_inline_policy_attached" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_iam_users_with_inline_policy_attached" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -140,13 +140,13 @@ pipeline "correct_iam_users_with_inline_policy_attached" {
       title          = string
       user_name        = string
       inline_policy_name    = string
-      cred           = string
+      conn           = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -158,7 +158,7 @@ pipeline "correct_iam_users_with_inline_policy_attached" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -177,7 +177,7 @@ pipeline "correct_iam_users_with_inline_policy_attached" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} inline policy attached to IAM user."
   }
 
@@ -189,7 +189,7 @@ pipeline "correct_iam_users_with_inline_policy_attached" {
       title              = each.value.title
       user_name          = each.value.user_name
       inline_policy_name = each.value.inline_policy_name
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -219,13 +219,13 @@ pipeline "correct_one_iam_users_with_inline_policy_attached" {
     description = "The name of the inline policy."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -237,7 +237,7 @@ pipeline "correct_one_iam_users_with_inline_policy_attached" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -285,7 +285,7 @@ pipeline "correct_one_iam_users_with_inline_policy_attached" {
           pipeline_args = {
             user_name           = param.user_name
             inline_policy_name  = param.inline_policy_name
-            cred                = param.cred
+            conn                = param.conn
           }
           success_msg = "Deleted IAM user ${param.user_name} inline policy ${param.title}."
           error_msg   = "Error deleting IAM user ${param.user_name} inline policy ${param.title}."
@@ -299,10 +299,10 @@ pipeline "delete_user_inline_policy" {
   title       = "Delete User Inline Policy"
   description = "Deletes the specified inline policy from the specified IAM user."
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "user_name" {
@@ -327,6 +327,6 @@ pipeline "delete_user_inline_policy" {
       ]
     )
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 }

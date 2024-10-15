@@ -6,10 +6,10 @@
 //     type = "test"
 //   }
 
-//   param "cred" {
+//   param "conn" {
 //     type        = string
-//     description = local.description_credential
-//     default     = "default"
+//     description = local.description_connection
+//     default     = connection.aws.default
 //   }
 
 //   param "region" {
@@ -45,7 +45,7 @@
 //     pipeline   = aws.pipeline.create_s3_bucket
 //     args = {
 //       region = param.region
-//       cred   = param.cred
+//       conn   = param.conn
 //       bucket = param.bucket_name
 //     }
 //   }
@@ -55,7 +55,7 @@
 //     pipeline   = aws.pipeline.put_s3_bucket_policy
 //     args = {
 //       region = "us-east-1"
-//       cred   = param.cred
+//       conn   = param.conn
 //       bucket = param.bucket_name
 //       policy = "{\"Version\": \"2012-10-17\",\n\"Statement\": [\n{\n\"Sid\":\"AWSCloudTrailAclCheck\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:GetBucketAcl\",\n\"Resource\": \"arn:aws:s3:::${param.bucket_name}\"\n},\n{\n\"Sid\": \"AWSCloudTrailWrite\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\": \"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutObject\",\n\"Resource\": \"arn:aws:s3:::${param.bucket_name}/AWSLogs/${step.query.get_account_id.rows[0].account_id}/*\",\n\"Condition\": {\n\"StringEquals\": {\n\"s3:x-amz-acl\":\n\"bucket-owner-full-control\"\n}\n}\n}\n]\n}"
 //     }
@@ -66,7 +66,7 @@
 //     pipeline   = aws.pipeline.create_cloudtrail_trail
 //     args = {
 //       region                        = param.region
-//       cred                          = param.cred
+//       conn                          = param.conn
 //       name                          = param.trail_name
 //       bucket_name                   = param.bucket_name
 //       is_multi_region_trail         = false
@@ -85,7 +85,7 @@
 //         t.name,
 //         t.region,
 //         t.account_id,
-//         t._ctx ->> 'connection_name' as cred
+//         t.sp_connection_name as conn
 //       from
 //         aws_cloudtrail_trail t
 //         inner join aws_s3_bucket b on t.s3_bucket_name = b.name
@@ -106,7 +106,7 @@
 //       name            = param.trail_name
 //       bucket_name     = param.bucket_name
 //       region          = param.region
-//       cred            = param.cred
+//       conn            = param.conn
 //       approvers       = []
 //       default_action  = "enable_s3_logging"
 //       enabled_actions = ["enable_s3_logging"]
@@ -123,7 +123,7 @@
 //         t.name,
 //         t.region,
 //         t.account_id,
-//         t._ctx ->> 'connection_name' as cred
+//         t.sp_connection_name as conn
 //       from
 //         aws_cloudtrail_trail t
 //         inner join aws_s3_bucket b on t.s3_bucket_name = b.name
@@ -139,7 +139,7 @@
 
 //     pipeline = aws.pipeline.delete_cloudtrail_trail
 //     args = {
-//       cred   = param.cred
+//       conn   = param.conn
 //       name   = param.trail_name
 //       region = param.region
 //     }
@@ -151,7 +151,7 @@
 
 //     pipeline = aws.pipeline.delete_s3_bucket_all_objects
 //     args = {
-//       cred   = param.cred
+//       conn   = param.conn
 //       bucket = param.bucket_name
 //       region = param.region
 //     }
@@ -163,7 +163,7 @@
 
 //     pipeline = aws.pipeline.delete_s3_bucket
 //     args = {
-//       cred   = param.cred
+//       conn   = param.conn
 //       bucket = param.bucket_name
 //       region = param.region
 //     }

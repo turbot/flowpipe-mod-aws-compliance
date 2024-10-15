@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "group_name" {
@@ -25,7 +25,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
       "--group-name", param.group_name,
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "container" "attach_group_policy" {
@@ -37,7 +37,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
       "--policy-arn", "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "query" "get_group_with_unrestricted_cloudshell_full_access" {
@@ -48,7 +48,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
         concat(name, ' [', account_id,  ']') as title,
         name as group_name,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_iam_group
       where
@@ -66,7 +66,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
       title                  = each.value.title
       group_name             = each.value.group_name
       account_id             = each.value.account_id
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "detach_group_cloudshell_full_access_policy"
       enabled_actions        = ["detach_group_cloudshell_full_access_policy"]
@@ -86,7 +86,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
         concat(name, ' [', account_id,  ']') as title,
         name as group_name,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_iam_group
       where
@@ -103,7 +103,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
       "--group-name", param.group_name
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   output "test_results" {

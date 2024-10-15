@@ -6,10 +6,10 @@ pipeline "test_test_detect_and_correct_cloudtrail_trails_with_multi_region_read_
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -61,7 +61,7 @@ pipeline "test_test_detect_and_correct_cloudtrail_trails_with_multi_region_read_
           else 'enabled'
         end as multi_region_read_weite_status,
         a.account_id,
-        a._ctx ->> 'connection_name' as cred
+        a.sp_connection_name as conn
       from
         aws_account as a
         left join event_selectors_trail_details as d on d.account_id = a.account_id
@@ -85,7 +85,7 @@ pipeline "test_test_detect_and_correct_cloudtrail_trails_with_multi_region_read_
       trail_name      = param.trail_name
       bucket_name     = param.bucket_name
       region          = param.region
-      cred            = param.cred
+      conn            = param.conn
       approvers       = []
       default_action  = "enable_multi_region_read_write"
       enabled_actions = ["enable_multi_region_read_write"]
@@ -124,7 +124,7 @@ pipeline "test_test_detect_and_correct_cloudtrail_trails_with_multi_region_read_
           else 'enabled'
         end as multi_region_read_weite_status,
         a.account_id,
-        a._ctx ->> 'connection_name' as cred
+        a.sp_connection_name as conn
       from
         aws_account as a
         left join event_selectors_trail_details as d on d.account_id = a.account_id
@@ -138,7 +138,7 @@ pipeline "test_test_detect_and_correct_cloudtrail_trails_with_multi_region_read_
 
     pipeline = aws.pipeline.delete_cloudtrail_trail
     args = {
-      cred   = param.cred
+      conn   = param.conn
       name   = param.trail_name
       region = param.region
     }
@@ -150,7 +150,7 @@ pipeline "test_test_detect_and_correct_cloudtrail_trails_with_multi_region_read_
 
     pipeline = aws.pipeline.delete_s3_bucket_all_objects
     args = {
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
       region = param.region
     }
@@ -162,7 +162,7 @@ pipeline "test_test_detect_and_correct_cloudtrail_trails_with_multi_region_read_
 
     pipeline = aws.pipeline.delete_s3_bucket
     args = {
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.bucket_name
       region = param.region
     }

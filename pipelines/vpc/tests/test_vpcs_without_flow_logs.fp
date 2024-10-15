@@ -17,10 +17,10 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
     default     = "10.0.0.0/24"
   }
 
-  param "cred" {
+  param "conn" {
     type        = string
-    description = "The AWS credentials profile to use."
-    default     = "default"
+    description = "The AWS connections profile to use."
+    default     = connection.aws.default
   }
 
   step "container" "create_vpc" {
@@ -31,7 +31,7 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
       "--cidr-block", param.cidr_block
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "transform" "get_vpc_id" {
@@ -57,7 +57,7 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
           vpc_id,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred
+          sp_connection_name as conn
         from
           aws_vpc
         order by
@@ -77,7 +77,7 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
         concat(v.vpc_id, ' [', v.account_id, '/', v.region, ']') as title,
         v.vpc_id as vpc_id,
         v.region as region,
-        v.cred as cred
+        v.conn as conn
       from
         vpcs v
         left join vpcs_with_flow_logs f on v.vpc_id = f.resource_id
@@ -95,7 +95,7 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
       title                  = each.value.title
       vpc_id                 = each.value.vpc_id
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "create_flow_log"
       enabled_actions        = ["create_flow_log"]
@@ -116,7 +116,7 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
           vpc_id,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred
+          sp_connection_name as conn
         from
           aws_vpc
         order by
@@ -136,7 +136,7 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
         concat(v.vpc_id, ' [', v.account_id, '/', v.region, ']') as title,
         v.vpc_id as vpc_id,
         v.region as region,
-        v.cred as cred
+        v.conn as conn
       from
         vpcs v
         left join vpcs_with_flow_logs f on v.vpc_id = f.resource_id
@@ -163,7 +163,7 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_vpc]
   }
 }

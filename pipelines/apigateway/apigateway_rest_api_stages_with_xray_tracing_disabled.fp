@@ -5,7 +5,7 @@ locals {
     rest_api_id,
     name as stage_name,
     region,
-    _ctx ->> 'connection_name' as cred
+    sp_connection_name as conn
   from
     aws_api_gateway_stage
   where
@@ -60,13 +60,13 @@ pipeline "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabl
   
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -78,7 +78,7 @@ pipeline "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabl
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -124,12 +124,12 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
       rest_api_id   = string
       stage_name    = string
       region        = string
-      cred          = string
+      conn          = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -141,7 +141,7 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -160,7 +160,7 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} API Gateway rest API stage(s) with x-ray tracing disabled."
   }
 
@@ -173,7 +173,7 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
       rest_api_id        = each.value.rest_api_id
       stage_name         = each.value.stage_name
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -208,13 +208,13 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -226,7 +226,7 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -275,7 +275,7 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
             rest_api_id   = param.rest_api_id
             stage_name    = param.stage_name
             region        = param.region
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Enabled x-ray tracing for API Gateway rest API stage ${param.title}."
           error_msg   = "Error enabling x-ray tracing for API Gateway rest API stage ${param.title}."

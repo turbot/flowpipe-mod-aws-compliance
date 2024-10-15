@@ -5,10 +5,10 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -31,7 +31,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--cidr-block", "10.0.0.0/16"  # A small default IPv6 CIDR is required for the VPC
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "associate_ipv6_cidr_block" {
@@ -43,7 +43,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--amazon-provided-ipv6-cidr-block"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_vpc]
   }
 
@@ -57,7 +57,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.associate_ipv6_cidr_block]
   }
 
@@ -78,7 +78,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       ])
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_security_group]
   }
 
@@ -101,7 +101,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       ])
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.allow_all_traffic_ipv6]
   }
 
@@ -124,7 +124,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       ])
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.allow_ssh_ipv6]
   }
 
@@ -147,7 +147,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
           security_group_rule_id,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred    
+          sp_connection_name as conn
         from
           aws_vpc_security_group_rule
         where
@@ -175,7 +175,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
         region,
         account_id,
         group_id,
-        _ctx
+        sp_connection_name
       from
         aws_vpc_security_group
       order by
@@ -186,7 +186,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       sg.group_id as group_id,
       bad_rules.security_group_rule_id as security_group_rule_id,
       sg.region as region,
-      sg._ctx ->> 'connection_name' as cred
+      sg.sp_connection_name as conn
     from
       security_groups as sg
       left join bad_rules on bad_rules.group_id = sg.group_id
@@ -205,7 +205,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       group_id               = each.value.group_id
       security_group_rule_id = each.value.security_group_rule_id
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "revoke_security_group_rule"
       enabled_actions        = ["revoke_security_group_rule"]
@@ -227,7 +227,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
           security_group_rule_id,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred    
+          sp_connection_name as conn
         from
           aws_vpc_security_group_rule
         where
@@ -255,7 +255,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
         region,
         account_id,
         group_id,
-        _ctx
+        sp_connection_name
       from
         aws_vpc_security_group
       order by
@@ -266,7 +266,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       sg.group_id as group_id,
       bad_rules.security_group_rule_id as security_group_rule_id,
       sg.region as region,
-      sg._ctx ->> 'connection_name' as cred
+      sg.sp_connection_name as conn
     from
       security_groups as sg
       left join bad_rules on bad_rules.group_id = sg.group_id
@@ -293,7 +293,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.allow_rdp_ipv6]
   }
 
@@ -305,7 +305,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_security_group]
   }
 }

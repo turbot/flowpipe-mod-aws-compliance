@@ -4,7 +4,7 @@ locals {
       concat(u.name, ' [', u.account_id, ']') as title,
       k.access_key_id,
       u.name as user_name,
-      u._ctx ->> 'connection_name' as cred,
+      u.sp_connection_name as conn,
       k.access_key_last_used_date,
       (extract(day from now() - k.access_key_last_used_date))::text as access_key_last_used_day  -- Extracts only the days part
     from
@@ -78,13 +78,13 @@ pipeline "detect_and_correct_iam_users_with_unused_access_key_45_days" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -96,7 +96,7 @@ pipeline "detect_and_correct_iam_users_with_unused_access_key_45_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -144,13 +144,13 @@ pipeline "correct_iam_users_with_unused_access_key_45_days" {
       access_key_last_used_date  = string
       access_key_last_used_day   = string
       access_key_id              = string
-      cred                       = string
+      conn                       = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -162,7 +162,7 @@ pipeline "correct_iam_users_with_unused_access_key_45_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -181,7 +181,7 @@ pipeline "correct_iam_users_with_unused_access_key_45_days" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM user(s) access key that have been unused for 45 days or more."
   }
 
@@ -195,7 +195,7 @@ pipeline "correct_iam_users_with_unused_access_key_45_days" {
       access_key_id             = each.value.access_key_id
       access_key_last_used_date = each.value.access_key_last_used_date
       access_key_last_used_day  = each.value.access_key_last_used_day
-      cred                      = each.value.cred
+      conn                      = connection.aws[each.value.conn]
       notifier                  = param.notifier
       notification_level        = param.notification_level
       approvers                 = param.approvers
@@ -235,13 +235,13 @@ pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
     description = "The number of days since the IAM user's access key was last used."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -253,7 +253,7 @@ pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -301,7 +301,7 @@ pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
           pipeline_args = {
             user_name      = param.user_name
             access_key_id  = param.access_key_id
-            cred           = param.cred
+            conn           = param.conn
           }
           success_msg = "Deactivated IAM user ${param.title} access key ${param.access_key_id}."
           error_msg   = "Error deactivating IAM user ${param.title} access key ${param.access_key_id}."
@@ -315,10 +315,10 @@ pipeline "deactivate_user_access_key" {
   title       = "Deactivate IAM user access Key"
   description = "Deactivates the IAM user's access key."
 
-  param "cred" {
+  param "conn" {
     type        = string
-    description =  local.description_credential
-    default     = "default"
+    description =  local.description_connection
+    default     = connection.aws.default
   }
 
   param "user_name" {
@@ -340,6 +340,6 @@ pipeline "deactivate_user_access_key" {
       "--user-name", param.user_name
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 }

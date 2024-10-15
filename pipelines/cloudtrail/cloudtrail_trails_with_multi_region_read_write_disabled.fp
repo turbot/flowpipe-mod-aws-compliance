@@ -25,7 +25,7 @@ locals {
   select
     concat(a.title, ' [', a.account_id, ']') as title,
     a.account_id,
-    a._ctx ->> 'connection_name' as cred
+    a.sp_connection_name as conn
   from
     aws_account as a
     left join event_selectors_trail_details as d on d.account_id = a.account_id
@@ -129,13 +129,13 @@ pipeline "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disa
   tags        = merge(local.cloudtrail_common_tags, { recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -147,7 +147,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disa
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -211,14 +211,14 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
   param "items" {
     type = list(object({
       title      = string
-      cred       = string
+      conn       = string
       account_id = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -248,7 +248,7 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -267,7 +267,7 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} CloudTrail trail(s) with multi-region read/write disabled."
   }
 
@@ -281,7 +281,7 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
       bucket_name        = param.bucket_name
       trail_name         = param.trail_name
       region             = param.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -324,13 +324,13 @@ pipeline "correct_one_cloudtrail_trail_with_multi_region_read_write_disabled" {
     default     = var.cloudtrail_trail_multi_region_read_write_disabled_default_enabled_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -342,7 +342,7 @@ pipeline "correct_one_cloudtrail_trail_with_multi_region_read_write_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -388,7 +388,7 @@ pipeline "correct_one_cloudtrail_trail_with_multi_region_read_write_disabled" {
           style        = local.style_alert
           pipeline_ref = pipeline.create_cloudtrail_trail_enable_read_write
           pipeline_args = {
-            cred           = param.cred
+            conn           = param.conn
             trail_name     = param.trail_name
             s3_bucket_name = param.bucket_name
             account_id     = param.account_id
@@ -408,7 +408,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
 
   param "region" {
     type        = string
-    description = "The AWS region in which to create the CloudTrail trail."
+    description = local.description_region
   }
 
   param "account_id" {
@@ -416,10 +416,10 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
     description = "The AWS account ID in which to create the CloudTrail trail."
   }
 
-  param "cred" {
-    type        = string
-    description = "The AWS credentials to use for creating the trail."
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "trail_name" {
@@ -436,7 +436,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
     pipeline = aws.pipeline.create_s3_bucket
     args = {
       region = "us-east-1"
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.s3_bucket_name
     }
   }
@@ -446,7 +446,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
     pipeline   = aws.pipeline.put_s3_bucket_policy
     args = {
       region = "us-east-1"
-      cred   = param.cred
+      conn   = param.conn
       bucket = param.s3_bucket_name
       policy = "{\"Version\": \"2012-10-17\",\n\"Statement\": [\n{\n\"Sid\":\"AWSCloudTrailAclCheck\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:GetBucketAcl\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}\"\n},\n{\n\"Sid\": \"AWSCloudTrailWrite\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\": \"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutObject\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.account_id}/*\",\n\"Condition\": {\n\"StringEquals\": {\n\"s3:x-amz-acl\":\n\"bucket-owner-full-control\"\n}\n}\n}\n]\n}"
     }
@@ -458,7 +458,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
     args = {
       region                        = "us-east-1"
       name                          = param.trail_name
-      cred                          = param.cred
+      conn                          = param.conn
       bucket_name                   = param.s3_bucket_name
       is_multi_region_trail         = true
       include_global_service_events = true
@@ -473,7 +473,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
       region          = "us-east-1"
       trail_name      = param.trail_name
       event_selectors = "[{\"ReadWriteType\": \"All\",\"IncludeManagementEvents\": true}]"
-      cred            = param.cred
+      conn            = param.conn
     }
   }
 }

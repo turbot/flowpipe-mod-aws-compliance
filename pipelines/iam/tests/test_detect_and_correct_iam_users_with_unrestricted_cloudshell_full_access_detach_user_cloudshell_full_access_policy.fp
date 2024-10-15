@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "user_name" {
@@ -21,7 +21,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
   step "pipeline" "create_iam_user" {
     pipeline   = aws.pipeline.create_iam_user
     args = {
-      cred        = param.cred
+      conn        = param.conn
       user_name   = param.user_name
     }
   }
@@ -35,7 +35,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
       "--policy-arn", "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "query" "get_user_with_unrestricted_cloudshell_full_access" {
@@ -46,7 +46,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
         concat(name, ' [', account_id,  ']') as title,
         name as user_name,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_iam_user
       where
@@ -64,7 +64,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
       title                  = each.value.title
       user_name             = each.value.user_name
       account_id             = each.value.account_id
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "detach_user_cloudshell_full_access_policy"
       enabled_actions        = ["detach_user_cloudshell_full_access_policy"]
@@ -84,7 +84,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
         concat(name, ' [', account_id,  ']') as title,
         name as user_name,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_iam_user
       where
@@ -97,7 +97,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
     depends_on = [step.query.get_details_after_detection]
     pipeline   = aws.pipeline.delete_iam_user
     args = {
-      cred        = param.cred
+      conn        = param.conn
       user_name   = param.user_name
     }
   }

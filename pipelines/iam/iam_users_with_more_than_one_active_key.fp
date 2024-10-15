@@ -38,7 +38,7 @@ locals {
           when k.access_key_last_used_date is not null then k.access_key_last_used_date::text
           else 'not_used'
           end as access_key_last_used, -- Last used date, or "not_used"
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_iam_access_key as k
       where
@@ -57,7 +57,7 @@ locals {
       (rk2.access_key_age)::text as access_key_2_age,
       rk2.access_key_last_used_in_days as access_key_2_last_used_in_days,
       rk1.account_id,
-      rk1.cred
+      rk1.conn
     from
       ranked_keys rk1
       left join ranked_keys rk2 on rk1.user_name = rk2.user_name and rk2.rnk = 2
@@ -116,13 +116,13 @@ pipeline "detect_and_correct_iam_users_with_more_than_one_active_key" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -134,7 +134,7 @@ pipeline "detect_and_correct_iam_users_with_more_than_one_active_key" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -186,13 +186,13 @@ pipeline "correct_iam_users_with_more_than_one_active_key" {
       access_key_2_last_used_date    = string
       access_key_2_age               = string
       access_key_2_last_used_in_days = string
-      cred                           = string
+      conn                           = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -204,7 +204,7 @@ pipeline "correct_iam_users_with_more_than_one_active_key" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -223,7 +223,7 @@ pipeline "correct_iam_users_with_more_than_one_active_key" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM user(s) with two active keys."
   }
 
@@ -242,7 +242,7 @@ pipeline "correct_iam_users_with_more_than_one_active_key" {
       access_key_2_last_used_date     = each.value.access_key_2_last_used_date
       access_key_2_age                = each.value.access_key_2_age
       access_key_2_last_used_in_days  = each.value.access_key_2_last_used_in_days
-      cred                            = each.value.cred
+      conn                            = connection.aws[each.value.conn]
       notifier                        = param.notifier
       notification_level              = param.notification_level
       approvers                       = param.approvers
@@ -307,13 +307,13 @@ pipeline "correct_one_iam_user_with_more_than_one_active_key" {
     description = "The number of days since the second access key was last used, or 'not_used' if it has not been used."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -325,7 +325,7 @@ pipeline "correct_one_iam_user_with_more_than_one_active_key" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -385,7 +385,7 @@ pipeline "correct_one_iam_user_with_more_than_one_active_key" {
           pipeline_args = {
             access_key_id = param.access_key_id_1
 						user_name     = param.user_name
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Deactivated IAM user ${param.title} access key ${param.access_key_id_1}."
           error_msg   = "Error deactivating extra IAM user ${param.title} access key ${param.access_key_id_1}."
@@ -399,7 +399,7 @@ pipeline "correct_one_iam_user_with_more_than_one_active_key" {
           pipeline_args = {
             access_key_id = param.access_key_id_2
 						user_name     = param.user_name
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Deactivated IAM user ${param.title} access key ${param.access_key_id_2}."
           error_msg   = "Error deactivating extra IAM user ${param.title} access key ${param.access_key_id_2}."

@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "user_name" {
@@ -57,7 +57,7 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
   step "pipeline" "create_iam_user" {
     pipeline   = aws.pipeline.create_iam_user
     args = {
-      cred        = param.cred
+      conn        = param.conn
       user_name   = param.user_name
     }
   }
@@ -71,7 +71,7 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
       "--policy-name", param.policy_name,
       "--policy-document", param.policy_document
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "query" "get_iam_users_with_inline_policy_attached" {
@@ -83,7 +83,7 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
         i ->> 'PolicyName' as inline_policy_name,
         name as user_name,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_iam_user,
         jsonb_array_elements(inline_policies) as i
@@ -101,7 +101,7 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
       title                  = each.value.title
       user_name              = each.value.user_name
       inline_policy_name     = each.value.inline_policy_name
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "delete_inline_policy"
       enabled_actions        = ["delete_inline_policy"]
@@ -126,7 +126,7 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
     depends_on = [step.query.get_user_details_after_detection]
     pipeline   = aws.pipeline.delete_iam_user
     args = {
-      cred        = param.cred
+      conn        = param.conn
       user_name   = param.user_name
     }
   }

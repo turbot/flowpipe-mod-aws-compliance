@@ -3,7 +3,7 @@ locals {
     select
       concat(name, ' [', account_id, '/', region, ']') as title,
       region,
-      _ctx ->> 'connection_name' as cred,
+      sp_connection_name as conn,
       account_id,
       name
     from
@@ -76,7 +76,7 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   tags = local.cloudtrail_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
@@ -94,7 +94,7 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -106,7 +106,7 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -155,7 +155,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
       account_id = string
       name       = string
       region     = string
-      cred       = string
+      conn       = string
     }))
   }
 
@@ -172,7 +172,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -184,7 +184,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -203,7 +203,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} CloudTrail trail log(s) not encrypted with KMS CMK."
   }
 
@@ -216,7 +216,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
       name                = each.value.name
       region              = each.value.region
       account_id          = each.value.account_id
-      cred                = each.value.cred
+      conn                = connection.aws[each.value.conn]
       kms_key_id          = param.kms_key_id
       kms_key_policy_name = param.kms_key_policy_name
       notifier            = param.notifier
@@ -249,9 +249,9 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "account_id" {
@@ -260,7 +260,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -272,7 +272,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -335,7 +335,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
             trail_name  = param.name
             policy_name = param.kms_key_policy_name
             policy      = "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"Allow CloudTrail to use the key\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"cloudtrail.amazonaws.com\"}, \"Action\": [\"kms:Decrypt\", \"kms:GenerateDataKey*\"], \"Resource\": \"*\"}, {\"Sid\": \"Allow root user full access\", \"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::${param.account_id}:root\"}, \"Action\": \"kms:*\", \"Resource\": \"*\"}]}"
-            cred        = param.cred
+            conn        = param.conn
           }
           success_msg = "Encrypted CloudTrail logs ${param.title}."
           error_msg   = "Error encrypting CloudTrail logs ${param.title}."
@@ -365,9 +365,9 @@ pipeline "encrypt_cloud_trail_logs" {
     description = "The name of the CloudTrail trail."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "policy_name" {
@@ -387,7 +387,7 @@ pipeline "encrypt_cloud_trail_logs" {
       policy_name = param.policy_name
       policy      = param.policy
       region      = param.region
-      cred        = param.cred
+      conn        = param.conn
     }
   }
 
@@ -398,7 +398,7 @@ pipeline "encrypt_cloud_trail_logs" {
       trail_name = param.trail_name
       kms_key_id = param.key_id
       region     = param.region
-      cred       = param.cred
+      conn       = param.conn
     }
   }
 }

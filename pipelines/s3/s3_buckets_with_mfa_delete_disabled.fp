@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', account_id, '/', region, ']') as title,
       name as bucket_name,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_s3_bucket
     where
@@ -76,13 +76,13 @@ pipeline "detect_and_correct_s3_buckets_with_mfa_delete_disabled" {
   tags        = merge(local.s3_common_tags, { recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -94,7 +94,7 @@ pipeline "detect_and_correct_s3_buckets_with_mfa_delete_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -139,13 +139,13 @@ pipeline "correct_s3_buckets_with_mfa_delete_disabled" {
       title       = string
       bucket_name = string
       region      = string
-      cred        = string
+      conn        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -157,7 +157,7 @@ pipeline "correct_s3_buckets_with_mfa_delete_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -176,14 +176,14 @@ pipeline "correct_s3_buckets_with_mfa_delete_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} S3 bucket(s) with MFA delete disabled."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected S3 bucket ${each.value.title} with MFA delete disabled."
   }
 }

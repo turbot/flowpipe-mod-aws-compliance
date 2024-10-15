@@ -5,7 +5,7 @@ locals {
       name as server_certificate_name,
       to_char(expiration, 'DD-Mon-YYYY') as expiration_date,
       account_id,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_iam_server_certificate
     where
@@ -77,13 +77,13 @@ pipeline "detect_and_correct_iam_server_certificates_expired" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_iam_server_certificates_expired" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -141,13 +141,13 @@ pipeline "correct_iam_server_certificates_expired" {
       server_certificate_name = string
       account_id              = string
       expiration_date         = string
-      cred                    = string
+      conn                    = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -159,7 +159,7 @@ pipeline "correct_iam_server_certificates_expired" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -178,7 +178,7 @@ pipeline "correct_iam_server_certificates_expired" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} expired IAM server certificate(s)."
   }
 
@@ -191,7 +191,7 @@ pipeline "correct_iam_server_certificates_expired" {
       server_certificate_name = each.value.server_certificate_name
       expiration_date         = each.value.expiration_date
       account_id              = each.value.account_id
-      cred                    = each.value.cred
+      conn                    = connection.aws[each.value.conn]
       notifier                = param.notifier
       notification_level      = param.notification_level
       approvers               = param.approvers
@@ -226,13 +226,13 @@ pipeline "correct_one_iam_server_certificate_expired" {
     description = "The account ID of the AWS account."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -244,7 +244,7 @@ pipeline "correct_one_iam_server_certificate_expired" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -291,7 +291,7 @@ pipeline "correct_one_iam_server_certificate_expired" {
           pipeline_ref = aws.pipeline.delete_iam_server_certificate
           pipeline_args = {
             server_certificate_name = param.server_certificate_name
-            cred                    = param.cred
+            conn                    = param.conn
           }
           success_msg = "Deleted IAM server certificate ${param.title} expired on ${param.expiration_date}."
           error_msg   = "Error deleting IAM server certificate ${param.title} expired on ${param.expiration_date}."
@@ -305,10 +305,10 @@ pipeline "delete_iam_server_certificate" {
   title       = "Delete IAM server certificate"
   description = "Delete the specified IAM server certificate."
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "server_certificate_name" {
@@ -323,7 +323,7 @@ pipeline "delete_iam_server_certificate" {
       "--server-certificate-name", param.server_certificate_name
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 }
 

@@ -5,7 +5,7 @@ locals {
       instance_id,
       region,
       public_ip_address,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_ec2_instance
     where
@@ -63,13 +63,13 @@ pipeline "detect_and_correct_ec2_instances_with_public_access_enabled" {
   tags          = merge(local.ec2_common_tags, { class = "security", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -81,7 +81,7 @@ pipeline "detect_and_correct_ec2_instances_with_public_access_enabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -127,14 +127,14 @@ pipeline "correct_ec2_instances_with_public_access_enabled" {
       title             = string,
       instance_id       = string,
       region            = string,
-      cred              = string,
+      conn              = string,
       public_ip_address = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -146,7 +146,7 @@ pipeline "correct_ec2_instances_with_public_access_enabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -165,7 +165,7 @@ pipeline "correct_ec2_instances_with_public_access_enabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} publicly accessible EC2 instance(s)."
   }
 
@@ -177,7 +177,7 @@ pipeline "correct_ec2_instances_with_public_access_enabled" {
       title              = each.value.title,
       instance_id        = each.value.instance_id,
       region             = each.value.region,
-      cred               = each.value.cred,
+      conn               = connection.aws[each.value.conn],
       public_ip_address  = each.value.public_ip_address,
       notifier           = param.notifier,
       notification_level = param.notification_level,
@@ -209,9 +209,9 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "public_ip_address" {
@@ -220,7 +220,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -232,7 +232,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -282,7 +282,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
         //     instance_id = param.instance_id,
         //     action      = "terminate_instance",
         //     region      = param.region,
-        //     cred        = param.cred
+        //     conn        = param.conn
         //   }
         //   success_msg = "Public IP removed from EC2 instance ${param.title}."
         //   error_msg   = "Error removing public IP from EC2 instance ${param.title}."
@@ -295,7 +295,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
           pipeline_args = {
             instance_ids = [param.instance_id]
             region       = param.region
-            cred         = param.cred
+            conn         = param.conn
           }
           success_msg = "Stopped EC2 instance ${param.title}."
           error_msg   = "Error stopping EC2 instance ${param.title}."
@@ -308,7 +308,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
           pipeline_args = {
             instance_ids = [param.instance_id]
             region       = param.region
-            cred         = param.cred
+            conn         = param.conn
           }
           success_msg = "Terminated EC2 instance ${param.title}."
           error_msg   = "Error terminating EC2 instance ${param.title}."

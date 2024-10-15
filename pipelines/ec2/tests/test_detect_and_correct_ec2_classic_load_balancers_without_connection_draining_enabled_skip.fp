@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -47,7 +47,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     pipeline = aws.pipeline.create_elb_classic_load_balancer
     args = {
       region   = param.region
-      cred    = param.cred
+      conn    = param.conn
       name = param.elb_name
       listeners = param.listeners
       availability_zones = param.availability_zones
@@ -82,7 +82,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     depends_on = [step.query.get_elb_classic_load_balancer]
     pipeline  = aws.pipeline.delete_elb_load_balancer
     args = {
-      cred    = param.cred
+      conn    = param.conn
       load_balancer_name = param.elb_name
       region   = param.region
     }

@@ -5,10 +5,10 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -25,7 +25,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
       "--filters", "Name=isDefault,Values=true"
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "create_security_group" {
@@ -38,7 +38,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
       "--vpc-id", jsondecode(step.container.get_default_vpc.stdout).Vpcs[0].VpcId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "transform" "get_security_group_id" {
@@ -55,7 +55,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
     pipeline   = pipeline.create_vpc_security_group_rules
     args       = {
       region    = param.region
-      cred      = param.cred
+      conn      = param.conn
       group_id  = step.transform.get_security_group_id.value
     }
   }
@@ -77,7 +77,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
           is_egress,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred    
+          sp_connection_name as conn
         from
           aws_vpc_security_group_rule
         where
@@ -89,7 +89,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
         sg.group_id as group_id,
         ingress_and_egress_rules.security_group_rule_id as security_group_rule_id,
         sg.region as region,
-        sg._ctx ->> 'connection_name' as cred
+        sg.sp_connection_name as conn
       from
         aws_vpc_security_group as sg
         left join ingress_and_egress_rules on ingress_and_egress_rules.group_id = sg.group_id
@@ -110,7 +110,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
       security_group_rule_id = each.value.security_group_rule_id
       type                   = each.value.type
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "revoke_security_group_rule"
       enabled_actions        = ["revoke_security_group_rule"]
@@ -134,7 +134,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
           is_egress,
           region,
           account_id,
-          _ctx ->> 'connection_name' as cred    
+          sp_connection_name as conn
         from
           aws_vpc_security_group_rule
         where
@@ -146,7 +146,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
         sg.group_id as group_id,
         ingress_and_egress_rules.security_group_rule_id as security_group_rule_id,
         sg.region as region,
-        sg._ctx ->> 'connection_name' as cred
+        sg.sp_connection_name as conn
       from
         aws_vpc_security_group as sg
         left join ingress_and_egress_rules on ingress_and_egress_rules.group_id = sg.group_id
@@ -174,7 +174,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
       "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_security_group_details_after_remediation]
   }
 }
@@ -185,12 +185,12 @@ pipeline "create_vpc_security_group_rules" {
 
   param "region" {
     type        = string
-    description = "Region"
+    description = local.description_region
   }
 
-  param "cred" {
+  param "conn" {
     type        = string
-    description = "Credential"
+    description = local.description_connection
   }
 
   param "group_id" {
@@ -234,7 +234,7 @@ pipeline "create_vpc_security_group_rules" {
       ["--cidr", param.cidr_block]
     )
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "create_egress_rule" {
@@ -248,7 +248,7 @@ pipeline "create_vpc_security_group_rules" {
       ["--cidr", param.egress_cidr_block]
     )
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   output "ingress_status" {

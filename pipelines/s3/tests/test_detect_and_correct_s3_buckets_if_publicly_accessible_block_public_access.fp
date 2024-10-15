@@ -5,10 +5,10 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_block_public
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -51,7 +51,7 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_block_public
     output "base_args" {
       value = {
         bucket = param.bucket
-        cred   = param.cred
+        conn   = param.conn
         region = param.region
       }
     }
@@ -61,7 +61,7 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_block_public
     output "base_args" {
       value = {
         bucket = param.bucket
-        cred   = param.cred
+        conn   = param.conn
         region = param.region
         block_public_acls = param.block_public_acls
         ignore_public_acls = param.ignore_public_acls
@@ -88,7 +88,7 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_block_public
     args = {
       title            = param.bucket
       bucket_name      = param.bucket
-      cred             = param.cred
+      conn             = param.conn
       region           = param.region
       default_action   = "block_public_access"
       enabled_actions  = ["block_public_access"]

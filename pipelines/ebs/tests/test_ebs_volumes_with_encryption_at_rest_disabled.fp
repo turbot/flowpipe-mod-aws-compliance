@@ -8,10 +8,10 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
     default     = "us-east-1"
   }
 
-  param "cred" {
+  param "conn" {
     type        = string
-    description = "The AWS credential profile to use."
-    default     = "default"
+    description = "The AWS connection profile to use."
+    default     = connection.aws.default
   }
 
   step "query" "get_ebs_volume_region_encryption_at_rest_details" {
@@ -19,7 +19,7 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
     sql        = <<-EOQ
       select
         distinct concat('[', r.account_id, '/', r.name, ']') as title,
-        r._ctx ->> 'connection_name' as cred,
+        r.sp_connection_name as conn,
         r.name as region
       from
         aws_region as r
@@ -37,7 +37,7 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
     args = {
       title                  = each.value.title
       region                 = each.value.region
-      cred                   = each.value.cred
+      conn                   = connection.aws[each.value.conn]
       approvers              = []
       default_action         = "enable_default_encryption"
       enabled_actions        = ["enable_default_encryption"]
@@ -50,7 +50,7 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
     sql        = <<-EOQ
       select
         distinct concat('[', r.account_id, '/', r.name, ']') as title,
-        r._ctx ->> 'connection_name' as cred,
+        r.sp_connection_name as conn,
         r.name as region
       from
         aws_region as r

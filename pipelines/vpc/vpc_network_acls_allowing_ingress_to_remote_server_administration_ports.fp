@@ -6,7 +6,7 @@ locals {
         att ->> 'RuleNumber' as bad_rule_number,
         region,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_vpc_network_acl,
         jsonb_array_elements(entries) as att
@@ -40,21 +40,21 @@ locals {
         partition,
         region,
         account_id,
-        _ctx ->> 'connection_name' as cred
+        sp_connection_name as conn
       from
         aws_vpc_network_acl
       order by
         network_acl_id,
         region,
         account_id,
-        cred
+        conn
     )
     select
       concat(acl.network_acl_id, '/', bad_rules.bad_rule_number, ' [', acl.account_id, '/', acl.region, ']') as title,
       acl.network_acl_id as network_acl_id,
       (bad_rules.bad_rule_number)::int as rule_number,
       acl.region as region,
-      acl.cred as cred
+      acl.conn as conn
     from
       aws_vpc_network_acls as acl
       left join bad_rules on bad_rules.network_acl_id = acl.network_acl_id
@@ -127,13 +127,13 @@ pipeline "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_
   tags          = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -145,7 +145,7 @@ pipeline "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -191,13 +191,13 @@ pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administrat
       network_acl_id  = string,
       rule_number     = number,
       region          = string,
-      cred            = string
+      conn            = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -209,7 +209,7 @@ pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administrat
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -228,7 +228,7 @@ pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administrat
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} VPC network ACL(s) allowing ingress to remote network server administration ports."
   }
 
@@ -241,7 +241,7 @@ pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administrat
       network_acl_id     = each.value.network_acl_id,
       rule_number        = each.value.rule_number
       region             = each.value.region,
-      cred               = each.value.cred,
+      conn               = connection.aws[each.value.conn],
       notifier           = param.notifier,
       notification_level = param.notification_level,
       approvers          = param.approvers,
@@ -276,13 +276,13 @@ pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administ
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -294,7 +294,7 @@ pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administ
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -344,7 +344,7 @@ pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administ
             rule_number    = param.rule_number
             is_egress      = false
             region         = param.region
-            cred           = param.cred
+            conn           = param.conn
           }
           success_msg = "Deleted rule ${param.rule_number} from network ACL ${param.network_acl_id}."
           error_msg   = "Error deleting rule ${param.rule_number} from network ACL ${param.network_acl_id}."

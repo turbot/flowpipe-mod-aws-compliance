@@ -7,7 +7,7 @@ locals {
       k.create_date as key_creation_date,
       u.create_date as user_creation_date,
       k.access_key_last_used_date,
-      k._ctx ->> 'connection_name' as cred
+      k.sp_connection_name as conn
     from
       aws_iam_access_key as k
       join aws_iam_user as u on u.name = k.user_name and (extract(day from now() - k.create_date)) = (extract(day from now() - u.create_date))
@@ -83,13 +83,13 @@ pipeline "detect_and_correct_iam_users_with_access_key_during_initial_user_setup
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -101,7 +101,7 @@ pipeline "detect_and_correct_iam_users_with_access_key_during_initial_user_setup
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -147,13 +147,13 @@ pipeline "correct_iam_users_with_access_key_during_initial_user_setup" {
       access_key_id     = string
       key_creation_date = string
       user_name         = string
-      cred              = string
+      conn              = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -165,7 +165,7 @@ pipeline "correct_iam_users_with_access_key_during_initial_user_setup" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -184,7 +184,7 @@ pipeline "correct_iam_users_with_access_key_during_initial_user_setup" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM user access key(s) created during initial user setup."
   }
 
@@ -197,7 +197,7 @@ pipeline "correct_iam_users_with_access_key_during_initial_user_setup" {
       user_name          = each.value.user_name
       access_key_id      = each.value.access_key_id
       key_creation_date  = each.value.key_creation_date
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -232,13 +232,13 @@ pipeline "correct_one_iam_users_with_access_key_during_initial_user_setup" {
     description = "The creation date of IAM access key."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -250,7 +250,7 @@ pipeline "correct_one_iam_users_with_access_key_during_initial_user_setup" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -298,7 +298,7 @@ pipeline "correct_one_iam_users_with_access_key_during_initial_user_setup" {
           pipeline_args = {
             user_name     = param.user_name
             access_key_id = param.access_key_id
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Deleted IAM user ${param.user_name} access key ${param.access_key_id} created during initial user setup ${param.key_creation_date}."
           error_msg   = "Error deleting IAM user ${param.user_name} access key ${param.access_key_id} created during initial user setup ${param.key_creation_date}."

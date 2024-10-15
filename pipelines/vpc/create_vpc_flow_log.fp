@@ -83,10 +83,10 @@ pipeline "create_iam_role_and_policy" {
   description = "Create IAM role and policy."
   tags        = merge(local.vpc_common_tags, { type = "internal" })
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   step "query" "get_iam_role" {
@@ -159,10 +159,10 @@ pipeline "create_cloudwatch_log_group" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   step "query" "get_cloudwatch_log_group_name" {
@@ -197,9 +197,9 @@ pipeline "create_vpc_flowlog" {
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "vpc_id" {
@@ -211,14 +211,14 @@ pipeline "create_vpc_flowlog" {
     pipeline = pipeline.create_cloudwatch_log_group
     args = {
       region  = param.region
-      cred    = param.cred
+      conn    = param.conn
     }
   }
 
   step "pipeline" "create_iam_role_and_policy" {
     pipeline = pipeline.create_iam_role_and_policy
     args  = {
-      cred = param.cred
+      conn = param.conn
     }
   }
 
@@ -226,7 +226,7 @@ pipeline "create_vpc_flowlog" {
     pipeline  = aws.pipeline.create_vpc_flow_logs
     args = {
       region = param.region
-      cred   = param.cred
+      conn   = param.conn
       vpc_id = param.vpc_id
       log_group_name = var.aws_cloudwatch_log_group_name
       iam_role_arn   = step.pipeline.create_iam_role_and_policy.output.iam_role_arn

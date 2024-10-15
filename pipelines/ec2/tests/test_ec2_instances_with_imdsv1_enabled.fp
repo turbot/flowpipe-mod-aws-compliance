@@ -6,10 +6,10 @@ pipeline "test_ec2_instances_with_imdsv1_enabled" {
     type = "test"
   }
 
-  param "cred" {
+  param "conn" {
     type        = string
-    description = "The AWS credential to use."
-    default     = "default"
+    description = "The AWS connection to use."
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -56,7 +56,7 @@ pipeline "test_ec2_instances_with_imdsv1_enabled" {
       "--output", "json",
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   # Wait for the EC2 instance to be in 'running' state
@@ -70,7 +70,7 @@ pipeline "test_ec2_instances_with_imdsv1_enabled" {
       "--region", param.region
     ]
 
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "query" "ec2_instances_without_imdsv2" {
@@ -81,7 +81,7 @@ pipeline "test_ec2_instances_with_imdsv1_enabled" {
       concat(instance_id, ' [', account_id, '/', region, ']') as title,
       instance_id,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_ec2_instance
     where
@@ -99,7 +99,7 @@ pipeline "test_ec2_instances_with_imdsv1_enabled" {
       title           = step.query.ec2_instances_without_imdsv2.rows[0].title
       instance_id     = jsondecode(step.container.create_ec2_instance.stdout).Instances[0].InstanceId
       region          = param.region
-      cred            = param.cred
+      conn            = param.conn
       approvers       = []
       default_action  = "disable_imdsv1"
       enabled_actions = ["disable_imdsv1"]
@@ -134,7 +134,7 @@ pipeline "test_ec2_instances_with_imdsv1_enabled" {
     args = {
       instance_ids = [jsondecode(step.container.create_ec2_instance.stdout).Instances[0].InstanceId]
       region       = param.region
-      cred         = param.cred
+      conn         = param.conn
     }
   }
 }

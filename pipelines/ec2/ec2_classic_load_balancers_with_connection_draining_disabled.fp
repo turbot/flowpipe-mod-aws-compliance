@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', account_id, '/', region, ']') as title,
       name,
       region,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_ec2_classic_load_balancer
     where
@@ -62,13 +62,13 @@ pipeline "detect_and_correct_ec2_classic_load_balancers_with_connection_draining
   tags          = merge(local.ec2_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -80,7 +80,7 @@ pipeline "detect_and_correct_ec2_classic_load_balancers_with_connection_draining
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -126,12 +126,12 @@ pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" 
       title  = string
       name   = string
       region = string
-      cred   = string
+      conn   = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -143,7 +143,7 @@ pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" 
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -162,7 +162,7 @@ pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" 
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} EC2 classic load balancer(s) with connection draining disabled."
   }
 
@@ -174,7 +174,7 @@ pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" 
       title              = each.value.title
       name               = each.value.name
       region             = each.value.region
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -204,13 +204,13 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
     description = local.description_region
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -222,7 +222,7 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -270,7 +270,7 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
           pipeline_args = {
             load_balancer_name = param.name
             region             = param.region
-            cred               = param.cred
+            conn               = param.conn
           }
           success_msg = "Enabled connection draining for EC2 classic load balancer ${param.title}."
           error_msg   = "Error enabling connection draining for EC2 classic load balancer ${param.title}."

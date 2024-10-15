@@ -67,7 +67,7 @@ locals {
       a.account_id as title,
       region,
       a.account_id,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       aws_account as a
       left join filter_data as f on a.account_id = f.account_id
@@ -280,13 +280,13 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_con
   tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -298,7 +298,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_con
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -439,13 +439,13 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_config_configu
   param "items" {
     type = list(object({
       title = string
-      cred  = string
+      conn  = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -457,7 +457,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_config_configu
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -560,7 +560,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_config_configu
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected CloudWatch log group(s) ${length(param.items)} without metric filter for Config configuration."
   }
 
@@ -574,7 +574,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_config_configu
     pipeline        = pipeline.correct_one_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes
     args = {
       title              = each.value.title
-      cred               = each.value.cred
+      conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -605,16 +605,16 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_config_con
 
   param "title" {
     type        = string
-    description = local.description_credential
+    description = local.description_connection
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -626,7 +626,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_config_con
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -756,7 +756,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_config_con
           style        = local.style_alert
           pipeline_ref = pipeline.create_cloudwatch_metric_filter_config_configuration_changes
           pipeline_args = {
-            cred             = param.cred
+            conn             = param.conn
             region           = param.region
             log_group_name   = param.log_group_name
             filter_name      = param.filter_name
@@ -849,10 +849,10 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
   title       = "Create CloudTrail with CloudWatch Logging"
   description = "Creates a CloudTrail trail with integrated CloudWatch logging and necessary IAM roles and policies."
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -1032,7 +1032,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       "--role-name", param.role_name,
       "--assume-role-policy-document", param.assume_role_policy_document,
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "container" "create_iam_policy" {
@@ -1043,7 +1043,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       "--policy-name", param.role_name,
       "--policy-document", param.cloudtrail_policy_document
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "query" "get_iam_role_arn" {
@@ -1080,7 +1080,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       "--role-name", param.role_name,
       "--policy-arn", step.query.get_iam_policy_arn.rows[0].arn,
     ]
-    env = credential.aws[param.cred].env
+    env = connection.aws[param.conn].env
   }
 
   step "container" "create_log_group" {
@@ -1091,7 +1091,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       ["--log-group-name", param.log_group_name],
       ["--region", param.region]
     )
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "create_s3_bucket" {
@@ -1103,7 +1103,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       param.acl != null ? ["--acl", param.acl] : [],
       param.region != "us-east-1" ? ["--create-bucket-configuration", "LocationConstraint=" + param.region] : []
     )
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "set_bucket_policy" {
@@ -1114,7 +1114,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       "--bucket", param.s3_bucket_name,
       "--policy", param.bucket_policy
     ]
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "query" "get_log_group_arn" {
@@ -1143,7 +1143,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       ["--cloud-watch-logs-role-arn", step.query.get_iam_role_arn.rows[0].arn],
       ["--region", param.region]
     )
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "start_cloudtrail_trail_logging" {
@@ -1152,7 +1152,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
 
     cmd = ["cloudtrail", "start-logging", "--name", param.trail_name]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "set_metric_filter" {
@@ -1174,7 +1174,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       ]
     )
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "create_sns_topic" {
@@ -1186,7 +1186,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       ["--name", param.sns_topic_name],
     )
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "query" "get_sns_topic_arn" {
@@ -1212,7 +1212,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       ["--queue-name", param.queue_name],
     )
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "query" "get_sqs_queue_arn" {
@@ -1240,7 +1240,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       "--notification-endpoint", step.query.get_sqs_queue_arn.rows[0].queue_arn,
     ]
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
   step "container" "create_alarm" {
@@ -1262,7 +1262,7 @@ pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
       ]
     )
 
-    env = merge(credential.aws[param.cred].env, { AWS_REGION = param.region })
+    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }
 
 }

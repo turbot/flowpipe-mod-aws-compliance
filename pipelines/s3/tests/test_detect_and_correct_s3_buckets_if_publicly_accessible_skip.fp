@@ -5,10 +5,10 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_skip" {
     type = "test"
   }
   
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "region" {
@@ -27,7 +27,7 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_skip" {
     output "base_args" {
       value = {
         bucket = param.bucket
-        cred   = param.cred
+        conn   = param.conn
         region = param.region
       }
     }

@@ -4,13 +4,13 @@ pipeline "manual_control" {
   documentation =  "" // TODO: Add documentation
 
    param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -22,7 +22,7 @@ pipeline "manual_control" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -34,7 +34,7 @@ pipeline "manual_control" {
   }
 
   step "message" "manual_control" {
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = param.message
   }
 }

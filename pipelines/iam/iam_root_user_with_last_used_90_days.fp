@@ -3,7 +3,7 @@ locals {
     select
       concat(user_name, ' [', account_id, ']') as title,
       account_id,
-      _ctx ->> 'connection_name' as cred,
+      sp_connection_name as conn,
       case when password_last_used is not null then concat('used on ', password_last_used::text) else 'never used' end as password_last_used,
       case when access_key_1_last_used_date is not null then concat('used on ', access_key_1_last_used_date::text )else 'never used' end as access_key_1_last_used_date,
       case when access_key_2_last_used_date is not null then concat('used on ',access_key_2_last_used_date::text )else 'never used' end as access_key_2_last_used_date
@@ -83,13 +83,13 @@ pipeline "detect_and_correct_iam_root_user_with_last_used_90_days" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -101,7 +101,7 @@ pipeline "detect_and_correct_iam_root_user_with_last_used_90_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -147,13 +147,13 @@ pipeline "correct_iam_root_user_with_last_used_90_days" {
       password_last_used          = string
       access_key_1_last_used_date = string
       access_key_2_last_used_date = string
-      cred                        = string
+      conn                        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -165,7 +165,7 @@ pipeline "correct_iam_root_user_with_last_used_90_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -184,14 +184,14 @@ pipeline "correct_iam_root_user_with_last_used_90_days" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM root user used in last 90 days."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected IAM ${each.value.title} with password ${each.value.password_last_used} and access key 1 ${each.value.access_key_1_last_used_date} and access key 2 ${each.value.access_key_2_last_used_date}."
   }
 }

@@ -6,10 +6,10 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
     type = "test"
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
-    default     = "default"
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
+    default     = connection.aws.default
   }
 
   param "title" {
@@ -72,7 +72,7 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
       email_address           = param.email_address
       phone_number            = param.phone_number
       name                    = param.name
-      cred                    = param.cred
+      conn                    = param.conn
       approvers               = []
       default_action          = "add_alternate_security_contact"
       enabled_actions         = ["add_alternate_security_contact"]
@@ -113,7 +113,7 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
 
     pipeline = aws.pipeline.delete_alternate_contact
     args = {
-      cred                   = param.cred
+      conn                   = param.conn
       alternate_contact_type = "SECURITY"
     }
   }

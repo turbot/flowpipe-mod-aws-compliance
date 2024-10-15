@@ -4,7 +4,7 @@ locals {
       concat(access_key_id, ' [', account_id, ']') as title,
       access_key_id,
       user_name,
-      _ctx ->> 'connection_name' as cred,
+      sp_connection_name as conn,
       create_date as access_key_create_date,
       (extract(day from now() - create_date))::text as access_key_create_day
     from
@@ -78,13 +78,13 @@ pipeline "detect_and_correct_iam_users_with_access_key_age_90_days" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -96,7 +96,7 @@ pipeline "detect_and_correct_iam_users_with_access_key_age_90_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -144,13 +144,13 @@ pipeline "correct_iam_users_with_access_key_age_90_days" {
       access_key_create_date  = string
       access_key_create_day   = string
       access_key_id           = string
-      cred                    = string
+      conn                    = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -162,7 +162,7 @@ pipeline "correct_iam_users_with_access_key_age_90_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -181,7 +181,7 @@ pipeline "correct_iam_users_with_access_key_age_90_days" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM user(s) access key aged 90 days or more."
   }
 
@@ -195,7 +195,7 @@ pipeline "correct_iam_users_with_access_key_age_90_days" {
       access_key_id             = each.value.access_key_id
       access_key_create_date    = each.value.access_key_create_date
       access_key_create_day     = each.value.access_key_create_day
-      cred                      = each.value.cred
+      conn                      = connection.aws[each.value.conn]
       notifier                  = param.notifier
       notification_level        = param.notification_level
       approvers                 = param.approvers
@@ -235,13 +235,13 @@ pipeline "correct_one_iam_user_with_access_key_age_90_days" {
     description = "The number of days since the IAM user's access key was created."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.aws
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -253,7 +253,7 @@ pipeline "correct_one_iam_user_with_access_key_age_90_days" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -301,7 +301,7 @@ pipeline "correct_one_iam_user_with_access_key_age_90_days" {
           pipeline_args = {
             user_name      = param.user_name
             access_key_id  = param.access_key_id
-            cred           = param.cred
+            conn           = param.conn
           }
           success_msg = "Deactivated IAM user ${param.user_name} with access key ${param.title} created on ${param.access_key_create_date} (${param.access_key_create_day} days old)."
           error_msg   = "Error deactivating IAM user ${param.user_name} with access key ${param.title} created on ${param.access_key_create_date} (${param.access_key_create_day} days old)."

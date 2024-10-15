@@ -3,7 +3,7 @@ locals {
     select
       concat('<root_account>', ' [', s.account_id, ']') as title,
       s.account_id,
-      s._ctx ->> 'connection_name' as cred
+      s.sp_connection_name as conn
     from
       aws_iam_account_summary as s
       left join aws_iam_virtual_mfa_device as d on (d.user ->> 'Arn') = concat('arn:', s.partition, ':iam::', s.account_id, ':root')
@@ -76,13 +76,13 @@ pipeline "detect_and_correct_iam_root_user_with_hardware_mfa_disabled" {
   tags          = local.iam_common_tags
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -94,7 +94,7 @@ pipeline "detect_and_correct_iam_root_user_with_hardware_mfa_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -139,13 +139,13 @@ pipeline "correct_iam_root_user_with_hardware_mfa_disabled" {
       title       = string
       bucket_name = string
       region      = string
-      cred        = string
+      conn        = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -157,7 +157,7 @@ pipeline "correct_iam_root_user_with_hardware_mfa_disabled" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -176,14 +176,14 @@ pipeline "correct_iam_root_user_with_hardware_mfa_disabled" {
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} IAM root user with hardware MFA disabled."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
-    notifier = notifier[param.notifier]
+    notifier = param.notifier
     text     = "Detected IAM ${each.value.title} with hardware MFA disabled."
   }
 }
