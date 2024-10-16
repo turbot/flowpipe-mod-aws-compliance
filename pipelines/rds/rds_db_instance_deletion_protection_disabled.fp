@@ -39,10 +39,10 @@ variable "rds_db_instance_if_deletion_protection_disabled_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_rds_db_instance_if_deletion_protection_disabled" {
-  title         = "Detect & correct RDS DB instances if deletion protection disabled"
-  description   = "Detects RDS DB instances if deletion protection disabled and runs your chosen action."
+  title       = "Detect & correct RDS DB instances if deletion protection disabled"
+  description = "Detects RDS DB instances if deletion protection disabled and runs your chosen action."
 
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  tags = local.rds_common_tags
 
   enabled  = var.rds_db_instance_if_deletion_protection_disabled_trigger_enabled
   schedule = var.rds_db_instance_if_deletion_protection_disabled_trigger_schedule
@@ -58,10 +58,10 @@ trigger "query" "detect_and_correct_rds_db_instance_if_deletion_protection_disab
 }
 
 pipeline "detect_and_correct_rds_db_instance_if_deletion_protection_disabled" {
-  title         = "Detect & correct RDS DB instances if deletion protection disabled"
-  description   = "Detects RDS DB instances if deletion protection disabled and runs your chosen action."
+  title       = "Detect & correct RDS DB instances if deletion protection disabled"
+  description = "Detects RDS DB instances if deletion protection disabled and runs your chosen action."
 
-  tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
+  tags = merge(local.rds_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -118,10 +118,10 @@ pipeline "detect_and_correct_rds_db_instance_if_deletion_protection_disabled" {
 }
 
 pipeline "correct_rds_db_instance_if_deletion_protection_disabled" {
-  title         = "Correct RDS DB instance if deletion protection disabled"
-  description   = "Runs corrective action on a collection of RDS DB instance if deletion protection disabled."
+  title       = "Correct RDS DB instance if deletion protection disabled"
+  description = "Runs corrective action on a collection of RDS DB instance if deletion protection disabled."
 
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  tags = local.rds_common_tags
 
   param "items" {
     type = list(object({
@@ -194,10 +194,10 @@ pipeline "correct_rds_db_instance_if_deletion_protection_disabled" {
 }
 
 pipeline "correct_one_rds_db_instance_if_deletion_protection_disabled" {
-  title         = "Correct one RDS DB instance if deletion protection disabled"
-  description   = "Runs corrective action on an RDS DB instance if deletion protection disabled."
+  title       = "Correct one RDS DB instance if deletion protection disabled"
+  description = "Runs corrective action on an RDS DB instance if deletion protection disabled."
 
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  tags = local.rds_common_tags
 
   param "title" {
     type        = string

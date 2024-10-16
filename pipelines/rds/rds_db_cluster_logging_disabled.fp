@@ -38,9 +38,9 @@ variable "rds_db_cluster_if_logging_disabled_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_rds_db_cluster_if_logging_disabled" {
-  title         = "Detect & correct RDS DB cluster if logging disabled"
-  description   = "Detects RDS DB clusters if logging is disabled and runs your chosen action."
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  title       = "Detect & correct RDS DB cluster if logging disabled"
+  description = "Detects RDS DB clusters if logging is disabled and runs your chosen action."
+  tags        = local.rds_common_tags
 
   enabled  = var.rds_db_cluster_if_logging_disabled_trigger_enabled
   schedule = var.rds_db_cluster_if_logging_disabled_trigger_schedule
@@ -56,9 +56,9 @@ trigger "query" "detect_and_correct_rds_db_cluster_if_logging_disabled" {
 }
 
 pipeline "detect_and_correct_rds_db_cluster_if_logging_disabled" {
-  title         = "Detect & correct RDS DB clusters if logging disabled"
-  description   = "Detects RDS DB clusters if logging is disabled and runs your chosen action."
-  tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
+  title       = "Detect & correct RDS DB clusters if logging disabled"
+  description = "Detects RDS DB clusters if logging is disabled and runs your chosen action."
+  tags        = merge(local.rds_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -115,18 +115,18 @@ pipeline "detect_and_correct_rds_db_cluster_if_logging_disabled" {
 }
 
 pipeline "correct_rds_db_cluster_if_logging_disabled" {
-  title         = "Correct RDS DB cluster if logging disabled"
-  description   = "Runs corrective action on a collection of RDS DB clusters if logging is disabled."
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  title       = "Correct RDS DB cluster if logging disabled"
+  description = "Runs corrective action on a collection of RDS DB clusters if logging is disabled."
+  tags        = local.rds_common_tags
 
   param "items" {
     type = list(object({
-      title                  = string
-      db_cluster_identifier  = string
+      title                           = string
+      db_cluster_identifier           = string
       enabled_cloudwatch_logs_exports = list(string)
-      region                 = string
-      engine                 = string
-      conn                   = string
+      region                          = string
+      engine                          = string
+      conn                            = string
     }))
     description = local.description_items
   }
@@ -176,25 +176,25 @@ pipeline "correct_rds_db_cluster_if_logging_disabled" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_rds_db_cluster_if_logging_disabled
     args = {
-      title                          = each.value.title
-      db_cluster_identifier          = each.value.db_cluster_identifier
-      enable_logging                 = true
-      engine                         = each.value.engine
-      region                         = each.value.region
-      conn                           = connection.aws[each.value.conn]
-      notifier                       = param.notifier
-      notification_level             = param.notification_level
-      approvers                      = param.approvers
-      default_action                 = param.default_action
-      enabled_actions                = param.enabled_actions
+      title                 = each.value.title
+      db_cluster_identifier = each.value.db_cluster_identifier
+      enable_logging        = true
+      engine                = each.value.engine
+      region                = each.value.region
+      conn                  = connection.aws[each.value.conn]
+      notifier              = param.notifier
+      notification_level    = param.notification_level
+      approvers             = param.approvers
+      default_action        = param.default_action
+      enabled_actions       = param.enabled_actions
     }
   }
 }
 
 pipeline "correct_one_rds_db_cluster_if_logging_disabled" {
-  title         = "Correct one RDS DB cluster if logging is disabled"
-  description   = "Runs corrective action on an RDS DB cluster if logging is disabled."
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  title       = "Correct one RDS DB cluster if logging is disabled"
+  description = "Runs corrective action on an RDS DB cluster if logging is disabled."
+  tags        = local.rds_common_tags
 
   param "title" {
     type        = string
@@ -285,11 +285,11 @@ pipeline "correct_one_rds_db_cluster_if_logging_disabled" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_rds_db_cluster
           pipeline_args = {
-            db_cluster_identifier              = param.db_cluster_identifier
-            engine                             = param.engine
-            enable_logging                     = true
-            region                             = param.region
-            conn                               = param.conn
+            db_cluster_identifier = param.db_cluster_identifier
+            engine                = param.engine
+            enable_logging        = true
+            region                = param.region
+            conn                  = param.conn
           }
           success_msg = "Updated RDS DB cluster ${param.title}."
           error_msg   = "Error updating RDS DB cluster ${param.title}."

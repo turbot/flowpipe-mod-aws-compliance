@@ -38,10 +38,10 @@ variable "rds_db_instance_if_iam_authentication_disabled_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_rds_db_instance_if_iam_authentication_disabled" {
-  title         = "Detect & correct RDS DB instances if IAM authentication disabled"
-  description   = "Detects RDS DB instances if IAM authentication is disabled and runs your chosen action."
+  title       = "Detect & correct RDS DB instances if IAM authentication disabled"
+  description = "Detects RDS DB instances if IAM authentication is disabled and runs your chosen action."
 
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  tags = local.rds_common_tags
 
   enabled  = var.rds_db_instance_if_iam_authentication_disabled_trigger_enabled
   schedule = var.rds_db_instance_if_iam_authentication_disabled_trigger_schedule
@@ -57,10 +57,10 @@ trigger "query" "detect_and_correct_rds_db_instance_if_iam_authentication_disabl
 }
 
 pipeline "detect_and_correct_rds_db_instance_if_iam_authentication_disabled" {
-  title         = "Detect & correct RDS DB instances if IAM authentication disabled"
-  description   = "Detects RDS DB instances if IAM authentication is disabled and runs your chosen action."
+  title       = "Detect & correct RDS DB instances if IAM authentication disabled"
+  description = "Detects RDS DB instances if IAM authentication is disabled and runs your chosen action."
 
-  tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
+  tags = merge(local.rds_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -117,18 +117,18 @@ pipeline "detect_and_correct_rds_db_instance_if_iam_authentication_disabled" {
 }
 
 pipeline "correct_rds_db_instance_if_iam_authentication_disabled" {
-  title         = "Correct RDS DB instance if IAM authentication disabled"
-  description   = "Runs corrective action on a collection of RDS DB instance if IAM authentication is disabled."
+  title       = "Correct RDS DB instance if IAM authentication disabled"
+  description = "Runs corrective action on a collection of RDS DB instance if IAM authentication is disabled."
 
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  tags = local.rds_common_tags
 
   param "items" {
     type = list(object({
-      title                  = string
-      db_instance_identifier = string
+      title                               = string
+      db_instance_identifier              = string
       iam_database_authentication_enabled = bool
-      region                 = string
-      conn                   = string
+      region                              = string
+      conn                                = string
     }))
     description = local.description_items
   }
@@ -178,25 +178,25 @@ pipeline "correct_rds_db_instance_if_iam_authentication_disabled" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_rds_db_instance_if_iam_authentication_disabled
     args = {
-      title                  = each.value.title
-      db_instance_identifier = each.value.db_instance_identifier
+      title                               = each.value.title
+      db_instance_identifier              = each.value.db_instance_identifier
       iam_database_authentication_enabled = true
-      region                 = each.value.region
-      conn                   = connection.aws[each.value.conn]
-      notifier               = param.notifier
-      notification_level     = param.notification_level
-      approvers              = param.approvers
-      default_action         = param.default_action
-      enabled_actions        = param.enabled_actions
+      region                              = each.value.region
+      conn                                = connection.aws[each.value.conn]
+      notifier                            = param.notifier
+      notification_level                  = param.notification_level
+      approvers                           = param.approvers
+      default_action                      = param.default_action
+      enabled_actions                     = param.enabled_actions
     }
   }
 }
 
 pipeline "correct_one_rds_db_instance_if_iam_authentication_disabled" {
-  title         = "Correct one RDS DB instance if IAM authentication is disabled"
-  description   = "Runs corrective action on an RDS DB instance if IAM authentication is disabled."
+  title       = "Correct one RDS DB instance if IAM authentication is disabled"
+  description = "Runs corrective action on an RDS DB instance if IAM authentication is disabled."
 
-  tags          = merge(local.rds_common_tags, { class = "unused" })
+  tags = local.rds_common_tags
 
   param "title" {
     type        = string
@@ -282,10 +282,10 @@ pipeline "correct_one_rds_db_instance_if_iam_authentication_disabled" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_rds_db_instance
           pipeline_args = {
-            db_instance_identifier               = param.db_instance_identifier
-            iam_database_authentication_enabled  = true
-            region                               = param.region
-            conn                                 = param.conn
+            db_instance_identifier              = param.db_instance_identifier
+            iam_database_authentication_enabled = true
+            region                              = param.region
+            conn                                = param.conn
           }
           success_msg = "Updated RDS DB instance ${param.title}."
           error_msg   = "Error updating RDS DB instance ${param.title}."
