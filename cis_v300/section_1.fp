@@ -81,7 +81,7 @@ variable "cis_v300_1_enabled_pipelines" {
 }
 
 pipeline "cis_v300_1" {
-  title         = "1 Monitoring"
+  title         = "1 Identity and Access Management"
   documentation = file("./cis_v300/docs/cis_v300_1.md")
 
   tags = {
@@ -165,12 +165,12 @@ pipeline "cis_v300_1_1" {
 
   step "message" "header" {
     notifier = param.notifier
-    text     = "1.1 Maintain current contact detailsd"
+    text     = "1.1 Maintain current contact details"
   }
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes
+    pipeline   = pipeline.manual_detection
 
     args = {
       database           = param.database
@@ -182,7 +182,7 @@ pipeline "cis_v300_1_1" {
 }
 
 pipeline "cis_v300_1_2" {
-  title         = "1.2 Ensure security contact information is registeredd"
+  title         = "1.2 Ensure security contact information is registered"
   documentation = file("./cis_v300/docs/cis_v300_1_2.md")
 
   tags = {
@@ -220,7 +220,7 @@ pipeline "cis_v300_1_2" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_alternate_security_contact
 
     args = {
       database           = param.database
@@ -232,7 +232,7 @@ pipeline "cis_v300_1_2" {
 }
 
 pipeline "cis_v300_1_3" {
-  title         = "1.3 Ensure security questions are registered in the AWS accoun"
+  title         = "1.3 Ensure security questions are registered in the AWS account"
   documentation = file("./cis_v300/docs/cis_v300_1_3.md")
 
   tags = {
@@ -265,12 +265,12 @@ pipeline "cis_v300_1_3" {
 
   step "message" "header" {
     notifier = param.notifier
-    text     = "1.3 Ensure security questions are registered in the AWS accoun"
+    text     = "1.3 Ensure security questions are registered in the AWS account"
   }
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login
+    pipeline   = pipeline.manual_detection
 
     args = {
       database           = param.database
@@ -320,7 +320,7 @@ pipeline "cis_v300_1_4" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes
+    pipeline   = pipeline.detect_and_correct_iam_root_user_with_access_key
 
     args = {
       database           = param.database
@@ -370,7 +370,7 @@ pipeline "cis_v300_1_5" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration
+    pipeline   = pipeline.detect_and_correct_iam_root_user_mfa_disabled
 
     args = {
       database           = param.database
@@ -420,7 +420,7 @@ pipeline "cis_v300_1_6" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure
+    pipeline   = pipeline.detect_and_correct_iam_root_user_with_hardware_mfa_disabled
 
     args = {
       database           = param.database
@@ -470,7 +470,7 @@ pipeline "cis_v300_1_7" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk
+    pipeline   = pipeline.manual_detection
 
     args = {
       database           = param.database
@@ -520,7 +520,7 @@ pipeline "cis_v300_1_8" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes
+    pipeline   = pipeline.detect_and_correct_iam_account_password_policies_without_min_length_14
 
     args = {
       database           = param.database
@@ -570,7 +570,7 @@ pipeline "cis_v300_1_9" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes
+    pipeline   = pipeline.detect_and_correct_iam_account_password_policies_without_password_reuse_24
 
     args = {
       database           = param.database
@@ -620,7 +620,7 @@ pipeline "cis_v300_1_10" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_security_group_changes
+    pipeline   = pipeline.detect_and_correct_iam_users_with_console_access_mfa_disabled
 
     args = {
       database           = param.database
@@ -670,7 +670,7 @@ pipeline "cis_v300_1_11" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_acl_changes
+    pipeline   = pipeline.detect_and_correct_iam_users_with_access_key_during_initial_user_setup
 
     args = {
       database           = param.database
@@ -720,7 +720,7 @@ pipeline "cis_v300_1_12" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes
+    pipeline   = pipeline.detect_and_correct_iam_users_with_unused_access_key_45_days
 
     args = {
       database           = param.database
@@ -770,7 +770,7 @@ pipeline "cis_v300_1_13" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_route_table_changes
+    pipeline   = pipeline.detect_and_correct_iam_users_with_more_than_one_active_key
 
     args = {
       database           = param.database
@@ -815,12 +815,12 @@ pipeline "cis_v300_1_14" {
 
   step "message" "header" {
     notifier = param.notifier
-    text     = "1.14 Ensure access keys are rotated every 90 days or lessd"
+    text     = "1.14 Ensure access keys are rotated every 90 days or less"
   }
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes
+    pipeline   = pipeline.detect_and_correct_iam_users_with_access_key_age_90_days
 
     args = {
       database           = param.database
@@ -870,7 +870,7 @@ pipeline "cis_v300_1_15" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_organization_changes
+    pipeline   = pipeline.detect_and_correct_iam_users_with_inline_policy_attached
 
     args = {
       database           = param.database
@@ -920,7 +920,7 @@ pipeline "cis_v300_1_16" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_security_hub_disabled_in_regions
+    pipeline   = pipeline.detect_and_correct_iam_users_with_policy_star_star_attached
 
     args = {
       database           = param.database
@@ -970,7 +970,7 @@ pipeline "cis_v300_1_17" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_security_hub_disabled_in_regions
+    pipeline   = pipeline.detect_and_correct_iam_account_without_support_role
 
     args = {
       database           = param.database
@@ -1020,7 +1020,7 @@ pipeline "cis_v300_1_18" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_security_hub_disabled_in_regions
+    pipeline   = pipeline.manual_detection
 
     args = {
       database           = param.database
@@ -1070,7 +1070,7 @@ pipeline "cis_v300_1_19" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_security_hub_disabled_in_regions
+    pipeline   = pipeline.detect_and_correct_iam_server_certificates_expired
 
     args = {
       database           = param.database
@@ -1120,7 +1120,7 @@ pipeline "cis_v300_1_20" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_security_hub_disabled_in_regions
+    pipeline   = pipeline.detect_and_correct_iam_access_analyzer_disabled_in_regions
 
     args = {
       database           = param.database
@@ -1170,7 +1170,7 @@ pipeline "cis_v300_1_21" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_security_hub_disabled_in_regions
+    pipeline   = pipeline.manual_detection
 
     args = {
       database           = param.database
@@ -1220,7 +1220,7 @@ pipeline "cis_v300_1_22" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_security_hub_disabled_in_regions
+    pipeline   = pipeline.detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access
 
     args = {
       database           = param.database
