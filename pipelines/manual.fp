@@ -1,7 +1,6 @@
-pipeline "manual_control" {
-  title         = "Manual Control"
-  description   = "This is a manual control that requires human intervention."
-  documentation =  "" // TODO: Add documentation
+pipeline "manual_detection" {
+  title         = "Manual Detection"
+  description   = "This is a detection that requires manual verification."
 
    param "database" {
     type        = connection.steampipe
@@ -30,10 +29,10 @@ pipeline "manual_control" {
   param "message" {
     type        = string
     description = "Message to display."
-    default     = "Please check for detections manually."
+    default     = "Manual verification required."
   }
 
-  step "message" "manual_control" {
+  step "message" "send_message" {
     notifier = param.notifier
     text     = param.message
   }

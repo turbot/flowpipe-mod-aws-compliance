@@ -1,5 +1,5 @@
 locals {
-  default_ebs_encryption_at_rest_disabled_in_regions_query = <<-EOQ
+  regions_with_ebs_encryption_by_default_disabled_query = <<-EOQ
     select
       concat('[', r.account_id, '/', r.name, ']') as title,
       r.sp_connection_name as conn,
@@ -12,7 +12,7 @@ locals {
   EOQ
 }
 
-variable "default_ebs_encryption_at_rest_disabled_in_regions_trigger_enabled" {
+variable "regions_with_ebs_encryption_by_default_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
@@ -22,7 +22,7 @@ variable "default_ebs_encryption_at_rest_disabled_in_regions_trigger_enabled" {
   }
 }
 
-variable "default_ebs_encryption_at_rest_disabled_in_regions_trigger_schedule" {
+variable "regions_with_ebs_encryption_by_default_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
@@ -32,7 +32,7 @@ variable "default_ebs_encryption_at_rest_disabled_in_regions_trigger_schedule" {
   }
 }
 
-variable "default_ebs_encryption_at_rest_disabled_in_regions_default_action" {
+variable "regions_with_ebs_encryption_by_default_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
@@ -42,37 +42,37 @@ variable "default_ebs_encryption_at_rest_disabled_in_regions_default_action" {
   }
 }
 
-variable "default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions" {
+variable "regions_with_ebs_encryption_by_default_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "enable_default_encryption"]
+  default     = ["skip", "enable_encryption_by_default"]
 
   tags = {
     folder = "Advanced/EBS"
   }
 }
 
-trigger "query" "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions" {
-  title         = "Detect & correct default EBS encryption at rest disabled in regions"
-  description   = "Detect regions with default encryption at rest disabled and then skip or enable encryption."
+trigger "query" "detect_and_correct_regions_with_ebs_encryption_by_default_disabled" {
+  title         = "Detect & correct regions with EBS encryption by default disabled"
+  description   = "Detect regions with EBS encryption by default disabled and then skip or enable encryption."
   tags          = local.ebs_common_tags
 
-  enabled  = var.default_ebs_encryption_at_rest_disabled_in_regions_trigger_enabled
-  schedule = var.default_ebs_encryption_at_rest_disabled_in_regions_trigger_schedule
+  enabled  = var.regions_with_ebs_encryption_by_default_disabled_trigger_enabled
+  schedule = var.regions_with_ebs_encryption_by_default_disabled_trigger_schedule
   database = var.database
-  sql      = local.default_ebs_encryption_at_rest_disabled_in_regions_query
+  sql      = local.regions_with_ebs_encryption_by_default_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_default_ebs_encryption_at_rest_disabled_in_regions
+    pipeline = pipeline.correct_regions_with_ebs_encryption_by_default_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions" {
-  title         = "Detect & correct default EBS encryption at rest disabled in regions"
-  description   = "Detect regions with default encryption at rest disabled and then skip or enable encryption."
+pipeline "detect_and_correct_regions_with_ebs_encryption_by_default_disabled" {
+  title         = "Detect & correct regions with EBS encryption by default disabled"
+  description   = "Detect regions with EBS encryption by default disabled and then skip or enable encryption."
   tags          = merge(local.ebs_common_tags, { recommended = "true" })
 
   param "database" {
@@ -102,22 +102,22 @@ pipeline "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions"
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_default_action
+    default     = var.regions_with_ebs_encryption_by_default_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions
+    default     = var.regions_with_ebs_encryption_by_default_disabled_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.default_ebs_encryption_at_rest_disabled_in_regions_query
+    sql      = local.regions_with_ebs_encryption_by_default_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_default_ebs_encryption_at_rest_disabled_in_regions
+    pipeline = pipeline.correct_regions_with_ebs_encryption_by_default_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -129,9 +129,9 @@ pipeline "detect_and_correct_default_ebs_encryption_at_rest_disabled_in_regions"
   }
 }
 
-pipeline "correct_default_ebs_encryption_at_rest_disabled_in_regions" {
-  title         = "Correct default EBS encryption at rest disabled in regions"
-  description   = "Enable EBS default encryption at rest in regions with default encryption at rest disabled."
+pipeline "correct_regions_with_ebs_encryption_by_default_disabled" {
+  title         = "Correct regions with EBS encryption by default disabled"
+  description   = "Enable EBS encryption by default in regions with EBS encryption by default disabled."
   tags          = merge(local.ebs_common_tags, { type = "internal" })
 
   param "items" {
@@ -164,25 +164,25 @@ pipeline "correct_default_ebs_encryption_at_rest_disabled_in_regions" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_default_action
+    default     = var.regions_with_ebs_encryption_by_default_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions
+    default     = var.regions_with_ebs_encryption_by_default_disabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} EBS region(s) with default encryption at rest disabled."
+    text     = "Detected ${length(param.items)} region(s) with EBS encryption by default disabled."
   }
 
   step "pipeline" "correct_item" {
     for_each        = { for item in param.items : item.title => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_ebs_region_with_default_encryption_at_rest_disabled
+    pipeline        = pipeline.correct_one_region_with_ebs_encryption_by_default_disabled
     args = {
       title              = each.value.title
       region             = each.value.region
@@ -196,9 +196,9 @@ pipeline "correct_default_ebs_encryption_at_rest_disabled_in_regions" {
   }
 }
 
-pipeline "correct_one_ebs_region_with_default_encryption_at_rest_disabled" {
-  title         = "Correct one EBS region with default encryption at rest disabled"
-  description   = "Enable default encryption at rest on a single EBS region with default encryption at rest disabled."
+pipeline "correct_one_region_with_ebs_encryption_by_default_disabled" {
+  title         = "Correct one region with EBS encryption by default disabled"
+  description   = "Enable EBS encryption by default in one region with EBS encryption by default disabled."
   tags          = merge(local.ebs_common_tags, { type = "internal" })
 
   param "title" {
@@ -237,13 +237,13 @@ pipeline "correct_one_ebs_region_with_default_encryption_at_rest_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_default_action
+    default     = var.regions_with_ebs_encryption_by_default_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.default_ebs_encryption_at_rest_disabled_in_regions_enabled_actions
+    default     = var.regions_with_ebs_encryption_by_default_disabled_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -252,7 +252,7 @@ pipeline "correct_one_ebs_region_with_default_encryption_at_rest_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected EBS region ${param.title} with default encryption at rest disabled."
+      detect_msg         = "Detected region ${param.title} with EBS encryption by default disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -264,22 +264,22 @@ pipeline "correct_one_ebs_region_with_default_encryption_at_rest_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped EBS region ${param.title} with default encryption at rest disabled."
+            text     = "Skipped region ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
-        "enable_default_encryption" = {
-          label        = "Enable Default Encryption"
-          value        = "enable_default_encryption"
+        "enable_encryption_by_default" = {
+          label        = "Enable encryption by default"
+          value        = "enable_encryption_by_default"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.enable_ebs_encryption_by_default
           pipeline_args = {
             region    = param.region
             conn      = param.conn
           }
-          success_msg = "Enabled default encryption for EBS region ${param.title}."
-          error_msg   = "Error enabling default encryption for EBS region ${param.title}."
+          success_msg = "Enabled EBS encryption by default for region ${param.title}."
+          error_msg   = "Error enabling EBS encryption by default for region ${param.title}."
         }
       }
     }

@@ -33,14 +33,14 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
   step "pipeline" "correct_item" {
     for_each        = { for item in step.query.get_ebs_volume_region_encryption_at_rest_details.rows : item.title => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_ebs_region_with_default_encryption_at_rest_disabled
+    pipeline        = pipeline.correct_one_region_with_ebs_encryption_by_default_disabled
     args = {
       title                  = each.value.title
       region                 = each.value.region
       conn                   = connection.aws[each.value.conn]
       approvers              = []
-      default_action         = "enable_default_encryption"
-      enabled_actions        = ["enable_default_encryption"]
+      default_action         = "enable_encryption_by_default"
+      enabled_actions        = ["enable_encryption_by_default"]
     }
   }
 
@@ -64,8 +64,7 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
   output "test_results" {
     description = "Test results for each step."
     value = {
-      "get_elb_classic_load_balancer" = length(step.query.get_ebs_volume_region_encryption_at_rest_details_after_remediation.rows) == 0 ? "pass" : "fail: Row length is not 1"
+      "get_ebs_volume_region_encryption_at_rest_details_after_remediation" = length(step.query.get_ebs_volume_region_encryption_at_rest_details_after_remediation.rows) == 0 ? "pass" : "fail: Row length is not 1"
     }
   }
 }
-
