@@ -319,7 +319,7 @@ pipeline "update_iam_account_password_policy_uppercase_letter" {
         aws_account as a
         left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-        a.sp_connection_name ->> 'connection_name' = '${param.conn}'; -- TODO: Fix this to work with sp_connection_name and param.conn
+        a.sp_connection_name = '${param.conn}'; -- TODO: Fix this to work with sp_connection_name and param.conn
     EOQ
   }
 
