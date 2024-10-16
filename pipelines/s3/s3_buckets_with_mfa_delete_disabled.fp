@@ -90,7 +90,7 @@ pipeline "detect_and_correct_s3_buckets_with_mfa_delete_disabled" {
 
 pipeline "correct_s3_buckets_with_mfa_delete_disabled" {
   title       = "Correct S3 buckets with MFA delete disabled"
-  description = "Detect S3 buckets with MFA delete disabled."
+  description = "Send notifications for S3 buckets with MFA delete disabled."
   tags        = merge(local.s3_common_tags, { type = "internal" })
 
   param "items" {
