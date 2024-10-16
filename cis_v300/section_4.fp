@@ -6,16 +6,16 @@ locals {
     cis_v300_4_4  = pipeline.cis_v300_4_4
     cis_v300_4_5  = pipeline.cis_v300_4_5
     cis_v300_4_6  = pipeline.cis_v300_4_6
-		cis_v300_4_7  = pipeline.cis_v300_4_7
-		cis_v300_4_8  = pipeline.cis_v300_4_8
-		cis_v300_4_9  = pipeline.cis_v300_4_9
-		cis_v300_4_10 = pipeline.cis_v300_4_10
-		cis_v300_4_11 = pipeline.cis_v300_4_11
-		cis_v300_4_12 = pipeline.cis_v300_4_12
-		cis_v300_4_13 = pipeline.cis_v300_4_13
-		cis_v300_4_14 = pipeline.cis_v300_4_14
-		cis_v300_4_15 = pipeline.cis_v300_4_15
-		cis_v300_4_16 = pipeline.cis_v300_4_16
+    cis_v300_4_7  = pipeline.cis_v300_4_7
+    cis_v300_4_8  = pipeline.cis_v300_4_8
+    cis_v300_4_9  = pipeline.cis_v300_4_9
+    cis_v300_4_10 = pipeline.cis_v300_4_10
+    cis_v300_4_11 = pipeline.cis_v300_4_11
+    cis_v300_4_12 = pipeline.cis_v300_4_12
+    cis_v300_4_13 = pipeline.cis_v300_4_13
+    cis_v300_4_14 = pipeline.cis_v300_4_14
+    cis_v300_4_15 = pipeline.cis_v300_4_15
+    cis_v300_4_16 = pipeline.cis_v300_4_16
   }
 }
 
@@ -30,16 +30,16 @@ variable "cis_v300_4_enabled_pipelines" {
     "cis_v300_4_4",
     "cis_v300_4_5",
     "cis_v300_4_6",
-		"cis_v300_4_7",
-		"cis_v300_4_8",
-		"cis_v300_4_9",
-		"cis_v300_4_10",
-		"cis_v300_4_11",
-		"cis_v300_4_12",
-		"cis_v300_4_13",
-		"cis_v300_4_14",
-		"cis_v300_4_15",
-		"cis_v300_4_16"
+    "cis_v300_4_7",
+    "cis_v300_4_8",
+    "cis_v300_4_9",
+    "cis_v300_4_10",
+    "cis_v300_4_11",
+    "cis_v300_4_12",
+    "cis_v300_4_13",
+    "cis_v300_4_14",
+    "cis_v300_4_15",
+    "cis_v300_4_16"
   ]
 
   enum = [
@@ -49,16 +49,16 @@ variable "cis_v300_4_enabled_pipelines" {
     "cis_v300_4_4",
     "cis_v300_4_5",
     "cis_v300_4_6",
-		"cis_v300_4_7",
-		"cis_v300_4_8",
-		"cis_v300_4_9",
-		"cis_v300_4_10",
-		"cis_v300_4_11",
-		"cis_v300_4_12",
-		"cis_v300_4_13",
-		"cis_v300_4_14",
-		"cis_v300_4_15",
-		"cis_v300_4_16"
+    "cis_v300_4_7",
+    "cis_v300_4_8",
+    "cis_v300_4_9",
+    "cis_v300_4_10",
+    "cis_v300_4_11",
+    "cis_v300_4_12",
+    "cis_v300_4_13",
+    "cis_v300_4_14",
+    "cis_v300_4_15",
+    "cis_v300_4_16"
   ]
 }
 
@@ -67,7 +67,8 @@ pipeline "cis_v300_4" {
   documentation = file("./cis_v300/docs/cis_v300_4.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -118,7 +119,8 @@ pipeline "cis_v300_4_1" {
   documentation = file("./cis_v300/docs/cis_v300_4_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -168,7 +170,8 @@ pipeline "cis_v300_4_2" {
   documentation = file("./cis_v300/docs/cis_v300_4_2.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -218,7 +221,8 @@ pipeline "cis_v300_4_3" {
   documentation = file("./cis_v300/docs/cis_v300_4_3.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -268,7 +272,8 @@ pipeline "cis_v300_4_4" {
   documentation = file("./cis_v300/docs/cis_v300_4_4.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -318,7 +323,8 @@ pipeline "cis_v300_4_5" {
   documentation = file("./cis_v300/docs/cis_v300_4_5.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -368,7 +374,8 @@ pipeline "cis_v300_4_6" {
   documentation = file("./cis_v300/docs/cis_v300_4_6.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -418,7 +425,8 @@ pipeline "cis_v300_4_7" {
   documentation = file("./cis_v300/docs/cis_v300_4_7.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -468,7 +476,8 @@ pipeline "cis_v300_4_8" {
   documentation = file("./cis_v300/docs/cis_v300_4_8.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -518,7 +527,8 @@ pipeline "cis_v300_4_9" {
   documentation = file("./cis_v300/docs/cis_v300_4_9.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -568,7 +578,8 @@ pipeline "cis_v300_4_10" {
   documentation = file("./cis_v300/docs/cis_v300_4_10.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -618,7 +629,8 @@ pipeline "cis_v300_4_11" {
   documentation = file("./cis_v300/docs/cis_v300_4_11.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -668,7 +680,8 @@ pipeline "cis_v300_4_12" {
   documentation = file("./cis_v300/docs/cis_v300_4_12.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -718,7 +731,8 @@ pipeline "cis_v300_4_13" {
   documentation = file("./cis_v300/docs/cis_v300_4_13.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -768,7 +782,8 @@ pipeline "cis_v300_4_14" {
   documentation = file("./cis_v300/docs/cis_v300_4_14.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -818,7 +833,8 @@ pipeline "cis_v300_4_15" {
   documentation = file("./cis_v300/docs/cis_v300_4_15.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {
@@ -868,7 +884,8 @@ pipeline "cis_v300_4_16" {
   documentation = file("./cis_v300/docs/cis_v300_4_16.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/4 Monitoring"
   }
 
   param "database" {

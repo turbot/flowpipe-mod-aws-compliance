@@ -46,7 +46,8 @@ pipeline "cis_v300_2" {
   documentation = file("./cis_v300/docs/cis_v300_2.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage"
   }
 
   param "database" {
@@ -99,7 +100,8 @@ pipeline "cis_v300_2_1" {
   #documentation = file("./cis_v300/docs/cis_v300_2_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.1 Simple Storage Service (S3)"
   }
 
   param "database" {
@@ -151,7 +153,8 @@ pipeline "cis_v300_2_1_1" {
   documentation = file("./cis_v300/docs/cis_v300_2_1_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.1 Simple Storage Service (S3)"
   }
 
   param "database" {
@@ -201,7 +204,8 @@ pipeline "cis_v300_2_1_2" {
   documentation = file("./cis_v300/docs/cis_v300_2_1_2.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.1 Simple Storage Service (S3)"
   }
 
   param "database" {
@@ -251,7 +255,8 @@ pipeline "cis_v300_2_1_3" {
   documentation = file("./cis_v300/docs/cis_v300_2_1_3.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.1 Simple Storage Service (S3)"
   }
 
   param "database" {
@@ -301,7 +306,8 @@ pipeline "cis_v300_2_1_4" {
   documentation = file("./cis_v300/docs/cis_v300_2_1_4.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.1 Simple Storage Service (S3)"
   }
 
   param "database" {
@@ -351,7 +357,8 @@ pipeline "cis_v300_2_2_1" {
   documentation = file("./cis_v300/docs/cis_v300_2_2_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.2 Elastic Compute Cloud (EC2)"
   }
 
   param "database" {
@@ -401,7 +408,8 @@ pipeline "cis_v300_2_3_1" {
   documentation = file("./cis_v300/docs/cis_v300_2_3_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.3 Relational Database Service (RDS)"
   }
 
   param "database" {
@@ -451,7 +459,8 @@ pipeline "cis_v300_2_3_2" {
   documentation = file("./cis_v300/docs/cis_v300_2_3_2.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.3 Relational Database Service (RDS)"
   }
 
   param "database" {
@@ -501,7 +510,8 @@ pipeline "cis_v300_2_3_3" {
   documentation = file("./cis_v300/docs/cis_v300_2_3_3.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.3 Relational Database Service (RDS)"
   }
 
   param "database" {
@@ -552,7 +562,8 @@ pipeline "cis_v300_2_4_1" {
   documentation = file("./cis_v300/docs/cis_v300_2_4_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/2 Storage/2.4 Elastic File System (EFS)"
   }
 
   param "database" {

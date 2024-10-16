@@ -37,7 +37,8 @@ pipeline "cis_v300_5" {
   documentation = file("./cis_v300/docs/cis_v300_4.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/5 Networking"
   }
 
   param "database" {
@@ -88,7 +89,8 @@ pipeline "cis_v300_5_1" {
   documentation = file("./cis_v300/docs/cis_v300_5_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/5 Networking"
   }
 
   param "database" {
@@ -138,7 +140,8 @@ pipeline "cis_v300_5_2" {
   documentation = file("./cis_v300/docs/cis_v300_5_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/5 Networking"
   }
 
   param "database" {
@@ -188,7 +191,8 @@ pipeline "cis_v300_5_3" {
   documentation = file("./cis_v300/docs/cis_v300_5_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/5 Networking"
   }
 
   param "database" {
@@ -238,7 +242,8 @@ pipeline "cis_v300_5_4" {
   documentation = file("./cis_v300/docs/cis_v300_5_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/5 Networking"
   }
 
   param "database" {
@@ -288,7 +293,8 @@ pipeline "cis_v300_5_5" {
   documentation = file("./cis_v300/docs/cis_v300_5_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/5 Networking"
   }
 
   param "database" {
@@ -338,7 +344,8 @@ pipeline "cis_v300_5_6" {
   documentation = file("./cis_v300/docs/cis_v300_5_6.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/5 Networking"
   }
 
   param "database" {

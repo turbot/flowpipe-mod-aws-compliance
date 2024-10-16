@@ -6,9 +6,9 @@ locals {
     cis_v300_3_4  = pipeline.cis_v300_3_4
     cis_v300_3_5  = pipeline.cis_v300_3_5
     cis_v300_3_6  = pipeline.cis_v300_3_6
-		cis_v300_3_7  = pipeline.cis_v300_3_7
-		cis_v300_3_8  = pipeline.cis_v300_3_8
-		cis_v300_3_9  = pipeline.cis_v300_3_9
+    cis_v300_3_7  = pipeline.cis_v300_3_7
+    cis_v300_3_8  = pipeline.cis_v300_3_8
+    cis_v300_3_9  = pipeline.cis_v300_3_9
 
   }
 }
@@ -24,9 +24,9 @@ variable "cis_v300_3_enabled_pipelines" {
     "cis_v300_3_4",
     "cis_v300_3_5",
     "cis_v300_3_6",
-		"cis_v300_3_7",
-		"cis_v300_3_8",
-		"cis_v300_3_9"
+    "cis_v300_3_7",
+    "cis_v300_3_8",
+    "cis_v300_3_9"
   ]
 
   enum = [
@@ -36,9 +36,9 @@ variable "cis_v300_3_enabled_pipelines" {
     "cis_v300_3_4",
     "cis_v300_3_5",
     "cis_v300_3_6",
-		"cis_v300_3_7",
-		"cis_v300_3_8",
-		"cis_v300_3_9"
+    "cis_v300_3_7",
+    "cis_v300_3_8",
+    "cis_v300_3_9"
   ]
 }
 
@@ -47,7 +47,8 @@ pipeline "cis_v300_3" {
   documentation = file("./cis_v300/docs/cis_v300_3.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {
@@ -98,7 +99,8 @@ pipeline "cis_v300_3_1" {
   documentation = file("./cis_v300/docs/cis_v300_3_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {
@@ -148,7 +150,8 @@ pipeline "cis_v300_3_2" {
   documentation = file("./cis_v300/docs/cis_v300_5_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {
@@ -198,7 +201,8 @@ pipeline "cis_v300_3_3" {
   documentation = file("./cis_v300/docs/cis_v300_3_3.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {
@@ -248,7 +252,8 @@ pipeline "cis_v300_3_4" {
   documentation = file("./cis_v300/docs/cis_v300_3_4.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {
@@ -298,7 +303,8 @@ pipeline "cis_v300_3_5" {
   documentation = file("./cis_v300/docs/cis_v300_5_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {
@@ -348,7 +354,8 @@ pipeline "cis_v300_3_6" {
   documentation = file("./cis_v300/docs/cis_v300_3_6.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {
@@ -398,7 +405,8 @@ pipeline "cis_v300_3_7" {
   documentation = file("./cis_v300/docs/cis_v300_3_7.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {
@@ -448,7 +456,8 @@ pipeline "cis_v300_3_8" {
   documentation = file("./cis_v300/docs/cis_v300_3_8.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {
@@ -498,7 +507,8 @@ pipeline "cis_v300_3_9" {
   documentation = file("./cis_v300/docs/cis_v300_3_7.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/3 Logging"
   }
 
   param "database" {

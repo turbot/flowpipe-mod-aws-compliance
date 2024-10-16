@@ -6,22 +6,22 @@ locals {
     cis_v300_1_4  = pipeline.cis_v300_1_4
     cis_v300_1_5  = pipeline.cis_v300_1_5
     cis_v300_1_6  = pipeline.cis_v300_1_6
-		cis_v300_1_7  = pipeline.cis_v300_1_7
-		cis_v300_1_8  = pipeline.cis_v300_1_8
-		cis_v300_1_9  = pipeline.cis_v300_1_9
-		cis_v300_1_10 = pipeline.cis_v300_1_10
-		cis_v300_1_11 = pipeline.cis_v300_1_11
-		cis_v300_1_12 = pipeline.cis_v300_1_12
-		cis_v300_1_13 = pipeline.cis_v300_1_13
-		cis_v300_1_14 = pipeline.cis_v300_1_14
-		cis_v300_1_15 = pipeline.cis_v300_1_15
-		cis_v300_1_16 = pipeline.cis_v300_1_16
-		cis_v300_1_17 = pipeline.cis_v300_1_17
-		cis_v300_1_18 = pipeline.cis_v300_1_18
-		cis_v300_1_19 = pipeline.cis_v300_1_19
-		cis_v300_1_20 = pipeline.cis_v300_1_20
-		cis_v300_1_21 = pipeline.cis_v300_1_21
-		cis_v300_1_22 = pipeline.cis_v300_1_22
+    cis_v300_1_7  = pipeline.cis_v300_1_7
+    cis_v300_1_8  = pipeline.cis_v300_1_8
+    cis_v300_1_9  = pipeline.cis_v300_1_9
+    cis_v300_1_10 = pipeline.cis_v300_1_10
+    cis_v300_1_11 = pipeline.cis_v300_1_11
+    cis_v300_1_12 = pipeline.cis_v300_1_12
+    cis_v300_1_13 = pipeline.cis_v300_1_13
+    cis_v300_1_14 = pipeline.cis_v300_1_14
+    cis_v300_1_15 = pipeline.cis_v300_1_15
+    cis_v300_1_16 = pipeline.cis_v300_1_16
+    cis_v300_1_17 = pipeline.cis_v300_1_17
+    cis_v300_1_18 = pipeline.cis_v300_1_18
+    cis_v300_1_19 = pipeline.cis_v300_1_19
+    cis_v300_1_20 = pipeline.cis_v300_1_20
+    cis_v300_1_21 = pipeline.cis_v300_1_21
+    cis_v300_1_22 = pipeline.cis_v300_1_22
   }
 }
 
@@ -36,22 +36,22 @@ variable "cis_v300_1_enabled_pipelines" {
     "cis_v300_1_4",
     "cis_v300_1_5",
     "cis_v300_1_6",
-		"cis_v300_1_7",
-		"cis_v300_1_8",
-		"cis_v300_1_9",
-		"cis_v300_1_10",
-		"cis_v300_1_11",
-		"cis_v300_1_12",
-		"cis_v300_1_13",
-		"cis_v300_1_14",
-		"cis_v300_1_15",
-		"cis_v300_1_16",
-		"cis_v300_1_17",
-		"cis_v300_1_18",
-		"cis_v300_1_19",
-		"cis_v300_1_20",
-		"cis_v300_1_21",
-		"cis_v300_1_22"
+    "cis_v300_1_7",
+    "cis_v300_1_8",
+    "cis_v300_1_9",
+    "cis_v300_1_10",
+    "cis_v300_1_11",
+    "cis_v300_1_12",
+    "cis_v300_1_13",
+    "cis_v300_1_14",
+    "cis_v300_1_15",
+    "cis_v300_1_16",
+    "cis_v300_1_17",
+    "cis_v300_1_18",
+    "cis_v300_1_19",
+    "cis_v300_1_20",
+    "cis_v300_1_21",
+    "cis_v300_1_22"
   ]
 
   enum = [
@@ -61,22 +61,22 @@ variable "cis_v300_1_enabled_pipelines" {
     "cis_v300_1_4",
     "cis_v300_1_5",
     "cis_v300_1_6",
-		"cis_v300_1_7",
-		"cis_v300_1_8",
-		"cis_v300_1_9",
-		"cis_v300_1_10",
-		"cis_v300_1_11",
-		"cis_v300_1_12",
-		"cis_v300_1_13",
-		"cis_v300_1_14",
-		"cis_v300_1_15",
-		"cis_v300_1_16",
-		"cis_v300_1_17",
-		"cis_v300_1_18",
-		"cis_v300_1_19",
-		"cis_v300_1_20",
-		"cis_v300_1_21",
-		"cis_v300_1_22"
+    "cis_v300_1_7",
+    "cis_v300_1_8",
+    "cis_v300_1_9",
+    "cis_v300_1_10",
+    "cis_v300_1_11",
+    "cis_v300_1_12",
+    "cis_v300_1_13",
+    "cis_v300_1_14",
+    "cis_v300_1_15",
+    "cis_v300_1_16",
+    "cis_v300_1_17",
+    "cis_v300_1_18",
+    "cis_v300_1_19",
+    "cis_v300_1_20",
+    "cis_v300_1_21",
+    "cis_v300_1_22"
   ]
 }
 
@@ -85,7 +85,8 @@ pipeline "cis_v300_1" {
   documentation = file("./cis_v300/docs/cis_v300_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -136,7 +137,8 @@ pipeline "cis_v300_1_1" {
   documentation = file("./cis_v300/docs/cis_v300_1_1.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -186,7 +188,8 @@ pipeline "cis_v300_1_2" {
   documentation = file("./cis_v300/docs/cis_v300_1_2.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -236,7 +239,8 @@ pipeline "cis_v300_1_3" {
   documentation = file("./cis_v300/docs/cis_v300_1_3.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -286,7 +290,8 @@ pipeline "cis_v300_1_4" {
   documentation = file("./cis_v300/docs/cis_v300_1_4.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -336,7 +341,8 @@ pipeline "cis_v300_1_5" {
   documentation = file("./cis_v300/docs/cis_v300_1_5.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -386,7 +392,8 @@ pipeline "cis_v300_1_6" {
   documentation = file("./cis_v300/docs/cis_v300_1_6.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -436,7 +443,8 @@ pipeline "cis_v300_1_7" {
   documentation = file("./cis_v300/docs/cis_v300_1_7.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -486,7 +494,8 @@ pipeline "cis_v300_1_8" {
   documentation = file("./cis_v300/docs/cis_v300_1_8.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -536,7 +545,8 @@ pipeline "cis_v300_1_9" {
   documentation = file("./cis_v300/docs/cis_v300_1_9.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -586,7 +596,8 @@ pipeline "cis_v300_1_10" {
   documentation = file("./cis_v300/docs/cis_v300_1_10.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -636,7 +647,8 @@ pipeline "cis_v300_1_11" {
   documentation = file("./cis_v300/docs/cis_v300_1_11.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -686,7 +698,8 @@ pipeline "cis_v300_1_12" {
   documentation = file("./cis_v300/docs/cis_v300_1_12.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -736,7 +749,8 @@ pipeline "cis_v300_1_13" {
   documentation = file("./cis_v300/docs/cis_v300_1_13.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -786,7 +800,8 @@ pipeline "cis_v300_1_14" {
   documentation = file("./cis_v300/docs/cis_v300_1_14.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -836,7 +851,8 @@ pipeline "cis_v300_1_15" {
   documentation = file("./cis_v300/docs/cis_v300_1_15.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -886,7 +902,8 @@ pipeline "cis_v300_1_16" {
   documentation = file("./cis_v300/docs/cis_v300_1_16.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -936,7 +953,8 @@ pipeline "cis_v300_1_17" {
   documentation = file("./cis_v300/docs/cis_v300_1_17.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -986,7 +1004,8 @@ pipeline "cis_v300_1_18" {
   documentation = file("./cis_v300/docs/cis_v300_1_18.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -1036,7 +1055,8 @@ pipeline "cis_v300_1_19" {
   documentation = file("./cis_v300/docs/cis_v300_1_19.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -1086,7 +1106,8 @@ pipeline "cis_v300_1_20" {
   documentation = file("./cis_v300/docs/cis_v300_1_20.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -1136,7 +1157,8 @@ pipeline "cis_v300_1_21" {
   documentation = file("./cis_v300/docs/cis_v300_1_21.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {
@@ -1186,7 +1208,8 @@ pipeline "cis_v300_1_22" {
   documentation = file("./cis_v300/docs/cis_v300_1_22.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0/1 Identity and Access Management"
   }
 
   param "database" {

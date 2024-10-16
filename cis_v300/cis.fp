@@ -35,7 +35,8 @@ pipeline "cis_v300" {
   #documentation = file("./cis_v300/docs/cis_overview.md")
 
   tags = {
-    type = "terminal"
+    type   = "terminal"
+    folder = "CIS v3.0.0"
   }
 
   param "database" {
