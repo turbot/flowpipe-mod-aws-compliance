@@ -1,10 +1,10 @@
 locals {
   cis_v300_control_mapping = {
-    #cis_v300_1 = pipeline.cis_v300_1
+    cis_v300_1 = pipeline.cis_v300_1
     cis_v300_2 = pipeline.cis_v300_2
-    #cis_v300_3 = pipeline.cis_v300_3
-    #cis_v300_4 = pipeline.cis_v300_4
-    #cis_v300_5 = pipeline.cis_v300_5
+    cis_v300_3 = pipeline.cis_v300_3
+    cis_v300_4 = pipeline.cis_v300_4
+    cis_v300_5 = pipeline.cis_v300_5
   }
 }
 
@@ -13,11 +13,11 @@ variable "cis_v300_enabled_pipelines" {
   description = "List of CIS v3.0.0 pipelines to enable."
 
   default = [
-    #"cis_v300_1",
+    "cis_v300_1",
     "cis_v300_2",
-    #"cis_v300_3",
-    #"cis_v300_4",
-    #"cis_v300_5"
+    "cis_v300_3",
+    "cis_v300_4",
+    "cis_v300_5"
   ]
 
   enum = [

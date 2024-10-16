@@ -54,9 +54,9 @@ variable "iam_account_password_policies_without_max_password_age_90_days_enabled
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policies_without_max_password_age_90_days" {
-  title       = "Detect & correct IAM account password policies without maximum password age of 90 days"
-  description = "Detects IAM account password policies without maximum password age of 90 days and then updates to maximum password age of 90 days."
-  tags        = local.iam_common_tags
+  title         = "Detect & correct IAM account password policies without maximum password age of 90 days"
+  description   = "Detects IAM account password policies without maximum password age of 90 days and then updates to maximum password age of 90 days."
+  tags          = local.iam_common_tags
 
   enabled  = var.iam_account_password_policies_without_max_password_age_90_days_trigger_enabled
   schedule = var.iam_account_password_policies_without_max_password_age_90_days_trigger_schedule
@@ -72,9 +72,9 @@ trigger "query" "detect_and_correct_iam_account_password_policies_without_max_pa
 }
 
 pipeline "detect_and_correct_iam_account_password_policies_without_max_password_age_90_days" {
-  title       = "Detect & correct IAM account password policies without maximum password age of 90 days"
-  description = "Detects IAM account password policies without maximum password age of 90 days and then updates to maximum password age of 90 days."
-  tags        = local.iam_common_tags
+  title         = "Detect & correct IAM account password policies without maximum password age of 90 days"
+  description   = "Detects IAM account password policies without maximum password age of 90 days and then updates to maximum password age of 90 days."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -131,15 +131,15 @@ pipeline "detect_and_correct_iam_account_password_policies_without_max_password_
 }
 
 pipeline "correct_iam_account_password_policies_without_max_password_age_90_days" {
-  title       = "Correct IAM account password policies without maximum password age of 90 days"
-  description = "Update password policy to maximum password age of 90 days for IAM accounts without maximum password age of 90 days."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  title         = "Correct IAM account password policies without maximum password age of 90 days"
+  description   = "Update password policy to maximum password age of 90 days for IAM accounts without maximum password age of 90 days."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title      = string
-      account_id = string
-      conn       = string
+      title          = string
+      account_id     = string
+      conn           = string
     }))
     description = local.description_items
   }
@@ -198,9 +198,9 @@ pipeline "correct_iam_account_password_policies_without_max_password_age_90_days
 }
 
 pipeline "correct_one_iam_account_password_policy_without_max_password_age_90_days" {
-  title       = "Correct one IAM account password policy without maximum password age of 90 days"
-  description = "Update password policy to maximum password age of 90 days for an IAM account without maximum password age of 90 days."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  title         = "Correct one IAM account password policy without maximum password age of 90 days"
+  description   = "Update password policy to maximum password age of 90 days for an IAM account without maximum password age of 90 days."
+  tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -290,12 +290,11 @@ pipeline "correct_one_iam_account_password_policy_without_max_password_age_90_da
 pipeline "update_iam_account_password_policy_max_password_age" {
   title       = "Update IAM account password policy max password age"
   description = "Updates the account password policymax password age for the AWS account."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws
     description = local.description_connection
-    default     = connection.aws.default
+    default     = connection.aws.aws
   }
 
   param "max_password_age" {
@@ -304,41 +303,52 @@ pipeline "update_iam_account_password_policy_max_password_age" {
     optional    = true
   }
 
-  step "query" "get_password_policy" {
-    database = var.database
-    sql      = <<-EOQ
-      select
-        a.account_id,
-        coalesce(minimum_password_length, 8) as minimum_password_length,
-        coalesce(require_symbols, false) as require_symbols,
-        coalesce(require_numbers, false) as require_numbers,
-        coalesce(require_uppercase_characters, false) as require_uppercase_characters,
-        coalesce(require_lowercase_characters, false) as require_lowercase_characters,
-        coalesce(allow_users_to_change_password, false) as allow_users_to_change_password,
-        coalesce(max_password_age, 0) as max_password_age,
-        coalesce(password_reuse_prevention, 0) as password_reuse_prevention
-      from
-        aws_account as a
-        left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
-      where
-        a.sp_connection_name = '${param.conn}'; -- TODO: Fix this to work with sp_connection_name and param.conn
-    EOQ
+  step "transform" "detect_msg" {
+    value = <<-EOT
+      format("tets %s", param.conn)
+    EOT
   }
 
-  step "pipeline" "update_iam_account_password_policy" {
-    depends_on = [step.query.get_password_policy]
-    pipeline   = aws.pipeline.update_iam_account_password_policy
-    args = {
-      allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
-      conn                           = param.conn
-      max_password_age               = param.max_password_age
-      minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
-      password_reuse_prevention      = step.query.get_password_policy.rows[0].password_reuse_prevention
-      require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
-      require_numbers                = step.query.get_password_policy.rows[0].require_numbers
-      require_symbols                = step.query.get_password_policy.rows[0].require_symbols
-      require_uppercase_characters   = step.query.get_password_policy.rows[0].require_uppercase_characters
-    }
+  output "tetst"{
+    value = step.transform.detect_msg.value
   }
+
+  // step "query" "get_password_policy" {
+  //   database = var.database
+  //   sql = <<-EOQ
+  //     select
+  //       a.account_id,
+  //       coalesce(minimum_password_length, 8) as minimum_password_length,
+  //       coalesce(require_symbols, false) as require_symbols,
+  //       coalesce(require_numbers, false) as require_numbers,
+  //       coalesce(require_uppercase_characters, false) as require_uppercase_characters,
+  //       coalesce(require_lowercase_characters, false) as require_lowercase_characters,
+  //       coalesce(allow_users_to_change_password, false) as allow_users_to_change_password,
+  //       coalesce(max_password_age, 0) as max_password_age,
+  //       coalesce(password_reuse_prevention, 0) as password_reuse_prevention
+  //     from
+  //       aws_account as a
+  //       left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
+  //     where
+  //      a.sp_connection_name = split_part('${step.transform.detect_msg.value}', '.', 3);
+  //      -- TODO: Fix this to work with sp_connection_name and param.conn
+  //   EOQ
+  // }
+
+  // step "pipeline" "update_iam_account_password_policy" {
+  //   depends_on = [step.query.get_password_policy]
+  //   pipeline   = aws.pipeline.update_iam_account_password_policy
+  //   args = {
+  //     allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
+  //     conn                           = param.conn
+  //     max_password_age               = param.max_password_age
+  //     minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
+  //     password_reuse_prevention      = step.query.get_password_policy.rows[0].password_reuse_prevention
+  //     require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
+  //     require_numbers                = step.query.get_password_policy.rows[0].require_numbers
+  //     require_symbols                = step.query.get_password_policy.rows[0].require_symbols
+  //     require_uppercase_characters   = step.query.get_password_policy.rows[0].require_uppercase_characters
+  //   }
+  // }
 
 }
