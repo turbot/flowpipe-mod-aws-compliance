@@ -212,7 +212,7 @@ pipeline "correct_one_vpc_without_flowlog" {
   title         = "Correct one VPC without flow log"
   description   = "Create a flow log for a VPC without flow log."
 
-  tags          = merge(local.vpc_common_tags, { class = "unused" })
+  tags          = local.vpc_common_tags
 
   param "title" {
     type        = string

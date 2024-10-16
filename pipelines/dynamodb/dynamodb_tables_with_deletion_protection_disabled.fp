@@ -16,7 +16,7 @@ trigger "query" "detect_and_correct_dynamodb_tables_with_deletion_protection_dis
   title         = "Detect & correct DynamoDB table with deletion protection disabled"
   description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
 
-  tags          = merge(local.dynamodb_common_tags, { class = "unused" })
+  tags          = local.dynamodb_common_tags
 
   enabled  = var.dynamodb_tables_with_deletion_protection_disabled_trigger_enabled
   schedule = var.dynamodb_tables_with_deletion_protection_disabled_trigger_schedule
@@ -59,7 +59,7 @@ pipeline "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" 
   title         = "Detect & correct DynamoDB tables with deletion protection disabled"
   description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
 
-  tags          = merge(local.dynamodb_common_tags, { class = "unused", recommended = "true" })
+  tags          = merge(local.dynamodb_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -119,7 +119,7 @@ pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
   title         = "Correct DynamoDB tables with deletion protection disabled"
   description   = "Runs corrective action on a collection of DynamoDB tables with deletion protection disabled."
 
-  tags          = merge(local.dynamodb_common_tags, { class = "unused" })
+  tags          = local.dynamodb_common_tags
 
   param "items" {
     type = list(object({
@@ -189,7 +189,7 @@ pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
   title         = "Correct one DynamoDB table with deletion protection disabled"
   description   = "Runs corrective action on an DynamoDB table with deletion protection disabled."
 
-  tags          = merge(local.dynamodb_common_tags, { class = "unused" })
+  tags          = local.dynamodb_common_tags
 
   param "title" {
     type        = string
