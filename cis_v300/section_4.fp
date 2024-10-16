@@ -251,7 +251,7 @@ pipeline "cis_v300_4_3" {
 
   step "message" "header" {
     notifier = param.notifier
-    text     = "4.3 nsure usage of 'root' account is monitored"
+    text     = "4.3 Ensure usage of 'root' account is monitored"
   }
 
   step "pipeline" "run_pipeline" {
