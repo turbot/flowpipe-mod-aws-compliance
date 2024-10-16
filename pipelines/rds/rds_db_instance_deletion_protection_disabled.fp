@@ -14,6 +14,30 @@ locals {
   EOQ
 }
 
+variable "rds_db_instance_if_deletion_protection_disabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "rds_db_instance_if_deletion_protection_disabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "rds_db_instance_if_deletion_protection_disabled_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "rds_db_instance_if_deletion_protection_disabled_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "update_db_instance"]
+}
+
 trigger "query" "detect_and_correct_rds_db_instance_if_deletion_protection_disabled" {
   title         = "Detect & correct RDS DB instances if deletion protection disabled"
   description   = "Detects RDS DB instances if deletion protection disabled and runs your chosen action."
@@ -270,28 +294,4 @@ pipeline "correct_one_rds_db_instance_if_deletion_protection_disabled" {
       }
     }
   }
-}
-
-variable "rds_db_instance_if_deletion_protection_disabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "rds_db_instance_if_deletion_protection_disabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "rds_db_instance_if_deletion_protection_disabled_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "rds_db_instance_if_deletion_protection_disabled_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "update_db_instance"]
 }

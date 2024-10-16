@@ -90,9 +90,9 @@ variable "iam_account_without_support_role_support_role_name" {
 }
 
 trigger "query" "detect_and_correct_iam_account_without_support_role" {
-  title         = "Detect & correct IAM account without support role"
-  description   = "Detects IAM account without support role and then create a new support role."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM account without support role"
+  description = "Detects IAM account without support role and then create a new support role."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_account_without_support_role_trigger_enabled
   schedule = var.iam_account_without_support_role_trigger_schedule
@@ -108,9 +108,9 @@ trigger "query" "detect_and_correct_iam_account_without_support_role" {
 }
 
 pipeline "detect_and_correct_iam_account_without_support_role" {
-  title         = "Detect & correct IAM account without support role"
-  description   = "Detects IAM account without support role and then create a new support role."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM account without support role"
+  description = "Detects IAM account without support role and then create a new support role."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -181,15 +181,15 @@ pipeline "detect_and_correct_iam_account_without_support_role" {
 }
 
 pipeline "correct_iam_account_without_support_role" {
-   title         = "Correct IAM account without support role"
-  description   = "Create a new support role for IAM account without support role"
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM account without support role"
+  description = "Create a new support role for IAM account without support role"
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      account_id     = string
-      conn           = string
+      title      = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }
@@ -262,9 +262,9 @@ pipeline "correct_iam_account_without_support_role" {
 }
 
 pipeline "correct_one_iam_account_without_support_role" {
-  title         = "Correct one IAM account without support role"
-  description   = "Runs corrective action for an IAM account to create a new support role."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM account without support role"
+  description = "Runs corrective action for an IAM account to create a new support role."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -352,7 +352,7 @@ pipeline "correct_one_iam_account_without_support_role" {
           style        = local.style_alert
           pipeline_ref = pipeline.create_iam_account_support_role
           pipeline_args = {
-            user_arn         = param.user_arn
+            user_arn          = param.user_arn
             support_role_name = param.support_role_name
             conn              = param.conn
           }
@@ -367,6 +367,7 @@ pipeline "correct_one_iam_account_without_support_role" {
 pipeline "create_iam_account_support_role" {
   title       = "Create IAM account support role"
   description = "Creates a new support role for your Amazon Web Services account."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws
@@ -402,7 +403,7 @@ pipeline "create_iam_account_support_role" {
 
   step "container" "create_iam_role" {
     depends_on = [step.transform.generate_assume_role_policy_document]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "create-role",
       "--role-name", param.support_role_name,
@@ -414,7 +415,7 @@ pipeline "create_iam_account_support_role" {
 
   step "container" "attach_role_policy" {
     depends_on = [step.container.create_iam_role]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     cmd = [
       "iam", "attach-role-policy",
       "--role-name", param.support_role_name,

@@ -2,6 +2,10 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
   title       = "Test detect and correct EBS volume regions with default encryption at rest disabled"
   description = "Test the enable default encryption at rest for EBS volume regions for regions that have default encryption at rest disabled."
 
+  tags = {
+    type = "test"
+  }
+
   param "region" {
     type        = string
     description = "The AWS region."

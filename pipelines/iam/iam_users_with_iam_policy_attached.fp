@@ -54,9 +54,9 @@ variable "iam_users_with_iam_policy_attached_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_users_with_iam_policy_attached" {
-  title         = "Detect & correct IAM users with IAM policy attached"
-  description   = "Detects IAM users with a specific policy attached and detaches that policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with IAM policy attached"
+  description = "Detects IAM users with a specific policy attached and detaches that policy."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_users_with_iam_policy_attached_trigger_enabled
   schedule = var.iam_users_with_iam_policy_attached_trigger_schedule
@@ -72,9 +72,9 @@ trigger "query" "detect_and_correct_iam_users_with_iam_policy_attached" {
 }
 
 pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
-  title         = "Detect & correct IAM users with IAM policy attached"
-  description   = "Detects IAM users with a specific policy attached and detaches that policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with IAM policy attached"
+  description = "Detects IAM users with a specific policy attached and detaches that policy."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -131,17 +131,17 @@ pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
 }
 
 pipeline "correct_iam_users_with_iam_policy_attached" {
-  title         = "Correct IAM users with IAM policy attached"
-  description   = "Detaches IAM policy from IAM users with IAM policy attached."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM users with IAM policy attached"
+  description = "Detaches IAM policy from IAM users with IAM policy attached."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      user_name      = string
-      policy_arn     = string
-      account_id     = string
-      conn           = string
+      title      = string
+      user_name  = string
+      policy_arn = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }
@@ -202,9 +202,9 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
 }
 
 pipeline "correct_one_iam_user_with_iam_policy_attached" {
-  title         = "Correct one IAM user with IAM policy attached"
-  description   = "Detaches IAM policy from a IAM user with IAM policy attached."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM user with IAM policy attached"
+  description = "Detaches IAM policy from a IAM user with IAM policy attached."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -216,7 +216,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
     description = "The name of the IAM user."
   }
 
-   param "policy_arn" {
+  param "policy_arn" {
     type        = string
     description = "The name of the IAM user."
   }
@@ -305,6 +305,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
 pipeline "detach_iam_users_with_iam_policy_attached" {
   title       = "Detach IAM user policy"
   description = "Detaches the specified managed policy from the specified IAM user."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws

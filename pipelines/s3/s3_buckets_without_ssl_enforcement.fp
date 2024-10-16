@@ -301,10 +301,10 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
           style        = local.style_alert
           pipeline_ref = pipeline.put_s3_bucket_policy
           pipeline_args = {
-            bucket      = param.bucket_name
-            region      = param.region
-            conn        = param.conn
-            policy      = <<EOF
+            bucket = param.bucket_name
+            region = param.region
+            conn   = param.conn
+            policy = <<EOF
             {
               "Version": "2012-10-17",
               "Statement": [
@@ -334,6 +334,7 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
 pipeline "put_s3_bucket_policy" {
   title       = "Put or Append to S3 bucket Policy"
   description = "Appends a new policy statement to an existing S3 bucket policy or creates one if it doesn't exist."
+  tags        = merge(local.s3_common_tags, { type = "internal" })
 
   param "region" {
     type        = string
@@ -358,12 +359,12 @@ pipeline "put_s3_bucket_policy" {
 
   step "container" "get_s3_bucket_policy" {
     image = "public.ecr.aws/aws-cli/aws-cli"
-    cmd = ["s3api", "get-bucket-policy", "--bucket", param.bucket, "--query", "Policy", "--output", "json"]
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    cmd   = ["s3api", "get-bucket-policy", "--bucket", param.bucket, "--query", "Policy", "--output", "json"]
+    env   = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
 
     error {
-      if      = length(regexall("NoSuchBucketPolicy", result.errors[0].error.detail)) > 0
-      ignore  = true
+      if     = length(regexall("NoSuchBucketPolicy", result.errors[0].error.detail)) > 0
+      ignore = true
     }
   }
 
@@ -392,9 +393,9 @@ pipeline "put_s3_bucket_policy" {
         ),
         [
           {
-            Effect   = step.transform.prepare_new_statement.value.Effect
+            Effect    = step.transform.prepare_new_statement.value.Effect
             Principal = step.transform.prepare_new_statement.value.Principal
-            Action   = step.transform.prepare_new_statement.value.Action
+            Action    = step.transform.prepare_new_statement.value.Action
             Resource = [
               "arn:aws:s3:::${param.bucket}",
               "arn:aws:s3:::${param.bucket}/*"

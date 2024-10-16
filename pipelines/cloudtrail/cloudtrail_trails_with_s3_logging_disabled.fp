@@ -339,6 +339,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
 pipeline "enable_s3_logging_for_cloudtrail" {
   title       = "Enable S3 logging for Cloudtrail trail"
   description = "Enable S3 logging for Cloudtrail trail."
+  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "region" {
     type        = string

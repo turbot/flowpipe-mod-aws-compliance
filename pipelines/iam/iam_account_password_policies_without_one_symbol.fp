@@ -54,9 +54,9 @@ variable "iam_account_password_policies_without_one_symbol_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policies_without_one_symbol" {
-  title         = "Detect & correct IAM account password policies without requirement for any symbol"
-  description   = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM account password policies without requirement for any symbol"
+  description = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_account_password_policies_without_one_symbol_trigger_enabled
   schedule = var.iam_account_password_policies_without_one_symbol_trigger_schedule
@@ -72,9 +72,9 @@ trigger "query" "detect_and_correct_iam_account_password_policies_without_one_sy
 }
 
 pipeline "detect_and_correct_iam_account_password_policies_without_one_symbol" {
-  title         = "Detect & correct IAM account password policies without requirement for any symbol"
-  description   = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM account password policies without requirement for any symbol"
+  description = "Detects IAM account password policies without requirement for any symbol and then updates to at least one symbol."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -131,15 +131,15 @@ pipeline "detect_and_correct_iam_account_password_policies_without_one_symbol" {
 }
 
 pipeline "correct_iam_account_password_policies_without_one_symbol" {
-  title         = "Correct IAM account password policies without requirement for any symbol"
-  description   = "Update password policy to at least one symbol for IAM accounts without requirement for any symbol."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM account password policies without requirement for any symbol"
+  description = "Update password policy to at least one symbol for IAM accounts without requirement for any symbol."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      account_id     = string
-      conn           = string
+      title      = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }
@@ -198,9 +198,9 @@ pipeline "correct_iam_account_password_policies_without_one_symbol" {
 }
 
 pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
-  title         = "Correct one IAM account password policy without requirement for any symbol"
-  description   = "Update password policy to at least one symbol for an IAM account without requirement for any symbol."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM account password policy without requirement for any symbol"
+  description = "Update password policy to at least one symbol for an IAM account without requirement for any symbol."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -277,7 +277,7 @@ pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
           pipeline_ref = pipeline.update_iam_account_password_policy_symbol
           pipeline_args = {
             require_symbols = true
-            conn           = param.conn
+            conn            = param.conn
           }
           success_msg = "Updated IAM account password policy in ${param.title} to require at least one symbol."
           error_msg   = "Error updating IAM account password policy ${param.title}."
@@ -290,6 +290,7 @@ pipeline "correct_one_iam_account_password_policy_without_one_symbol" {
 pipeline "update_iam_account_password_policy_symbol" {
   title       = "Update IAM account password policy symbol requirement"
   description = "Updates the account password policy symbol requirement for the AWS account."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws
@@ -304,7 +305,7 @@ pipeline "update_iam_account_password_policy_symbol" {
 
   step "query" "get_password_policy" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         a.account_id,
         coalesce(minimum_password_length, 8) as minimum_password_length,

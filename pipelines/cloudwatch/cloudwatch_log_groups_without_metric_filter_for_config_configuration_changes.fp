@@ -848,6 +848,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_config_con
 pipeline "create_cloudwatch_metric_filter_config_configuration_changes" {
   title       = "Create CloudTrail with CloudWatch Logging"
   description = "Creates a CloudTrail trail with integrated CloudWatch logging and necessary IAM roles and policies."
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws

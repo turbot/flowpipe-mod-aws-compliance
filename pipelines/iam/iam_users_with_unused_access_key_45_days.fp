@@ -55,9 +55,9 @@ variable "iam_users_with_unused_access_key_45_days_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_users_with_unused_access_key_45_days" {
-  title         = "Detect & correct IAM users with unused access key from 45 days or more"
-  description   = "Detects IAM users access key that have been unused for 45 days or more and deactivates them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unused access key from 45 days or more"
+  description = "Detects IAM users access key that have been unused for 45 days or more and deactivates them."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_users_with_unused_access_key_45_days_trigger_enabled
   schedule = var.iam_users_with_unused_access_key_45_days_trigger_schedule
@@ -73,9 +73,9 @@ trigger "query" "detect_and_correct_iam_users_with_unused_access_key_45_days" {
 }
 
 pipeline "detect_and_correct_iam_users_with_unused_access_key_45_days" {
-  title         = "Detect & correct IAM users with unused access key from 45 days or more"
-  description   = "Detects IAM users access key that have been unused for 45 days or more and deactivates them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unused access key from 45 days or more"
+  description = "Detects IAM users access key that have been unused for 45 days or more and deactivates them."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -132,19 +132,19 @@ pipeline "detect_and_correct_iam_users_with_unused_access_key_45_days" {
 }
 
 pipeline "correct_iam_users_with_unused_access_key_45_days" {
-  title         = "Correct IAM users with unused access key from 45 days or more"
-  description   = "Runs corrective action to deactivate IAM users access key that have been unused for 45 days or more."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM users with unused access key from 45 days or more"
+  description = "Runs corrective action to deactivate IAM users access key that have been unused for 45 days or more."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title                      = string
-      user_name                  = string
-      account_id                 = string
-      access_key_last_used_date  = string
-      access_key_last_used_day   = string
-      access_key_id              = string
-      conn                       = string
+      title                     = string
+      user_name                 = string
+      account_id                = string
+      access_key_last_used_date = string
+      access_key_last_used_day  = string
+      access_key_id             = string
+      conn                      = string
     }))
     description = local.description_items
   }
@@ -206,9 +206,9 @@ pipeline "correct_iam_users_with_unused_access_key_45_days" {
 }
 
 pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
-  title         = "Correct one IAM user with unused access key from 45 days or more"
-  description   = "Runs corrective action to deactivate a IAM user access key that have been unused for 45 days or more."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM user with unused access key from 45 days or more"
+  description = "Runs corrective action to deactivate a IAM user access key that have been unused for 45 days or more."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -225,7 +225,7 @@ pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
     description = "The access key ID of the IAM user."
   }
 
-   param "access_key_last_used_date" {
+  param "access_key_last_used_date" {
     type        = string
     description = "The access key ID of the IAM user."
   }
@@ -299,9 +299,9 @@ pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
           style        = local.style_alert
           pipeline_ref = pipeline.deactivate_user_access_key
           pipeline_args = {
-            user_name      = param.user_name
-            access_key_id  = param.access_key_id
-            conn           = param.conn
+            user_name     = param.user_name
+            access_key_id = param.access_key_id
+            conn          = param.conn
           }
           success_msg = "Deactivated IAM user ${param.title} access key ${param.access_key_id}."
           error_msg   = "Error deactivating IAM user ${param.title} access key ${param.access_key_id}."
@@ -314,6 +314,7 @@ pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
 pipeline "deactivate_user_access_key" {
   title       = "Deactivate IAM user access Key"
   description = "Deactivates the IAM user's access key."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws

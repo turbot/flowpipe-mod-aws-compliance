@@ -53,9 +53,9 @@ variable "iam_users_with_inline_policy_attached_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_users_with_inline_policy_attached" {
-  title         = "Detect & correct IAM users with inline policy"
-  description   = "Detects IAM user with inline policy and deletes them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with inline policy"
+  description = "Detects IAM user with inline policy and deletes them."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_users_with_inline_policy_attached_trigger_enabled
   schedule = var.iam_users_with_inline_policy_attached_trigger_schedule
@@ -72,9 +72,9 @@ trigger "query" "detect_and_correct_iam_users_with_inline_policy_attached" {
 }
 
 pipeline "detect_and_correct_iam_users_with_inline_policy_attached" {
-  title         = "Detect & correct IAM users with inline policy"
-  description   = "Detects IAM user inline policy and deletes them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with inline policy"
+  description = "Detects IAM user inline policy and deletes them."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -131,16 +131,16 @@ pipeline "detect_and_correct_iam_users_with_inline_policy_attached" {
 }
 
 pipeline "correct_iam_users_with_inline_policy_attached" {
-  title         = "Delete IAM user inline policy"
-  description   = "Runs corrective action to delete IAM user inline policy."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Delete IAM user inline policy"
+  description = "Runs corrective action to delete IAM user inline policy."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      user_name        = string
-      inline_policy_name    = string
-      conn           = string
+      title              = string
+      user_name          = string
+      inline_policy_name = string
+      conn               = string
     }))
     description = local.description_items
   }
@@ -200,9 +200,9 @@ pipeline "correct_iam_users_with_inline_policy_attached" {
 }
 
 pipeline "correct_one_iam_users_with_inline_policy_attached" {
-  title         = "Correct one IAM user with inline policy"
-  description   = "Runs corrective action to delete inline policy for a IAM user with inline policy attached."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM user with inline policy"
+  description = "Runs corrective action to delete inline policy for a IAM user with inline policy attached."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -283,9 +283,9 @@ pipeline "correct_one_iam_users_with_inline_policy_attached" {
           style        = local.style_alert
           pipeline_ref = pipeline.delete_user_inline_policy
           pipeline_args = {
-            user_name           = param.user_name
-            inline_policy_name  = param.inline_policy_name
-            conn                = param.conn
+            user_name          = param.user_name
+            inline_policy_name = param.inline_policy_name
+            conn               = param.conn
           }
           success_msg = "Deleted IAM user ${param.user_name} inline policy ${param.title}."
           error_msg   = "Error deleting IAM user ${param.user_name} inline policy ${param.title}."
@@ -298,6 +298,7 @@ pipeline "correct_one_iam_users_with_inline_policy_attached" {
 pipeline "delete_user_inline_policy" {
   title       = "Delete User Inline Policy"
   description = "Deletes the specified inline policy from the specified IAM user."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws

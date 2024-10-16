@@ -1,5 +1,3 @@
-
-// TODO: Check the query logic
 locals {
   cloudtrail_trails_with_multi_region_read_write_disabled_query = <<-EOQ
   with event_selectors_trail_details as (

@@ -846,6 +846,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_console_au
 pipeline "create_cloudwatch_metric_filter_console_authentication_failure" {
   title       = "Create CloudWatch Metric Filter for Console Authentication Failure"
   description = "Creates a CloudWatch metric filter for Console Authentication Failure."
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws

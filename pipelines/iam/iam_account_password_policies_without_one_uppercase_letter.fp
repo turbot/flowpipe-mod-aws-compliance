@@ -54,9 +54,9 @@ variable "iam_account_password_policies_without_one_uppercase_letter_enabled_act
 }
 
 trigger "query" "detect_and_correct_iam_account_password_policies_without_one_uppercase_letter" {
-  title         = "Detect & correct IAM account password policies without requirement for any uppercase letter"
-  description   = "Detects IAM account password policies without requirement for any uppercase letter and then updates to at least one uppercase letter."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM account password policies without requirement for any uppercase letter"
+  description = "Detects IAM account password policies without requirement for any uppercase letter and then updates to at least one uppercase letter."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_account_password_policies_without_one_uppercase_letter_trigger_enabled
   schedule = var.iam_account_password_policies_without_one_uppercase_letter_trigger_schedule
@@ -72,9 +72,9 @@ trigger "query" "detect_and_correct_iam_account_password_policies_without_one_up
 }
 
 pipeline "detect_and_correct_iam_account_password_policies_without_one_uppercase_letter" {
-  title         = "Detect & correct IAM account password policies without requirement for any uppercase letter"
-  description   = "Detects IAM account password policies without requirement for any uppercase letter and then updates to at least one uppercase letter."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM account password policies without requirement for any uppercase letter"
+  description = "Detects IAM account password policies without requirement for any uppercase letter and then updates to at least one uppercase letter."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -131,15 +131,15 @@ pipeline "detect_and_correct_iam_account_password_policies_without_one_uppercase
 }
 
 pipeline "correct_iam_account_password_policies_without_one_uppercase_letter" {
-  title         = "Correct IAM account password policies without requirement for any uppercase letter"
-  description   = "Update password policy to at least one uppercase letter for IAM accounts without requirement for any uppercase letter."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM account password policies without requirement for any uppercase letter"
+  description = "Update password policy to at least one uppercase letter for IAM accounts without requirement for any uppercase letter."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      account_id     = string
-      conn           = string
+      title      = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }
@@ -198,9 +198,9 @@ pipeline "correct_iam_account_password_policies_without_one_uppercase_letter" {
 }
 
 pipeline "correct_one_iam_account_password_policy_without_one_uppercase_letter" {
-  title         = "Correct one IAM account password policy without requirement for any uppercase letter"
-  description   = "Update password policy to at least one uppercase letter for an IAM account without requirement for any uppercase letter."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM account password policy without requirement for any uppercase letter"
+  description = "Update password policy to at least one uppercase letter for an IAM account without requirement for any uppercase letter."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -277,7 +277,7 @@ pipeline "correct_one_iam_account_password_policy_without_one_uppercase_letter" 
           pipeline_ref = pipeline.update_iam_account_password_policy_uppercase_letter
           pipeline_args = {
             require_uppercase_characters = true
-            conn                        = param.conn
+            conn                         = param.conn
           }
           success_msg = "Updated IAM account password policy for ${param.title} to require at least one uppercase letter."
           error_msg   = "Error updating IAM account password policy ${param.title}."
@@ -290,6 +290,7 @@ pipeline "correct_one_iam_account_password_policy_without_one_uppercase_letter" 
 pipeline "update_iam_account_password_policy_uppercase_letter" {
   title       = "Update IAM Account password policy uppercase letter requirement"
   description = "Updates the account password policy uppercase letter requirement for the AWS account."
+  tags        = merge(local.iam_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws
@@ -304,7 +305,7 @@ pipeline "update_iam_account_password_policy_uppercase_letter" {
 
   step "query" "get_password_policy" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         a.account_id,
         coalesce(minimum_password_length, 8) as minimum_password_length,

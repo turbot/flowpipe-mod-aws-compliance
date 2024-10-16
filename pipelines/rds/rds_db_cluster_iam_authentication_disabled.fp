@@ -12,6 +12,30 @@ locals {
   EOQ
 }
 
+variable "rds_db_cluster_if_iam_authentication_disabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+}
+
+variable "rds_db_cluster_if_iam_authentication_disabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "If the trigger is enabled, run it on this schedule."
+}
+
+variable "rds_db_cluster_if_iam_authentication_disabled_default_action" {
+  type        = string
+  description = "The default action to use when there are no approvers."
+  default     = "notify"
+}
+
+variable "rds_db_cluster_if_iam_authentication_disabled_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions approvers can select."
+  default     = ["skip", "update_db_cluster"]
+}
+
 trigger "query" "detect_and_correct_rds_db_cluster_if_iam_authentication_disabled" {
   title         = "Detect & correct RDS DB cluster if IAM authentication disabled"
   description   = "Detects RDS DB clusters if IAM authentication is disabled and runs your chosen action."
@@ -264,28 +288,4 @@ pipeline "correct_one_rds_db_cluster_if_iam_authentication_disabled" {
       }
     }
   }
-}
-
-variable "rds_db_cluster_if_iam_authentication_disabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "rds_db_cluster_if_iam_authentication_disabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "If the trigger is enabled, run it on this schedule."
-}
-
-variable "rds_db_cluster_if_iam_authentication_disabled_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "rds_db_cluster_if_iam_authentication_disabled_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["skip", "update_db_cluster"]
 }

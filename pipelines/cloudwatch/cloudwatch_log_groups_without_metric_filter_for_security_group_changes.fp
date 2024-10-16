@@ -599,7 +599,7 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_security_group
 pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_security_group_changes" {
   title       = "Correct one CloudWatch log group without metric filter for security group changes"
   description = "Enable security group changes metric filter for a CloudWatch log group."
-  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -845,6 +845,7 @@ pipeline "correct_one_cloudwatch_log_groups_without_metric_filter_for_security_g
 pipeline "create_cloudwatch_metric_filter_security_group_changes" {
   title       = "Create CloudTrail with CloudWatch Logging"
   description = "Creates a CloudTrail trail with integrated CloudWatch logging and necessary IAM roles and policies."
+  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "conn" {
     type        = connection.aws

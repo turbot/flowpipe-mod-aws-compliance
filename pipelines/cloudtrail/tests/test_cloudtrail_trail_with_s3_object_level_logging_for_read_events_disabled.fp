@@ -2,6 +2,10 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_read_events_dis
   title       = "Test Correct One CloudTrail Trail with S3 Object Level Logging for Read Events Disabled"
   description = "Tests the correction of a CloudTrail trail with S3 object level logging for read events disabled."
 
+  tags = {
+    type = "test"
+  }
+
   param "conn" {
     type        = connection.aws
     description = "The AWS connection to use."
