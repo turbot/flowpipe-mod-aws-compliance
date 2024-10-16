@@ -325,7 +325,7 @@ pipeline "cis_v300_1_4" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_iam_root_user_with_access_key
+    pipeline   = pipeline.detect_and_correct_iam_root_users_with_access_keys
 
     args = {
       database           = param.database
@@ -376,7 +376,7 @@ pipeline "cis_v300_1_5" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_iam_root_user_mfa_disabled
+    pipeline   = pipeline.detect_and_correct_iam_root_users_with_mfa_disabled
 
     args = {
       database           = param.database
@@ -427,7 +427,7 @@ pipeline "cis_v300_1_6" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_iam_root_user_with_hardware_mfa_disabled
+    pipeline   = pipeline.detect_and_correct_iam_root_users_with_hardware_mfa_disabled
 
     args = {
       database           = param.database

@@ -511,7 +511,7 @@ pipeline "cis_v300_4_8" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_bucket_policy_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_bucket_policy_changes
 
     args = {
       database           = param.database

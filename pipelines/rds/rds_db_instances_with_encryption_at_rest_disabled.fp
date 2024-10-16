@@ -31,21 +31,9 @@ variable "rds_db_instances_with_encryption_at_rest_disabled_trigger_schedule" {
   description = "If the trigger is enabled, run it on this schedule."
 }
 
-variable "rds_db_instances_with_encryption_at_rest_disabled_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-}
-
-variable "rds_db_instances_with_encryption_at_rest_disabled_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["notify"]
-}
-
  trigger "query" "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
   title         = "Detect & correct RDS DB instances with encryption at rest disabled"
-  description   = "Detect RDS DB instances with encryption at rest disabled and then skip or enable encryption."
+  description   = "Detect RDS DB instances with encryption at rest disabled."
 
   enabled  = var.rds_db_instances_with_encryption_at_rest_disabled_trigger_enabled
   schedule = var.rds_db_instances_with_encryption_at_rest_disabled_trigger_schedule
@@ -82,24 +70,6 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
     default     = var.notification_level
   }
 
-  param "approvers" {
-    type        = list(notifier)
-    description = local.description_approvers
-    default     = var.approvers
-  }
-
-  param "default_action" {
-    type        = string
-    description = local.description_default_action
-    default     = var.rds_db_instances_with_encryption_at_rest_disabled_default_action
-  }
-
-  param "enabled_actions" {
-    type        = list(string)
-    description = local.description_enabled_actions
-    default     = var.rds_db_instances_with_encryption_at_rest_disabled_enabled_actions
-  }
-
   step "query" "detect" {
     database = param.database
     sql      = local.rds_db_instances_with_encryption_at_rest_disabled_query
@@ -111,16 +81,13 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
       items              = step.query.detect.rows
       notifier           = param.notifier
       notification_level = param.notification_level
-      approvers          = param.approvers
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
     }
   }
 }
 
 pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
   title         = "Correct RDS DB instances with encryption at rest disabled"
-  description   = "Detect RDS DB instances with encryption at rest disabled."
+  description   = "Send notifications for RDS DB instances with encryption at rest disabled."
 
   param "items" {
     type = list(object({
@@ -144,24 +111,6 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
-  }
-
-  param "approvers" {
-    type        = list(notifier)
-    description = local.description_approvers
-    default     = var.approvers
-  }
-
-  param "default_action" {
-    type        = string
-    description = local.description_default_action
-    default     = var.rds_db_instances_with_encryption_at_rest_disabled_default_action
-  }
-
-  param "enabled_actions" {
-    type        = list(string)
-    description = local.description_enabled_actions
-    default     = var.rds_db_instances_with_encryption_at_rest_disabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {

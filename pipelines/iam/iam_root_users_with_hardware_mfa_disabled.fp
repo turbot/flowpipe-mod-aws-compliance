@@ -1,18 +1,18 @@
 locals {
-  iam_users_with_console_access_mfa_disabled_query = <<-EOQ
+  iam_root_users_with_hardware_mfa_disabled_query = <<-EOQ
     select
-      concat(user_name, ' [', account_id, ']') as title,
-      user_name,
-      account_id,
-      sp_connection_name as conn
+      concat('<root_account>', ' [', s.account_id, ']') as title,
+      s.account_id,
+      s.sp_connection_name as conn
     from
-      aws_iam_credential_report
+      aws_iam_account_summary as s
+      left join aws_iam_virtual_mfa_device as d on (d.user ->> 'Arn') = concat('arn:', s.partition, ':iam::', s.account_id, ':root')
     where
-      password_enabled and not mfa_active;
+      s.account_mfa_enabled = false or d.serial_number is not null;
   EOQ
 }
 
-variable "iam_users_with_console_access_mfa_disabled_trigger_enabled" {
+variable "iam_root_users_with_hardware_mfa_disabled_trigger_enabled" {
   type        = bool
   description = "If true, the trigger is enabled."
   default     = false
@@ -22,7 +22,7 @@ variable "iam_users_with_console_access_mfa_disabled_trigger_enabled" {
   }
 }
 
-variable "iam_users_with_console_access_mfa_disabled_trigger_schedule" {
+variable "iam_root_users_with_hardware_mfa_disabled_trigger_schedule" {
   type        = string
   description = "If the trigger is enabled, run it on this schedule."
   default     = "15m"
@@ -32,29 +32,28 @@ variable "iam_users_with_console_access_mfa_disabled_trigger_schedule" {
   }
 }
 
-trigger "query" "detect_and_correct_iam_users_with_console_access_mfa_disabled" {
-  title       = "Detect & correct IAM users with console access MFA disabled"
-  description = "Detect IAM users with console access MFA disabled."
-  tags        = local.iam_common_tags
+trigger "query" "detect_and_correct_iam_root_users_with_hardware_mfa_disabled" {
+  title       = "Detect & correct IAM root users with hardware MFA disabled"
+  description = "Detect IAM root users with hardware MFA disabled."
+  tags          = local.iam_common_tags
 
-  enabled  = var.iam_users_with_console_access_mfa_disabled_trigger_enabled
-  schedule = var.iam_users_with_console_access_mfa_disabled_trigger_schedule
+  enabled  = var.iam_root_users_with_hardware_mfa_disabled_trigger_enabled
+  schedule = var.iam_root_users_with_hardware_mfa_disabled_trigger_schedule
   database = var.database
-  sql      = local.iam_users_with_console_access_mfa_disabled_query
+  sql      = local.iam_root_users_with_hardware_mfa_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_iam_users_with_console_access_mfa_disabled
+    pipeline = pipeline.correct_iam_root_users_with_hardware_mfa_disabled
     args = {
       items = self.inserted_rows
     }
   }
-
 }
 
-pipeline "detect_and_correct_iam_users_with_console_access_mfa_disabled" {
-  title       = "Detect & correct IAM users with console access MFA disabled"
-  description = "Detect IAM users with console access MFA disabled."
-  tags        = local.iam_common_tags
+pipeline "detect_and_correct_iam_root_users_with_hardware_mfa_disabled" {
+  title       = "Detect & correct IAM root users with hardware MFA disabled"
+  description = "Detect IAM root users with hardware MFA disabled."
+  tags          = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -76,11 +75,11 @@ pipeline "detect_and_correct_iam_users_with_console_access_mfa_disabled" {
 
   step "query" "detect" {
     database = param.database
-    sql      = local.iam_users_with_console_access_mfa_disabled_query
+    sql      = local.iam_root_users_with_hardware_mfa_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_iam_users_with_console_access_mfa_disabled
+    pipeline = pipeline.correct_iam_root_users_with_hardware_mfa_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -89,9 +88,9 @@ pipeline "detect_and_correct_iam_users_with_console_access_mfa_disabled" {
   }
 }
 
-pipeline "correct_iam_users_with_console_access_mfa_disabled" {
-  title         = "Correct IAM users with console access MFA disabled"
-  description   = "Send notifications for IAM users with console access MFA disabled."
+pipeline "correct_iam_root_users_with_hardware_mfa_disabled" {
+  title         = "Correct IAM root users with hardware MFA disabled"
+  description   = "Send notifications for IAM root users with hardware MFA disabled."
   tags          = merge(local.iam_common_tags, { type = "internal" })
 
   param "items" {
@@ -119,13 +118,13 @@ pipeline "correct_iam_users_with_console_access_mfa_disabled" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} IAM user(s) with console access MFA disabled."
+    text     = "Detected ${length(param.items)} IAM root user(s) with hardware MFA disabled."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
     notifier = param.notifier
-    text     = "Detected IAM user ${each.value.title} with console access MFA disabled."
+    text     = "Detected IAM ${each.value.title} with hardware MFA disabled."
   }
 }

@@ -47,26 +47,6 @@ variable "config_disabled_in_regions_trigger_schedule" {
   }
 }
 
-variable "config_disabled_in_regions_default_action" {
-  type        = string
-  description = "The default action to use when there are no approvers."
-  default     = "notify"
-
-  tags = {
-    folder = "Advanced/Config"
-  }
-}
-
-variable "config_disabled_in_regions_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions approvers can select."
-  default     = ["notify"]
-
-  tags = {
-    folder = "Advanced/Config"
-  }
-}
-
 trigger "query" "detect_and_correct_config_disabled_in_regions" {
   title       = "Detect & correct Config disabled in regions"
   description = "Detect Config disabled in regions."
@@ -108,24 +88,6 @@ pipeline "detect_and_correct_config_disabled_in_regions" {
     default     = var.notification_level
   }
 
-  param "approvers" {
-    type        = list(notifier)
-    description = local.description_approvers
-    default     = var.approvers
-  }
-
-  param "default_action" {
-    type        = string
-    description = local.description_default_action
-    default     = var.config_disabled_in_regions_default_action
-  }
-
-  param "enabled_actions" {
-    type        = list(string)
-    description = local.description_enabled_actions
-    default     = var.config_disabled_in_regions_enabled_actions
-  }
-
   step "query" "detect" {
     database = param.database
     sql      = local.config_disabled_in_regions_query
@@ -137,16 +99,13 @@ pipeline "detect_and_correct_config_disabled_in_regions" {
       items              = step.query.detect.rows
       notifier           = param.notifier
       notification_level = param.notification_level
-      approvers          = param.approvers
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
     }
   }
 }
 
 pipeline "correct_config_disabled_in_regions" {
   title       = "Correct Config disabled in regions"
-  description = "Detect Config disabled in regions."
+  description = "Send notifications for regions with Config disabled."
   tags        = merge(local.config_common_tags, { type = "internal" })
 
   param "items" {
@@ -169,24 +128,6 @@ pipeline "correct_config_disabled_in_regions" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
-  }
-
-  param "approvers" {
-    type        = list(notifier)
-    description = local.description_approvers
-    default     = var.approvers
-  }
-
-  param "default_action" {
-    type        = string
-    description = local.description_default_action
-    default     = var.config_disabled_in_regions_default_action
-  }
-
-  param "enabled_actions" {
-    type        = list(string)
-    description = local.description_enabled_actions
-    default     = var.config_disabled_in_regions_enabled_actions
   }
 
   step "message" "notify_detection_count" {
