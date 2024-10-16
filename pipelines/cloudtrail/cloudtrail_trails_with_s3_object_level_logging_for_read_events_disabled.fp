@@ -1,3 +1,4 @@
+# TODO: Should this pipeline create trails, or just update existing ones?
 locals {
   cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_query = <<-EOQ
   with s3_selectors as
@@ -76,14 +77,14 @@ variable "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disable
 
 variable "cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_home_region_for_read_event" {
   type        = string
-  description = "The AWS region ID to create the multi regional trail."
+  description = "The AWS region to create the CloudTrail trail in."
   default     = "us-east-1"
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 object level logging for read events disabled"
   description = "Detect CloudTrail trails where S3 object level logging for read events is disabled, and then either skip or enable the logging of S3 object read events."
-  
+
   tags = local.cloudtrail_common_tags
 
   enabled  = var.cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled_trigger_enabled
@@ -102,7 +103,7 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_object_level_loggi
 pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 object level logging for read events disabled"
   description = "Detect CloudTrail trails where S3 object level logging for read events is disabled, and then either skip or enable the logging of S3 object read events."
-  
+
   tags = local.cloudtrail_common_tags
   param "database" {
     type        = connection.steampipe
@@ -182,7 +183,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_object_level_logging_for_
 pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events_disabled" {
   title       = "Correct CloudTrail trails with S3 object level logging for read events disabled"
   description = "Runs corrective action on a collection of CloudTrail trails that have S3 object level logging for read events disabled."
-  
+
   tags = merge(local.cloudtrail_common_tags, { class = "internal" })
 
   param "items" {
@@ -274,7 +275,7 @@ pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events
 pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_read_events_disabled" {
   title       = "Correct one CloudTrail trail with S3 object level logging for read events disabled"
   description = "Runs corrective action on a CloudTrail trail with S3 object level logging for read events disabled."
-  
+
   tags = merge(local.cloudtrail_common_tags, { class = "internal" })
 
   param "title" {

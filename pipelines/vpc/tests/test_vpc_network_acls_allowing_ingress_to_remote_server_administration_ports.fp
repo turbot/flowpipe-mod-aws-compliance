@@ -7,13 +7,13 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
 
   param "region" {
     type        = string
-    description = "The AWS region where the resources will be created."
+    description = local.description_region
     default     = "us-east-1"
   }
 
   param "conn" {
-    type        = string
-    description = "The AWS connection profile to use."
+    type        = connection.aws
+    description = local.description_connection
     default     = connection.aws.default
   }
 

@@ -316,8 +316,8 @@ pipeline "deactivate_user_access_key" {
   description = "Deactivates the IAM user's access key."
 
   param "conn" {
-    type        = string
-    description =  local.description_connection
+    type        = connection.aws
+    description = local.description_connection
     default     = connection.aws.default
   }
 

@@ -12,8 +12,8 @@ pipeline "test_detect_and_correct_security_hub_disabled_in_regions" {
   }
 
   param "conn" {
-    type        = string
-    description = "The AWS connections profile to use."
+    type        = connection.aws
+    description = local.description_connection
     default     = connection.aws.default
   }
 

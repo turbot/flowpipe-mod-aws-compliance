@@ -18,8 +18,8 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
   }
 
   param "conn" {
-    type        = string
-    description = "The AWS connections profile to use."
+    type        = connection.aws
+    description = local.description_connection
     default     = connection.aws.default
   }
 

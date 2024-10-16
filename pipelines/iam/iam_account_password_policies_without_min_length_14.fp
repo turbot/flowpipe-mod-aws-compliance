@@ -292,8 +292,8 @@ pipeline "update_iam_account_password_policy_min_length" {
   description = "Updates the account password policy minimumn length for the AWS account."
 
   param "conn" {
-    type        = string
-   description  = local.description_connection
+    type        = connection.aws
+    description = local.description_connection
     default     = connection.aws.default
   }
 

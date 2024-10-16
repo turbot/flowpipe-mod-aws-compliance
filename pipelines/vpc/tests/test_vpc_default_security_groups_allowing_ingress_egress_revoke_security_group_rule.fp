@@ -189,7 +189,7 @@ pipeline "create_vpc_security_group_rules" {
   }
 
   param "conn" {
-    type        = string
+    type        = connection.aws
     description = local.description_connection
   }
 

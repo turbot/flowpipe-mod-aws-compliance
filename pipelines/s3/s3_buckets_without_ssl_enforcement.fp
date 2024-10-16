@@ -337,12 +337,12 @@ pipeline "put_s3_bucket_policy" {
 
   param "region" {
     type        = string
-    description = "The AWS region in which the S3 bucket is located."
+    description = local.description_region
   }
 
   param "conn" {
-    type        = string
-    description = "The AWS connection profile to use."
+    type        = connection.aws
+    description = local.description_connection
     default     = connection.aws.default
   }
 
@@ -354,7 +354,6 @@ pipeline "put_s3_bucket_policy" {
   param "policy" {
     type        = string
     description = "The base template for the new policy statement without bucket interpolation."
-
   }
 
   step "container" "get_s3_bucket_policy" {

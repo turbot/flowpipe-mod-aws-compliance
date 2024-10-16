@@ -3,7 +3,7 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
   description = "Tests the correction of a CloudTrail trail with S3 object level logging for write events disabled."
 
   param "conn" {
-    type        = string
+    type        = connection.aws
     description = "The AWS connection to use."
     default     = connection.aws.default
   }

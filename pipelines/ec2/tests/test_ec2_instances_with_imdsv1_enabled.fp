@@ -7,7 +7,7 @@ pipeline "test_ec2_instances_with_imdsv1_enabled" {
   }
 
   param "conn" {
-    type        = string
+    type        = connection.aws
     description = "The AWS connection to use."
     default     = connection.aws.default
   }

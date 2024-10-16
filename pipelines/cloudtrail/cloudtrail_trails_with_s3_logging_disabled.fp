@@ -342,7 +342,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
 
   param "region" {
     type        = string
-    description = "The AWS region in which to create the CloudTrail trail."
+    description = local.description_region
   }
 
   param "account_id" {

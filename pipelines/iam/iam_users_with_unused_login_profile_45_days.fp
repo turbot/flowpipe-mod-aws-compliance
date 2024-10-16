@@ -333,8 +333,8 @@ pipeline "delete_user_login_profile" {
   description = "Delete the IAM user's login profile."
 
   param "conn" {
-    type        = string
-    description =  local.description_connection
+    type        = connection.aws
+    description = local.description_connection
     default     = connection.aws.default
   }
 

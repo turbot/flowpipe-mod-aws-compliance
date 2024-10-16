@@ -7,7 +7,7 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
   }
 
   param "conn" {
-    type        = string
+    type        = connection.aws
     description = "The AWS connection to use."
     default     = connection.aws.default
   }

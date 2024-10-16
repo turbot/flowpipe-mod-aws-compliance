@@ -4,7 +4,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
   tags = {
     type = "test"
   }
-  
+
   param "region" {
     type        = string
     description = "The AWS region where the VPC will be created."
@@ -12,8 +12,8 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
   }
 
   param "conn" {
-    type        = string
-    description = "The AWS connections profile to use."
+    type        = connection.aws
+    description = local.description_connection
     default     = connection.aws.default
   }
 

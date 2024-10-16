@@ -9,8 +9,8 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
   }
 
   param "conn" {
-    type        = string
-    description = "The AWS connection profile to use."
+    type        = connection.aws
+    description = local.description_connection
     default     = connection.aws.default
   }
 
