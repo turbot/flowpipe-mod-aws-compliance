@@ -6,22 +6,22 @@ locals {
     cis_v300_1_4  = pipeline.cis_v300_1_4
     cis_v300_1_5  = pipeline.cis_v300_1_5
     cis_v300_1_6  = pipeline.cis_v300_1_6
-		cis_v300_1_7  = pipeline.cis_v300_1_7
-		cis_v300_1_8  = pipeline.cis_v300_1_8
-		cis_v300_1_9  = pipeline.cis_v300_1_9
-		cis_v300_1_10 = pipeline.cis_v300_1_10
-		cis_v300_1_11 = pipeline.cis_v300_1_11
-		cis_v300_1_12 = pipeline.cis_v300_1_12
-		cis_v300_1_13 = pipeline.cis_v300_1_13
-		cis_v300_1_14 = pipeline.cis_v300_1_14
-		cis_v300_1_15 = pipeline.cis_v300_1_15
-		cis_v300_1_16 = pipeline.cis_v300_1_16
-		cis_v300_1_17 = pipeline.cis_v300_1_17
-		cis_v300_1_18 = pipeline.cis_v300_1_18
-		cis_v300_1_19 = pipeline.cis_v300_1_19
-		cis_v300_1_20 = pipeline.cis_v300_1_20
-		cis_v300_1_21 = pipeline.cis_v300_1_21
-		cis_v300_1_22 = pipeline.cis_v300_1_22
+    cis_v300_1_7  = pipeline.cis_v300_1_7
+    cis_v300_1_8  = pipeline.cis_v300_1_8
+    cis_v300_1_9  = pipeline.cis_v300_1_9
+    cis_v300_1_10 = pipeline.cis_v300_1_10
+    cis_v300_1_11 = pipeline.cis_v300_1_11
+    cis_v300_1_12 = pipeline.cis_v300_1_12
+    cis_v300_1_13 = pipeline.cis_v300_1_13
+    cis_v300_1_14 = pipeline.cis_v300_1_14
+    cis_v300_1_15 = pipeline.cis_v300_1_15
+    cis_v300_1_16 = pipeline.cis_v300_1_16
+    cis_v300_1_17 = pipeline.cis_v300_1_17
+    cis_v300_1_18 = pipeline.cis_v300_1_18
+    cis_v300_1_19 = pipeline.cis_v300_1_19
+    cis_v300_1_20 = pipeline.cis_v300_1_20
+    cis_v300_1_21 = pipeline.cis_v300_1_21
+    cis_v300_1_22 = pipeline.cis_v300_1_22
   }
 }
 
@@ -36,22 +36,22 @@ variable "cis_v300_1_enabled_pipelines" {
     "cis_v300_1_4",
     "cis_v300_1_5",
     "cis_v300_1_6",
-		"cis_v300_1_7",
-		"cis_v300_1_8",
-		"cis_v300_1_9",
-		"cis_v300_1_10",
-		"cis_v300_1_11",
-		"cis_v300_1_12",
-		"cis_v300_1_13",
-		"cis_v300_1_14",
-		"cis_v300_1_15",
-		"cis_v300_1_16",
-		"cis_v300_1_17",
-		"cis_v300_1_18",
-		"cis_v300_1_19",
-		"cis_v300_1_20",
-		"cis_v300_1_21",
-		"cis_v300_1_22"
+    "cis_v300_1_7",
+    "cis_v300_1_8",
+    "cis_v300_1_9",
+    "cis_v300_1_10",
+    "cis_v300_1_11",
+    "cis_v300_1_12",
+    "cis_v300_1_13",
+    "cis_v300_1_14",
+    "cis_v300_1_15",
+    "cis_v300_1_16",
+    "cis_v300_1_17",
+    "cis_v300_1_18",
+    "cis_v300_1_19",
+    "cis_v300_1_20",
+    "cis_v300_1_21",
+    "cis_v300_1_22"
   ]
 
   enum = [
@@ -61,22 +61,22 @@ variable "cis_v300_1_enabled_pipelines" {
     "cis_v300_1_4",
     "cis_v300_1_5",
     "cis_v300_1_6",
-		"cis_v300_1_7",
-		"cis_v300_1_8",
-		"cis_v300_1_9",
-		"cis_v300_1_10",
-		"cis_v300_1_11",
-		"cis_v300_1_12",
-		"cis_v300_1_13",
-		"cis_v300_1_14",
-		"cis_v300_1_15",
-		"cis_v300_1_16",
-		"cis_v300_1_17",
-		"cis_v300_1_18",
-		"cis_v300_1_19",
-		"cis_v300_1_20",
-		"cis_v300_1_21",
-		"cis_v300_1_22"
+    "cis_v300_1_7",
+    "cis_v300_1_8",
+    "cis_v300_1_9",
+    "cis_v300_1_10",
+    "cis_v300_1_11",
+    "cis_v300_1_12",
+    "cis_v300_1_13",
+    "cis_v300_1_14",
+    "cis_v300_1_15",
+    "cis_v300_1_16",
+    "cis_v300_1_17",
+    "cis_v300_1_18",
+    "cis_v300_1_19",
+    "cis_v300_1_20",
+    "cis_v300_1_21",
+    "cis_v300_1_22"
   ]
 }
 

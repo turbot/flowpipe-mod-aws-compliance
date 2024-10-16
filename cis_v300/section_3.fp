@@ -6,9 +6,9 @@ locals {
     cis_v300_3_4  = pipeline.cis_v300_3_4
     cis_v300_3_5  = pipeline.cis_v300_3_5
     cis_v300_3_6  = pipeline.cis_v300_3_6
-		cis_v300_3_7  = pipeline.cis_v300_3_7
-		cis_v300_3_8  = pipeline.cis_v300_3_8
-		cis_v300_3_9  = pipeline.cis_v300_3_9
+    cis_v300_3_7  = pipeline.cis_v300_3_7
+    cis_v300_3_8  = pipeline.cis_v300_3_8
+    cis_v300_3_9  = pipeline.cis_v300_3_9
 
   }
 }
@@ -24,9 +24,9 @@ variable "cis_v300_3_enabled_pipelines" {
     "cis_v300_3_4",
     "cis_v300_3_5",
     "cis_v300_3_6",
-		"cis_v300_3_7",
-		"cis_v300_3_8",
-		"cis_v300_3_9"
+    "cis_v300_3_7",
+    "cis_v300_3_8",
+    "cis_v300_3_9"
   ]
 
   enum = [
@@ -36,9 +36,9 @@ variable "cis_v300_3_enabled_pipelines" {
     "cis_v300_3_4",
     "cis_v300_3_5",
     "cis_v300_3_6",
-		"cis_v300_3_7",
-		"cis_v300_3_8",
-		"cis_v300_3_9"
+    "cis_v300_3_7",
+    "cis_v300_3_8",
+    "cis_v300_3_9"
   ]
 }
 

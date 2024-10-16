@@ -6,16 +6,16 @@ locals {
     cis_v300_4_4  = pipeline.cis_v300_4_4
     cis_v300_4_5  = pipeline.cis_v300_4_5
     cis_v300_4_6  = pipeline.cis_v300_4_6
-		cis_v300_4_7  = pipeline.cis_v300_4_7
-		cis_v300_4_8  = pipeline.cis_v300_4_8
-		cis_v300_4_9  = pipeline.cis_v300_4_9
-		cis_v300_4_10 = pipeline.cis_v300_4_10
-		cis_v300_4_11 = pipeline.cis_v300_4_11
-		cis_v300_4_12 = pipeline.cis_v300_4_12
-		cis_v300_4_13 = pipeline.cis_v300_4_13
-		cis_v300_4_14 = pipeline.cis_v300_4_14
-		cis_v300_4_15 = pipeline.cis_v300_4_15
-		cis_v300_4_16 = pipeline.cis_v300_4_16
+    cis_v300_4_7  = pipeline.cis_v300_4_7
+    cis_v300_4_8  = pipeline.cis_v300_4_8
+    cis_v300_4_9  = pipeline.cis_v300_4_9
+    cis_v300_4_10 = pipeline.cis_v300_4_10
+    cis_v300_4_11 = pipeline.cis_v300_4_11
+    cis_v300_4_12 = pipeline.cis_v300_4_12
+    cis_v300_4_13 = pipeline.cis_v300_4_13
+    cis_v300_4_14 = pipeline.cis_v300_4_14
+    cis_v300_4_15 = pipeline.cis_v300_4_15
+    cis_v300_4_16 = pipeline.cis_v300_4_16
   }
 }
 
@@ -30,16 +30,16 @@ variable "cis_v300_4_enabled_pipelines" {
     "cis_v300_4_4",
     "cis_v300_4_5",
     "cis_v300_4_6",
-		"cis_v300_4_7",
-		"cis_v300_4_8",
-		"cis_v300_4_9",
-		"cis_v300_4_10",
-		"cis_v300_4_11",
-		"cis_v300_4_12",
-		"cis_v300_4_13",
-		"cis_v300_4_14",
-		"cis_v300_4_15",
-		"cis_v300_4_16"
+    "cis_v300_4_7",
+    "cis_v300_4_8",
+    "cis_v300_4_9",
+    "cis_v300_4_10",
+    "cis_v300_4_11",
+    "cis_v300_4_12",
+    "cis_v300_4_13",
+    "cis_v300_4_14",
+    "cis_v300_4_15",
+    "cis_v300_4_16"
   ]
 
   enum = [
@@ -49,16 +49,16 @@ variable "cis_v300_4_enabled_pipelines" {
     "cis_v300_4_4",
     "cis_v300_4_5",
     "cis_v300_4_6",
-		"cis_v300_4_7",
-		"cis_v300_4_8",
-		"cis_v300_4_9",
-		"cis_v300_4_10",
-		"cis_v300_4_11",
-		"cis_v300_4_12",
-		"cis_v300_4_13",
-		"cis_v300_4_14",
-		"cis_v300_4_15",
-		"cis_v300_4_16"
+    "cis_v300_4_7",
+    "cis_v300_4_8",
+    "cis_v300_4_9",
+    "cis_v300_4_10",
+    "cis_v300_4_11",
+    "cis_v300_4_12",
+    "cis_v300_4_13",
+    "cis_v300_4_14",
+    "cis_v300_4_15",
+    "cis_v300_4_16"
   ]
 }
 
@@ -247,7 +247,7 @@ pipeline "cis_v300_4_3" {
 
   step "message" "header" {
     notifier = param.notifier
-    text     = "4.3 nsure usage of 'root' account is monitored"
+    text     = "4.3 Ensure usage of 'root' account is monitored"
   }
 
   step "pipeline" "run_pipeline" {
