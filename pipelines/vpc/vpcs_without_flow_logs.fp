@@ -61,7 +61,7 @@ variable "vpcs_without_flow_logs_enabled_actions" {
 trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
   title         = "Detect & correct VPCs without flow logs"
   description   = "Detect VPCs without flow logs and then skip or create flow logs."
-  
+
 
   enabled  = var.vpcs_without_flow_logs_trigger_enabled
   schedule = var.vpcs_without_flow_logs_trigger_schedule
@@ -79,7 +79,7 @@ trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
 pipeline "detect_and_correct_vpcs_without_flow_logs" {
   title         = "Detect & correct VPCs without flow logs"
   description   = "Detect VPCs without flow logs and then skip or create flow logs."
-  
+
 
   param "database" {
     type        = connection.steampipe
@@ -138,7 +138,7 @@ pipeline "detect_and_correct_vpcs_without_flow_logs" {
 pipeline "correct_vpcs_without_flow_logs" {
   title         = "Correct VPCs without flow logs"
   description   = "Create flow logs for a collection of VPCs without flow logs."
-  
+
 
   param "items" {
     type = list(object({
@@ -211,7 +211,7 @@ pipeline "correct_vpcs_without_flow_logs" {
 pipeline "correct_one_vpc_without_flowlog" {
   title         = "Correct one VPC without flow log"
   description   = "Create a flow log for a VPC without flow log."
-  
+
   tags          = merge(local.vpc_common_tags, { class = "unused" })
 
   param "title" {

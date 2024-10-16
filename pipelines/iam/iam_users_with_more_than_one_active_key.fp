@@ -384,7 +384,7 @@ pipeline "correct_one_iam_user_with_more_than_one_active_key" {
           pipeline_ref = pipeline.deactivate_user_access_key
           pipeline_args = {
             access_key_id = param.access_key_id_1
-						user_name     = param.user_name
+            user_name     = param.user_name
             conn          = param.conn
           }
           success_msg = "Deactivated IAM user ${param.title} access key ${param.access_key_id_1}."
@@ -398,7 +398,7 @@ pipeline "correct_one_iam_user_with_more_than_one_active_key" {
           pipeline_ref = pipeline.deactivate_user_access_key
           pipeline_args = {
             access_key_id = param.access_key_id_2
-						user_name     = param.user_name
+            user_name     = param.user_name
             conn          = param.conn
           }
           success_msg = "Deactivated IAM user ${param.title} access key ${param.access_key_id_2}."

@@ -99,14 +99,14 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_block_public
     depends_on = [step.pipeline.run_detection]
     database   = var.database
     sql = <<-EOQ
-      select 
+      select
         name,
         block_public_acls
-      from 
+      from
         aws_s3_bucket
-      where 
+      where
         name = '${param.bucket}'
-        and block_public_acls = true 
+        and block_public_acls = true
     EOQ
   }
 

@@ -173,7 +173,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
         left join ingress_rdp_rules on ingress_rdp_rules.group_id = sg.group_id
       where
         sg.group_id = '${step.transform.get_security_group_id.value}'
-        and ingress_rdp_rules.group_id is not null;  
+        and ingress_rdp_rules.group_id is not null;
     EOQ
   }
 

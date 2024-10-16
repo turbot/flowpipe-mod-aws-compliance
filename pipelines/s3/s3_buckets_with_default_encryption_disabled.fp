@@ -253,7 +253,7 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
   title       = "Correct One S3 Bucket With Default Encryption Disabled"
   description = "Enable default encryption for a single S3 bucket."
   tags        = merge(local.s3_common_tags, { type = "internal" })
-  
+
   param "title" {
     type        = string
     description = "The title of the S3 bucket."

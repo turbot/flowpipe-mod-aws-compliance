@@ -16,7 +16,7 @@ locals {
 trigger "query" "detect_and_correct_rds_db_instance_if_copy_tags_to_snapshot_disabled" {
   title         = "Detect & correct RDS DB instances if copy tags to snapshot disabled"
   description   = "Detects RDS DB instances if copy tags to snapshot disabled and runs your chosen action."
-  
+
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   enabled  = var.rds_db_instance_if_copy_tags_to_snapshot_disabled_trigger_enabled
@@ -35,7 +35,7 @@ trigger "query" "detect_and_correct_rds_db_instance_if_copy_tags_to_snapshot_dis
 pipeline "detect_and_correct_rds_db_instance_if_copy_tags_to_snapshot_disabled" {
   title         = "Detect & correct RDS DB instances if copy tags to snapshot disabled"
   description   = "Detects RDS DB instances if copy tags to snapshot disabled and runs your chosen action."
-  
+
   tags          = merge(local.rds_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_rds_db_instance_if_copy_tags_to_snapshot_disabled" 
 pipeline "correct_rds_db_instance_if_copy_tags_to_snapshot_disabled" {
   title         = "Correct RDS DB instance if copy tags to snapshot disabled"
   description   = "Runs corrective action on a collection of RDS DB instance if copy tags to snapshot disabled."
-  
+
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "items" {
@@ -171,7 +171,7 @@ pipeline "correct_rds_db_instance_if_copy_tags_to_snapshot_disabled" {
 pipeline "correct_one_rds_db_instance_if_copy_tags_to_snapshot_disabled" {
   title         = "Correct one RDS DB instance if copy tags to snapshot disabled"
   description   = "Runs corrective action on an RDS DB instance if copy tags to snapshot disabled."
-  
+
   tags          = merge(local.rds_common_tags, { class = "unused" })
 
   param "title" {

@@ -15,7 +15,7 @@ locals {
 trigger "query" "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" {
   title         = "Detect & correct DynamoDB table with deletion protection disabled"
   description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
-  
+
   tags          = merge(local.dynamodb_common_tags, { class = "unused" })
 
   enabled  = var.dynamodb_tables_with_deletion_protection_disabled_trigger_enabled
@@ -58,7 +58,7 @@ variable "dynamodb_tables_with_deletion_protection_disabled_enabled_actions" {
 pipeline "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" {
   title         = "Detect & correct DynamoDB tables with deletion protection disabled"
   description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
-  
+
   tags          = merge(local.dynamodb_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
@@ -118,7 +118,7 @@ pipeline "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" 
 pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
   title         = "Correct DynamoDB tables with deletion protection disabled"
   description   = "Runs corrective action on a collection of DynamoDB tables with deletion protection disabled."
-  
+
   tags          = merge(local.dynamodb_common_tags, { class = "unused" })
 
   param "items" {
@@ -188,7 +188,7 @@ pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
 pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
   title         = "Correct one DynamoDB table with deletion protection disabled"
   description   = "Runs corrective action on an DynamoDB table with deletion protection disabled."
-  
+
   tags          = merge(local.dynamodb_common_tags, { class = "unused" })
 
   param "title" {

@@ -4,7 +4,7 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_skip" {
   tags = {
     type = "test"
   }
-  
+
   param "conn" {
     type        = connection.aws
     description = local.description_connection
@@ -55,13 +55,13 @@ pipeline "test_detect_and_correct_s3_buckets_if_publicly_accessible_skip" {
     depends_on = [step.pipeline.run_detection]
     database   = var.database
     sql = <<-EOQ
-      select 
+      select
         name
-      from 
+      from
         aws_s3_bucket as bucket
-      where 
+      where
         name = '${param.bucket}'
-      -- and block_public_acls = false 
+      -- and block_public_acls = false
       -- and block_public_policy = false;
     EOQ
   }

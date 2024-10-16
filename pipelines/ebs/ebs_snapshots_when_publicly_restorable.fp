@@ -202,7 +202,7 @@ pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
   title         = "Correct one EBS snapshot when publicly restorable"
   description   = "Runs corrective action on an EBS snapshot if it is publicly restorable."
   tags          = merge(local.ebs_common_tags, { type = "internal" })
-  
+
   param "title" {
     type        = string
     description = local.description_title

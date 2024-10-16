@@ -373,8 +373,8 @@ pipeline "put_s3_bucket_policy" {
 
   step "transform" "decode_existing_policy_with_policy" {
     value = try(jsondecode(step.transform.decode_existing_policy_no_policy.value), {})
-  } 
-  
+  }
+
   step "transform" "prepare_new_statement" {
     value = jsondecode(param.policy).Statement[0]
   }

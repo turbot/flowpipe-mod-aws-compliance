@@ -66,7 +66,7 @@ variable "aws_vpc_flow_log_iam_policy_name" {
   default     = "FlowpipeRemediateEnableVPCFlowLogIAMPolicy"
   tags = {
     folder = "Advanced/VPC"
-  }  
+  }
 }
 
 variable "aws_cloudwatch_log_group_name" {
@@ -117,7 +117,7 @@ pipeline "create_iam_role_and_policy" {
 
   step "pipeline" "create_iam_role" {
     if       = length(step.query.get_iam_role.rows) == 0
-    pipeline = aws.pipeline.create_iam_role  
+    pipeline = aws.pipeline.create_iam_role
     args = {
       role_name = var.aws_vpc_flow_log_role_name
       assume_role_policy_document = var.vpc_flow_log_role_policy
@@ -126,7 +126,7 @@ pipeline "create_iam_role_and_policy" {
 
   step "pipeline" "create_iam_policy" {
     if       = length(step.query.get_iam_policy.rows) == 0
-    pipeline = aws.pipeline.create_iam_policy  
+    pipeline = aws.pipeline.create_iam_policy
     args = {
       policy_name = var.aws_vpc_flow_log_iam_policy_name
       policy_document = var.vpc_flow_log_iam_policy
@@ -135,7 +135,7 @@ pipeline "create_iam_role_and_policy" {
 
   step "pipeline" "attach_iam_role_policy_if_new" {
     if       = length(step.query.get_iam_policy.rows) == 0
-    pipeline = aws.pipeline.attach_iam_role_policy  
+    pipeline = aws.pipeline.attach_iam_role_policy
     args = {
       role_name = var.aws_vpc_flow_log_role_name
       policy_arn = step.pipeline.create_iam_policy.stdout.policy.Arn
@@ -145,7 +145,7 @@ pipeline "create_iam_role_and_policy" {
   // Outputs
   output "iam_role_arn" {
     description = "IAM Role ARN output."
-    value       = length(step.query.get_iam_role.rows) > 0 ? step.query.get_iam_role.rows[0].arn : step.pipeline.create_iam_role.role.Arn 
+    value       = length(step.query.get_iam_role.rows) > 0 ? step.query.get_iam_role.rows[0].arn : step.pipeline.create_iam_role.role.Arn
   }
 }
 

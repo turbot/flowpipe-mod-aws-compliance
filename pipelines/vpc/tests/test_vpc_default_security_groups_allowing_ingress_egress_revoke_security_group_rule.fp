@@ -96,7 +96,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
       where
         sg.group_name   = 'default-security-group'
         and sg.group_id = '${step.transform.get_security_group_id.value}'
-        and ingress_and_egress_rules.group_id is not null;    
+        and ingress_and_egress_rules.group_id is not null;
     EOQ
   }
 
@@ -153,7 +153,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
       where
         sg.group_name   = 'default-security-group'
         and sg.group_id = '${step.transform.get_security_group_id.value}'
-        and ingress_and_egress_rules.group_id is not null;    
+        and ingress_and_egress_rules.group_id is not null;
     EOQ
   }
 

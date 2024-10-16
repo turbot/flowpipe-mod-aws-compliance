@@ -357,7 +357,7 @@ pipeline "revoke_vpc_security_group_rule" {
 
   param "type" {
     type        = string
-    description = "The type of the Security group rule (ingress or egress)."    
+    description = "The type of the Security group rule (ingress or egress)."
   }
 
   step "pipeline" "revoke_security_group_rule_ingress" {

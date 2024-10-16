@@ -207,7 +207,7 @@ pipeline "correct_one_rds_db_instance_with_auto_minor_version_upgrade_disabled" 
   tags          = merge(local.rds_common_tags, { type = "internal" })
 
   param "title" {
-    type        = string  
+    type        = string
     description = local.description_title
   }
 

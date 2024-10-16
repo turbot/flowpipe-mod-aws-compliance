@@ -6,7 +6,7 @@ locals {
         security_group_rule_id,
         region,
         account_id,
-        sp_connection_name as conn    
+        sp_connection_name as conn
       from
         aws_vpc_security_group_rule
       where

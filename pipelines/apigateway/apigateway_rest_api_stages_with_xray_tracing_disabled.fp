@@ -57,7 +57,7 @@ trigger "query" "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing
 pipeline "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
   title         = "Detect & correct API Gateway rest API stages with x-ray tracing disabled"
   description   = "Detect API Gateway rest API stages with x-ray tracing disabled and then skip or enable x-ray tracing."
-  
+
 
   param "database" {
     type        = connection.steampipe
@@ -116,7 +116,7 @@ pipeline "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabl
 pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
   title         = "Correct API Gateway rest API stages with x-ray tracing disabled"
   description   = "Enable x-ray tracing for API Gateway rest API stages with x-ray tracing disabled."
-  
+
 
   param "items" {
     type = list(object({
@@ -186,7 +186,7 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
 pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
   title         = "Correct API Gateway rest API stage x-ray tracing disabled"
   description   = "Enable x-ray tracing for API Gateway rest API stage with x-ray tracing disabled."
-  
+
 
   param "title" {
     type        = string
