@@ -294,7 +294,7 @@ pipeline "update_iam_account_password_policy_max_password_age" {
   param "conn" {
     type        = connection.aws
     description = local.description_connection
-    default     = connection.aws.aws
+    default     = connection.aws.default
   }
 
   param "max_password_age" {
