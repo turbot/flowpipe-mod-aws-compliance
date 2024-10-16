@@ -185,7 +185,7 @@ pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_write_event
   title       = "Correct CloudTrail trails with S3 object write events audit disabled"
   description = "Runs corrective action on a collection of CloudTrail trails that do not have S3 Object-level logging for write events."
 
-  tags = merge(local.cloudtrail_common_tags, { class = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -276,7 +276,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_write_ev
   title       = "Correct one CloudTrail trail with S3 object level logging for write events disabled"
   description = "Runs corrective action on a CloudTrail trail with S3 object level logging for write events disabled."
 
-  tags = merge(local.cloudtrail_common_tags, { class = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -393,7 +393,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_write_ev
 pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_events" {
   title       = "Create CloudTrail Trail with S3 Object-level logging for write events"
   description = "Creates a CloudTrail trail with S3 Object-level logging for write events."
-  tags        = merge(local.cloudtrail_common_tags, { class = "internal" })
+  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "region" {
     type        = string
