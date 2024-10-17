@@ -544,7 +544,7 @@ pipeline "cis_v400_2_2_4" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.manual_detection
+    pipeline   = pipeline.detect_and_correct_rds_db_instances_with_multi_az_disabled
 
     args = {
       database           = param.database
