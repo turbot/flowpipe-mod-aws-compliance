@@ -1,5 +1,5 @@
 pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
-  title       = "Test Detect and Correct VPC Default Security Group Allowing Ingress to port 22 - Revoke security group rule"
+  title       = "Test detect and correct VPC Default Security Group allowing ingress to port 22 - revoke security group rule"
   description = "Test the  Revoke security group rule action for VPC Default Security Group Allowing Ingress to port 22."
   tags = {
     type = "test"

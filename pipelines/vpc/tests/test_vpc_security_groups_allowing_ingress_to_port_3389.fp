@@ -1,5 +1,5 @@
 pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" {
-  title       = "Test Detect and Correct VPC Security Groups Allowing Ingress to port 3389 - Revoke security group rule"
+  title       = "Test detect and correct VPC Security Groups allowing ingress to port 3389 - revoke security group rule"
   description = "Test the  Revoke security group rule action for VPC Default Security Group Allowing Ingress to port 3389."
   tags = {
     type = "test"

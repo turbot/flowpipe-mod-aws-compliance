@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable_access_analyzer" {
   title       = "Test detect and correcr IAM Access Analyzer disabled in regions"
-  description = "Test detect_and_correct_iam_access_analyzer_disabled_in_region pipeline."
+  description = "Test detect and correcr IAM Access Analyzer disabled in regions pipeline."
 
   tags = {
     type = "test"

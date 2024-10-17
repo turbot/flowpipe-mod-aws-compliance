@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_account_password_policies_without_password_reuse_24_update_password_policy_reuse_prevention" {
   title       = "Test detect and correct IAM account password policies without password reuse 24"
-  description = "Test setect_and_correct_iam_account_password_policies_without_password_reuse_24 pipeline."
+  description = "Test setect and correct IAM account password policies without password reuse 24 pipeline."
 
   tags = {
     type = "test"
@@ -14,7 +14,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
 
   step "query" "get_account_id" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         account_id
       from
@@ -26,7 +26,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
   step "query" "get_password_policy" {
     depends_on = [step.query.get_account_id]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         a.account_id as title,
         pol.account_id as password_policy_account_id,
@@ -52,7 +52,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
   step "query" "get_password_policy_without_password_reuse_24" {
     depends_on = [step.query.get_password_policy]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         pol.account_id as password_policy_account_id
       from
@@ -88,12 +88,12 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_password_reuse_24
     args = {
-      title                  = each.value.title
-      account_id             = each.value.title
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "update_password_policy_reuse_prevention"
-      enabled_actions        = ["update_password_policy_reuse_prevention"]
+      title           = each.value.title
+      account_id      = each.value.title
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "update_password_policy_reuse_prevention"
+      enabled_actions = ["update_password_policy_reuse_prevention"]
     }
   }
 
@@ -101,7 +101,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.pipeline.run_detection]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         account_id
       from
@@ -142,7 +142,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
   step "container" "delete_iam_account_password_policy" {
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) == null
     depends_on = [step.pipeline.set_password_reuse__to_old_setting]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
       "iam", "delete-account-password-policy"

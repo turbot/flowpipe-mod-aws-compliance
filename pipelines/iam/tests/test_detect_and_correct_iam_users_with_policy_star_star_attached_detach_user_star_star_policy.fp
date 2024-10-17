@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detach_user_star_star_policy" {
   title       = "Test detect and correct IAM users attached with *:* policy"
-  description = "Test detect_and_correct_iam_users_with_policy_star_star_attached pipeline."
+  description = "Test detect and correct IAM users attached with *:* policy pipeline."
 
   tags = {
     type = "test"

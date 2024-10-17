@@ -97,7 +97,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
       "--output", "text"
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_vpc]
   }
 
@@ -113,19 +113,19 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
       "--master-username", param.master_username,
       "--master-user-password", param.master_user_password,
       "--allocated-storage", tostring(param.allocated_storage),
-      "--vpc-security-group-ids", trimspace(step.container.get_default_security_group.stdout),  # Ensure no extra characters
+      "--vpc-security-group-ids", trimspace(step.container.get_default_security_group.stdout), # Ensure no extra characters
       "--db-name", param.db_name,
       "--backup-retention-period", tostring(param.backup_retention_period),
-      "--no-publicly-accessible"  # Optionally keep the instance private
+      "--no-publicly-accessible" # Optionally keep the instance private
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_security_group]
   }
 
   step "query" "get_rds_db_instance_details" {
-    database   = var.database
-    sql        = <<-EOQ
+    database = var.database
+    sql      = <<-EOQ
     select
       concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
       db_instance_identifier,
@@ -190,7 +190,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
       "--skip-final-snapshot"
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_rds_db_instance_details_after_remediation]
   }
 }

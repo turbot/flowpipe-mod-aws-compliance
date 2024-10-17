@@ -1,5 +1,5 @@
 pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl" {
-  title       = "Test Detect and Correct S3 Buckets without SSL enforcement - Enforce SSL"
+  title       = "Test detect and correct S3 buckets without SSL enforcement - enforce SSL"
   description = "Test the enforce SSL action for S3 buckets."
   tags = {
     type = "test"
@@ -39,8 +39,8 @@ pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl
   }
 
   step "query" "check_bucket_ssl_disabled" {
-    database   = var.database
-    sql = <<-EOQ
+    database = var.database
+    sql      = <<-EOQ
       with ssl_ok as (
         select
           distinct name,
@@ -77,20 +77,20 @@ pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl
     depends_on = [step.pipeline.create_s3_bucket]
     pipeline   = pipeline.correct_one_s3_bucket_without_ssl_enforcement
     args = {
-      title            = param.bucket
-      bucket_name      = param.bucket
-      conn             = param.conn
-      region           = param.region
-      approvers        = []
-      default_action   = "enforce_ssl"
-      enabled_actions  = ["enforce_ssl"]
+      title           = param.bucket
+      bucket_name     = param.bucket
+      conn            = param.conn
+      region          = param.region
+      approvers       = []
+      default_action  = "enforce_ssl"
+      enabled_actions = ["enforce_ssl"]
     }
   }
 
   step "query" "verify_enforce_ssl" {
     depends_on = [step.pipeline.run_detection]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       with ssl_ok as (
         select
           distinct name,

@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_account_password_policies_without_max_password_age_90_days_update_password_policy_max_age" {
   title       = "Test detect and correct IAM account password policies without max password age of 90 days"
-  description = "Test detect_and_correct_iam_account_password_policies_without_max_password_age_90_days pipeline."
+  description = "Test detect and correct IAM account password policies without max password age 90 days pipeline."
 
   tags = {
     type = "test"

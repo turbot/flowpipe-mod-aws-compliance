@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_account_password_policies_without_min_length_14_update_password_policy_min_length" {
   title       = "Test detect and correct IAM account password policies without minimum length of 14"
-  description = "Test detect_and_correct_iam_account_password_policies_without_min_length_14 pipeline ."
+  description = "Test detect and correct IAM account password policies without min length 14 pipeline."
 
   tags = {
     type = "test"
@@ -14,7 +14,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
 
   step "query" "get_account_id" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         account_id
       from
@@ -26,7 +26,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
   step "query" "get_password_policy" {
     depends_on = [step.query.get_account_id]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         a.account_id as title,
         pol.account_id as password_policy_account_id,
@@ -52,7 +52,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
   step "query" "get_password_policy_with_minimum_password_length_less_than_14" {
     depends_on = [step.query.get_password_policy]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         pol.account_id as password_policy_account_id
       from
@@ -66,7 +66,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
 
   step "pipeline" "set_password_policy_length_7" {
     depends_on = [step.query.get_password_policy_with_minimum_password_length_less_than_14]
-     if        = length(step.query.get_password_policy_with_minimum_password_length_less_than_14.rows) == 0 && (step.query.get_password_policy.rows[0].password_policy_account_id) != null
+    if         = length(step.query.get_password_policy_with_minimum_password_length_less_than_14.rows) == 0 && (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
@@ -87,20 +87,20 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_min_length_14
     args = {
-      title                  = each.value.title
-      account_id             = each.value.title
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "update_password_policy_min_length"
-      enabled_actions        = ["update_password_policy_min_length"]
+      title           = each.value.title
+      account_id      = each.value.title
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "update_password_policy_min_length"
+      enabled_actions = ["update_password_policy_min_length"]
     }
   }
 
   step "query" "get_password_policy_after_detection" {
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.pipeline.run_detection]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         account_id,
         minimum_password_length
@@ -143,9 +143,9 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
   }
 
   step "container" "delete_iam_account_password_policy" {
-    if     =(step.query.get_password_policy.rows[0].password_policy_account_id) == null
+    if         = (step.query.get_password_policy.rows[0].password_policy_account_id) == null
     depends_on = [step.pipeline.set_password_policy_length_to_old_setting]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
       "iam", "delete-account-password-policy"
