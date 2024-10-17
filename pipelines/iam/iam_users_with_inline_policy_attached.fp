@@ -68,7 +68,6 @@ trigger "query" "detect_and_correct_iam_users_with_inline_policy_attached" {
       items = self.inserted_rows
     }
   }
-
 }
 
 pipeline "detect_and_correct_iam_users_with_inline_policy_attached" {

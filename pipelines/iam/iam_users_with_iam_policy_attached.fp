@@ -1,7 +1,7 @@
 locals {
   iam_users_with_iam_policy_attached_query = <<-EOQ
     select
-      concat(name, ' [', account_id, ']') as title,
+      concat(name,' - ', jsonb_array_elements_text(attached_policy_arns), ' [', account_id, ']') as title,
       jsonb_array_elements_text(attached_policy_arns) as policy_arn,
       name as user_name,
       account_id,
@@ -183,7 +183,7 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for row in param.items : row.policy_arn => row }
+    for_each        = { for row in param.items : row.title => row }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_user_with_iam_policy_attached
     args = {

@@ -148,7 +148,6 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
   param "items" {
     type = list(object({
       title          = string
-      analyzer_name  = string
       region         = string
       conn           = string
     }))
@@ -163,7 +162,7 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
 
   param "analyzer_name" {
     type        = string
-    description = "analyzer_name"
+    description = "The name of the IAM Access Analyzer."
     default     = var.iam_access_analyzer_disabled_in_regions_analyzer_name
   }
 

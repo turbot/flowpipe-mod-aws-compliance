@@ -277,7 +277,7 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
           error_msg   = ""
         },
         "detach_user_cloudshell_full_access_policy" = {
-          label        = "Detach cloudshell full access policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess`"
+          label        = "Detach cloudshell full access policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM user ${param.title}"
           value        = "detach_user_cloudshell_full_access_policy"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_user_policy

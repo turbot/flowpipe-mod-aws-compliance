@@ -378,7 +378,7 @@ pipeline "correct_one_iam_user_with_more_than_one_active_key" {
           error_msg   = ""
         },
         "deactivate_access_key_1" = {
-          label        = "Deactivate access key 1 ${param.access_key_id_1} for user ${param.title} with the key currently aged ${param.access_key_1_age} day(s).)"
+          label        = "Deactivate access key 1 ${param.access_key_id_1} for user ${param.title} with the key currently aged ${param.access_key_1_age} day(s))"
           value        = "deactivate_access_key_1"
           style        = local.style_alert
           pipeline_ref = pipeline.deactivate_user_access_key
@@ -392,7 +392,7 @@ pipeline "correct_one_iam_user_with_more_than_one_active_key" {
         }
 
         "deactivate_access_key_2" = {
-          label        = "Deactivate access key 2 ${param.access_key_id_2} for user ${param.title} with the key currently aged ${param.access_key_2_age} day(s).)"
+          label        = "Deactivate access key 2 ${param.access_key_id_2} for user ${param.title} with the key currently aged ${param.access_key_2_age} day(s))"
           value        = "deactivate_access_key_2"
           style        = local.style_alert
           pipeline_ref = pipeline.deactivate_user_access_key

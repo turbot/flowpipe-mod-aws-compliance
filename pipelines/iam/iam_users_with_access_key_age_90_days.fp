@@ -4,6 +4,7 @@ locals {
       concat(access_key_id, ' [', account_id, ']') as title,
       access_key_id,
       user_name,
+      account_id,
       sp_connection_name as conn,
       create_date as access_key_create_date,
       (extract(day from now() - create_date))::text as access_key_create_day
@@ -294,7 +295,7 @@ pipeline "correct_one_iam_user_with_access_key_age_90_days" {
           error_msg   = ""
         },
         "deactivate_user_access_key_age_90_days" = {
-          label        = "Deactivate user access key aged 90 days or more"
+          label        = "Deactivate IAM user ${param.user_name} access key ${param.title}"
           value        = "deactivate_user_access_key_age_90_days"
           style        = local.style_alert
           pipeline_ref = pipeline.deactivate_user_access_key

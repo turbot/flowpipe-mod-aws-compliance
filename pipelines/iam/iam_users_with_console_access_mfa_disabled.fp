@@ -97,8 +97,6 @@ pipeline "correct_iam_users_with_console_access_mfa_disabled" {
   param "items" {
     type = list(object({
       title       = string
-      bucket_name = string
-      region      = string
       conn        = string
     }))
     description = local.description_items

@@ -290,7 +290,7 @@ pipeline "correct_one_iam_user_with_policy_star_star_attached" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM user ${param.user_name} attached with *:* policy ${param.policy_arn}."
+      detect_msg         = "Detected IAM user ${param.user_name} [${param.account_id}] attached with *:* policy ${param.policy_arn}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -302,13 +302,13 @@ pipeline "correct_one_iam_user_with_policy_star_star_attached" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM user ${param.user_name}."
+            text     = "Skipped IAM user ${param.user_name} [${param.account_id}]."
           }
           success_msg = ""
           error_msg   = ""
         },
         "detach_user_star_star_policy" = {
-          label        = "Detach *:* policy from IAM user"
+          label        = "Detach *:* policy from IAM user ${param.user_name} [${param.account_id}]"
           value        = "detach_user_star_star_policy"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_user_policy
@@ -317,8 +317,8 @@ pipeline "correct_one_iam_user_with_policy_star_star_attached" {
             policy_arn   = param.policy_arn
             conn         = param.conn
           }
-          success_msg = "Detached *:* policy ${param.policy_arn} from IAM user ${param.user_name}."
-          error_msg   = "Error detaching *:* policy ${param.policy_arn} from IAM user ${param.user_name}."
+          success_msg = "Detached *:* policy ${param.policy_arn} from IAM user ${param.user_name} [${param.account_id}]."
+          error_msg   = "Error detaching *:* policy ${param.policy_arn} from IAM user ${param.user_name} [${param.account_id}]."
         }
       }
     }

@@ -4,9 +4,10 @@ locals {
       concat(u.name, ' [', u.account_id, ']') as title,
       k.access_key_id,
       u.name as user_name,
-      u.sp_connection_name as conn,
       k.access_key_last_used_date,
-      (extract(day from now() - k.access_key_last_used_date))::text as access_key_last_used_day  -- Extracts only the days part
+      (extract(day from now() - k.access_key_last_used_date))::text as access_key_last_used_day,  -- Extracts only the days part
+      u.account_id,
+      u.sp_connection_name as conn
     from
       aws_iam_user as u
       join aws_iam_access_key as k on u.name = k.user_name and u.account_id = k.account_id

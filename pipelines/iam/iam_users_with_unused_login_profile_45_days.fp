@@ -7,6 +7,7 @@ locals {
       r.password_last_changed,
       coalesce(((extract(day from now() - r.password_last_used))::text), 'Never Used') as password_last_used_in_days,
       (extract(day from now() - r.password_last_changed))::text as password_last_changed_in_days,
+      u.account_id,
       u.sp_connection_name as conn
     from
       aws_iam_user as u

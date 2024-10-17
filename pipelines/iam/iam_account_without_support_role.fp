@@ -347,7 +347,7 @@ pipeline "correct_one_iam_account_without_support_role" {
           error_msg   = ""
         },
         "create_support_role" = {
-          label        = "Create support role"
+          label        = "Create support role ${param.support_role_name}"
           value        = "create_support_role"
           style        = local.style_alert
           pipeline_ref = pipeline.create_iam_account_support_role
