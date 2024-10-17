@@ -1,5 +1,5 @@
 locals {
-  cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_query = <<-EOQ
+  accounts_without_metric_filter_for_network_gateway_changes_query = <<-EOQ
     with trails as (
       select
         trail.account_id,
@@ -148,7 +148,7 @@ locals {
   EOQ
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_trigger_enabled" {
+variable "accounts_without_metric_filter_for_network_gateway_changes_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
@@ -158,7 +158,7 @@ variable "cloudwatch_log_groups_without_metric_filter_for_network_gateway_change
   }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_trigger_schedule" {
+variable "accounts_without_metric_filter_for_network_gateway_changes_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
@@ -168,25 +168,25 @@ variable "cloudwatch_log_groups_without_metric_filter_for_network_gateway_change
   }
 }
 
-trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes" {
+trigger "query" "detect_and_correct_accounts_without_metric_filter_for_network_gateway_changes" {
   title       = "Detect & correct CloudWatch log groups  without metric filter for network gateway  changes"
   description = "Detect CloudWatch log groups wihtout metric filter for network gateway changes and then enable network gateway changes metric filter."
   tags        = local.cloudwatch_common_tags
 
-  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_trigger_enabled
-  schedule = var.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_trigger_schedule
+  enabled  = var.accounts_without_metric_filter_for_network_gateway_changes_trigger_enabled
+  schedule = var.accounts_without_metric_filter_for_network_gateway_changes_trigger_schedule
   database = var.database
-  sql      = local.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_query
+  sql      = local.accounts_without_metric_filter_for_network_gateway_changes_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes
+    pipeline = pipeline.correct_accounts_without_metric_filter_for_network_gateway_changes
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes" {
+pipeline "detect_and_correct_accounts_without_metric_filter_for_network_gateway_changes" {
   title       = "Detect & correct accounts without metric filter for network gateway changes"
   description = "Detect accounts without a metric filter for network gateway changes."
   tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
@@ -211,11 +211,11 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_net
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes_query
+    sql      = local.accounts_without_metric_filter_for_network_gateway_changes_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes
+    pipeline = pipeline.correct_accounts_without_metric_filter_for_network_gateway_changes
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -224,7 +224,7 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_net
   }
 }
 
-pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes" {
+pipeline "correct_accounts_without_metric_filter_for_network_gateway_changes" {
   title       = "Correct accounts without metric filter for network gateway changes"
   description = "Send notifications for accounts without a metric filter for network gateway changes."
   tags        = merge(local.cloudwatch_common_tags, { type = "internal" })

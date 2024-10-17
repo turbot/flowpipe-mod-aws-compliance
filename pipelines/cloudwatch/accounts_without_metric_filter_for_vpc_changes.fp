@@ -1,5 +1,5 @@
 locals {
-  cloudwatch_log_groups_without_metric_filter_for_organization_changes_query = <<-EOQ
+  accounts_without_metric_filter_for_vpc_changes_query = <<-EOQ
     with trails as (
       select
         trail.account_id,
@@ -45,7 +45,7 @@ locals {
       from
         aws_cloudwatch_log_metric_filter as filter
       where
-        filter.filter_pattern ~ '\s*\$\.eventSource\s*=\s*organizations.amazonaws.com.+\$\.eventName\s*=\s*"?AcceptHandshake"?.+\$\.eventName\s*=\s*"?AttachPolicy"?.+\$\.eventName\s*=\s*"?CreateAccount"?.+\$\.eventName\s*=\s*"?CreateOrganizationalUnit"?.+\$\.eventName\s*=\s*"?CreatePolicy"?.+\$\.eventName\s*=\s*"?DeclineHandshake"?.+\$\.eventName\s*=\s*"?DeleteOrganization"?.+\$\.eventName\s*=\s*"?DeleteOrganizationalUnit"?.+\$\.eventName\s*=\s*"?DeletePolicy"?.+\$\.eventName\s*=\s*"?DetachPolicy"?.+\$\.eventName\s*=\s*"?DisablePolicyType"?.+\$\.eventName\s*=\s*"?EnablePolicyType"?.+\$\.eventName\s*=\s*"?InviteAccountToOrganization"?.+\$\.eventName\s*=\s*"?LeaveOrganization"?.+\$\.eventName\s*=\s*"?MoveAccount"?.+\$\.eventName\s*=\s*"?RemoveAccountFromOrganization"?.+\$\.eventName\s*=\s*"?UpdatePolicy"?.+\$\.eventName\s*=\s*"?UpdateOrganizationalUnit"?'
+        filter.filter_pattern ~ '\s*\$\.eventName\s*=\s*CreateVpc.+\$\.eventName\s*=\s*DeleteVpc.+\$\.eventName\s*=\s*ModifyVpcAttribute.+\$\.eventName\s*=\s*AcceptVpcPeeringConnection.+\$\.eventName\s*=\s*CreateVpcPeeringConnection.+\$\.eventName\s*=\s*DeleteVpcPeeringConnection.+\$\.eventName\s*=\s*RejectVpcPeeringConnection.+\$\.eventName\s*=\s*AttachClassicLinkVpc.+\$\.eventName\s*=\s*DetachClassicLinkVpc.+\$\.eventName\s*=\s*DisableVpcClassicLink.+\$\.eventName\s*=\s*EnableVpcClassicLink'
       order by
         filter_name
     ),
@@ -76,7 +76,7 @@ locals {
   EOQ
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_organization_changes_trigger_enabled" {
+variable "accounts_without_metric_filter_for_vpc_changes_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
@@ -86,7 +86,7 @@ variable "cloudwatch_log_groups_without_metric_filter_for_organization_changes_t
   }
 }
 
-variable "cloudwatch_log_groups_without_metric_filter_for_organization_changes_trigger_schedule" {
+variable "accounts_without_metric_filter_for_vpc_changes_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
@@ -96,27 +96,27 @@ variable "cloudwatch_log_groups_without_metric_filter_for_organization_changes_t
   }
 }
 
-trigger "query" "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_organization_changes" {
-  title       = "Detect & correct CloudWatch log groups without metric filter for organizationy changes"
-  description = "Detect CloudWatch log groups without metric filter for organization changes and then enable organization changes metric filter."
+trigger "query" "detect_and_correct_accounts_without_metric_filter_for_vpc_changes" {
+  title       = "Detect & correct accounts without metric filter for VPC changes"
+  description = "Detect accounts without a metric filter for VPC changes."
   tags        = local.cloudwatch_common_tags
 
-  enabled  = var.cloudwatch_log_groups_without_metric_filter_for_organization_changes_trigger_enabled
-  schedule = var.cloudwatch_log_groups_without_metric_filter_for_organization_changes_trigger_schedule
+  enabled  = var.accounts_without_metric_filter_for_vpc_changes_trigger_enabled
+  schedule = var.accounts_without_metric_filter_for_vpc_changes_trigger_schedule
   database = var.database
-  sql      = local.cloudwatch_log_groups_without_metric_filter_for_organization_changes_query
+  sql      = local.accounts_without_metric_filter_for_vpc_changes_query
 
   capture "insert" {
-    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_organization_changes
+    pipeline = pipeline.correct_accounts_without_metric_filter_for_vpc_changes
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_organization_changes" {
-  title       = "Detect & correct accounts without metric filter for organization changes"
-  description = "Detect accounts without a metric filter for organization changes."
+pipeline "detect_and_correct_accounts_without_metric_filter_for_vpc_changes" {
+  title       = "Detect & correct accounts without metric filter for VPC changes"
+  description = "Detects accounts without a metric filter for VPC changes."
   tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
 
   param "database" {
@@ -139,11 +139,11 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_org
 
   step "query" "detect" {
     database = param.database
-    sql      = local.cloudwatch_log_groups_without_metric_filter_for_organization_changes_query
+    sql      = local.accounts_without_metric_filter_for_vpc_changes_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_cloudwatch_log_groups_without_metric_filter_for_organization_changes
+    pipeline = pipeline.correct_accounts_without_metric_filter_for_vpc_changes
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -152,9 +152,9 @@ pipeline "detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_org
   }
 }
 
-pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_organization_changes" {
-  title       = "Correct accounts without metric filter for organization changes"
-  description = "Send notifications for accounts without a metric filter for organization changes."
+pipeline "correct_accounts_without_metric_filter_for_vpc_changes" {
+  title       = "Correct accounts without metric filter for VPC changes"
+  description = "Send notifications for accounts without a metric filter for VPC changes."
   tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
@@ -180,13 +180,13 @@ pipeline "correct_cloudwatch_log_groups_without_metric_filter_for_organization_c
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} account(s) without metric filter for organization changes."
+    text     = "Detected ${length(param.items)} account(s) without metric filter for VPC changes."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
     notifier = param.notifier
-    text     = "Detected account ${each.value.title} without metric filter for organization changes."
+    text     = "Detected account ${each.value.title} without metric filter for VPC changes."
   }
 }

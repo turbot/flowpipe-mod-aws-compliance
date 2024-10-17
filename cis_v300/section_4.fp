@@ -154,7 +154,7 @@ pipeline "cis_v300_4_1" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_unauthorized_api_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_unauthorized_api_changes
 
     args = {
       database           = param.database
@@ -205,7 +205,7 @@ pipeline "cis_v300_4_2" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_login_mfa_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_console_login_mfa_changes
 
     args = {
       database           = param.database
@@ -256,7 +256,7 @@ pipeline "cis_v300_4_3" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_root_login
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_root_login
 
     args = {
       database           = param.database
@@ -307,7 +307,7 @@ pipeline "cis_v300_4_4" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_iam_policy_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_iam_policy_changes
 
     args = {
       database           = param.database
@@ -358,7 +358,7 @@ pipeline "cis_v300_4_5" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_cloudtrail_configuration
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_cloudtrail_configuration
 
     args = {
       database           = param.database
@@ -409,7 +409,7 @@ pipeline "cis_v300_4_6" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_console_authentication_failure
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_console_authentication_failure
 
     args = {
       database           = param.database
@@ -460,7 +460,7 @@ pipeline "cis_v300_4_7" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_disable_or_delete_cmk
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_disable_or_delete_cmk
 
     args = {
       database           = param.database
@@ -562,7 +562,7 @@ pipeline "cis_v300_4_9" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_config_configuration_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_config_configuration_changes
 
     args = {
       database           = param.database
@@ -613,7 +613,7 @@ pipeline "cis_v300_4_10" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_security_group_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_security_group_changes
 
     args = {
       database           = param.database
@@ -664,7 +664,7 @@ pipeline "cis_v300_4_11" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_acl_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_network_acl_changes
 
     args = {
       database           = param.database
@@ -715,7 +715,7 @@ pipeline "cis_v300_4_12" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_network_gateway_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_network_gateway_changes
 
     args = {
       database           = param.database
@@ -766,7 +766,7 @@ pipeline "cis_v300_4_13" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_route_table_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_route_table_changes
 
     args = {
       database           = param.database
@@ -817,7 +817,7 @@ pipeline "cis_v300_4_14" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_vpc_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_vpc_changes
 
     args = {
       database           = param.database
@@ -868,7 +868,7 @@ pipeline "cis_v300_4_15" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_cloudwatch_log_groups_without_metric_filter_for_organization_changes
+    pipeline   = pipeline.detect_and_correct_accounts_without_metric_filter_for_organization_changes
 
     args = {
       database           = param.database
