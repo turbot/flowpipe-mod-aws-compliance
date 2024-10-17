@@ -260,7 +260,7 @@ pipeline "correct_one_iam_users_with_inline_policy_attached" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM user ${param.user_name} inline policy ${param.title}."
+      detect_msg         = "Detected IAM user ${param.user_name} attached with inline policy ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -278,7 +278,7 @@ pipeline "correct_one_iam_users_with_inline_policy_attached" {
           error_msg   = ""
         },
         "delete_inline_policy" = {
-          label        = "Delete Inline Policy"
+          label        = "Delete inline policy ${param.title}"
           value        = "delete_inline_policy"
           style        = local.style_alert
           pipeline_ref = pipeline.delete_user_inline_policy

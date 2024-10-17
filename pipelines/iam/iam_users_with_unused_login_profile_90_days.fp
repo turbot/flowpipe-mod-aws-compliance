@@ -312,7 +312,7 @@ pipeline "correct_one_iam_user_with_unused_login_profile_90_days" {
           error_msg   = ""
         },
         "delete_user_login_profile_unused_90_days" = {
-          label        = "Delete IAM login user profile unsued from 90 days or more"
+          label        = "Delete IAM user login profile unsued from 90 days or more"
           value        = "delete_user_login_profile_unused_90_days"
           style        = local.style_alert
           pipeline_ref = pipeline.delete_user_login_profile
