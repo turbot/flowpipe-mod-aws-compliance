@@ -6,7 +6,7 @@ locals {
         security_group_rule_id,
         region,
         account_id,
-        sp_connection_name as conn
+        sp_connection_name as conn,
       from
         aws_vpc_security_group_rule
       where
@@ -18,10 +18,10 @@ locals {
             and from_port is null
           )
           or (
-            from_port >= 22
-            and to_port <= 22
+            from_port <= 22
+            and to_port >= 22
           )
-        )
+        ) 
     )
     select
       concat(sg.group_id, ' [', sg.region, '/', sg.account_id, ']') as title,

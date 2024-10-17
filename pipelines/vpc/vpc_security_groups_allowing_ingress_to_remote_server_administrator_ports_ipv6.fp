@@ -17,12 +17,12 @@ locals {
         and from_port is null
         )
         or (
-            from_port >= 22
-            and to_port <= 22
+          from_port <= 22
+          and to_port >= 22
         )
         or (
-            from_port >= 3389
-            and to_port <= 3389
+          from_port <= 3389
+          and to_port >= 3389
         )
     )
   ),
