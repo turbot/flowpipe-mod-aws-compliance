@@ -6,10 +6,9 @@ locals {
     cis_v400_3_4  = pipeline.cis_v400_3_4
     cis_v400_3_5  = pipeline.cis_v400_3_5
     cis_v400_3_6  = pipeline.cis_v400_3_6
-		cis_v400_3_7  = pipeline.cis_v400_3_7
-		cis_v400_3_8  = pipeline.cis_v400_3_8
-		cis_v400_3_9  = pipeline.cis_v400_3_9
-
+    cis_v400_3_7  = pipeline.cis_v400_3_7
+    cis_v400_3_8  = pipeline.cis_v400_3_8
+    cis_v400_3_9  = pipeline.cis_v400_3_9
   }
 }
 
@@ -24,9 +23,9 @@ variable "cis_v400_3_enabled_pipelines" {
     "cis_v400_3_4",
     "cis_v400_3_5",
     "cis_v400_3_6",
-		"cis_v400_3_7",
-		"cis_v400_3_8",
-		"cis_v400_3_9"
+    "cis_v400_3_7",
+    "cis_v400_3_8",
+    "cis_v400_3_9"
   ]
 
   enum = [
@@ -36,9 +35,9 @@ variable "cis_v400_3_enabled_pipelines" {
     "cis_v400_3_4",
     "cis_v400_3_5",
     "cis_v400_3_6",
-		"cis_v400_3_7",
-		"cis_v400_3_8",
-		"cis_v400_3_9"
+    "cis_v400_3_7",
+    "cis_v400_3_8",
+    "cis_v400_3_9"
   ]
 }
 
@@ -48,7 +47,7 @@ pipeline "cis_v400_3" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+	  folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {
@@ -100,7 +99,7 @@ pipeline "cis_v400_3_1" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+    folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {
@@ -151,7 +150,7 @@ pipeline "cis_v400_3_2" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+    folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {
@@ -202,7 +201,7 @@ pipeline "cis_v400_3_3" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+    folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {
@@ -253,7 +252,7 @@ pipeline "cis_v400_3_4" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+    folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {
@@ -304,7 +303,7 @@ pipeline "cis_v400_3_5" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+    folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {
@@ -355,7 +354,7 @@ pipeline "cis_v400_3_6" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+    folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {
@@ -406,7 +405,7 @@ pipeline "cis_v400_3_7" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+    folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {
@@ -457,7 +456,7 @@ pipeline "cis_v400_3_8" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+    folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {
@@ -508,7 +507,7 @@ pipeline "cis_v400_3_9" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/3 Logging"
+    folder = "CIS v4.0.0/3 Logging"
   }
 
   param "database" {

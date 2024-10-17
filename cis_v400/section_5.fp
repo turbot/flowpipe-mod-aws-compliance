@@ -4,10 +4,10 @@ locals {
     cis_v400_5_1_2 = pipeline.cis_v400_5_1_2
     cis_v400_5_2   = pipeline.cis_v400_5_2
     cis_v400_5_3   = pipeline.cis_v400_5_3
-		cis_v400_5_4   = pipeline.cis_v400_5_4
+    cis_v400_5_4   = pipeline.cis_v400_5_4
     cis_v400_5_5   = pipeline.cis_v400_5_5
     cis_v400_5_6   = pipeline.cis_v400_5_6
-		cis_v400_5_7   = pipeline.cis_v400_5_7
+    cis_v400_5_7   = pipeline.cis_v400_5_7
   }
 }
 
@@ -20,10 +20,10 @@ variable "cis_v400_5_enabled_pipelines" {
     "cis_v400_5_1_2",
     "cis_v400_5_2",
     "cis_v400_5_3",
-		"cis_v400_5_4",
+    "cis_v400_5_4",
     "cis_v400_5_5",
     "cis_v400_5_6",
-		"cis_v400_5_7"
+    "cis_v400_5_7"
   ]
 
   enum = [
@@ -31,10 +31,10 @@ variable "cis_v400_5_enabled_pipelines" {
     "cis_v400_5_1_2",
     "cis_v400_5_2",
     "cis_v400_5_3",
-		"cis_v400_5_4",
+    "cis_v400_5_4",
     "cis_v400_5_5",
     "cis_v400_5_6",
-		"cis_v400_5_7"
+    "cis_v400_5_7"
   ]
 }
 
@@ -44,7 +44,7 @@ pipeline "cis_v400_5" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/5 Networking"
+    folder = "CIS v4.0.0/5 Networking"
   }
 
   param "database" {
@@ -96,7 +96,7 @@ pipeline "cis_v400_5_1_1" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/5 Networking/5.1 Elastic Compute Cloud (EC2)"
+	  folder = "CIS v4.0.0/5 Networking/5.1 Elastic Compute Cloud (EC2)"
   }
 
   param "database" {
@@ -147,7 +147,7 @@ pipeline "cis_v400_5_1_2" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/5 Networking/5.1 Elastic Compute Cloud (EC2)"
+    folder = "CIS v4.0.0/5 Networking/5.1 Elastic Compute Cloud (EC2)"
   }
 
   param "database" {
@@ -198,7 +198,7 @@ pipeline "cis_v400_5_2" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/5 Networking"
+    folder = "CIS v4.0.0/5 Networking"
   }
 
   param "database" {
@@ -249,7 +249,7 @@ pipeline "cis_v400_5_3" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/5 Networking"
+    folder = "CIS v4.0.0/5 Networking"
   }
 
   param "database" {
@@ -300,7 +300,7 @@ pipeline "cis_v400_5_4" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/5 Networking"
+    folder = "CIS v4.0.0/5 Networking"
   }
 
   param "database" {
@@ -351,7 +351,7 @@ pipeline "cis_v400_5_5" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/5 Networking"
+    folder = "CIS v4.0.0/5 Networking"
   }
 
   param "database" {
@@ -402,7 +402,7 @@ pipeline "cis_v400_5_6" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/5 Networking"
+    folder = "CIS v4.0.0/5 Networking"
   }
 
   param "database" {
@@ -453,7 +453,7 @@ pipeline "cis_v400_5_7" {
 
   tags = {
     type   = "terminal"
-		folder = "CIS v4.0.0/5 Networking"
+    folder = "CIS v4.0.0/5 Networking"
   }
 
   param "database" {

@@ -6,16 +6,16 @@ locals {
     cis_v400_4_4  = pipeline.cis_v400_4_4
     cis_v400_4_5  = pipeline.cis_v400_4_5
     cis_v400_4_6  = pipeline.cis_v400_4_6
-		cis_v400_4_7  = pipeline.cis_v400_4_7
-		cis_v400_4_8  = pipeline.cis_v400_4_8
-		cis_v400_4_9  = pipeline.cis_v400_4_9
-		cis_v400_4_10 = pipeline.cis_v400_4_10
-		cis_v400_4_11 = pipeline.cis_v400_4_11
-		cis_v400_4_12 = pipeline.cis_v400_4_12
-		cis_v400_4_13 = pipeline.cis_v400_4_13
-		cis_v400_4_14 = pipeline.cis_v400_4_14
-		cis_v400_4_15 = pipeline.cis_v400_4_15
-		cis_v400_4_16 = pipeline.cis_v400_4_16
+    cis_v400_4_7  = pipeline.cis_v400_4_7
+    cis_v400_4_8  = pipeline.cis_v400_4_8
+    cis_v400_4_9  = pipeline.cis_v400_4_9
+    cis_v400_4_10 = pipeline.cis_v400_4_10
+    cis_v400_4_11 = pipeline.cis_v400_4_11
+    cis_v400_4_12 = pipeline.cis_v400_4_12
+    cis_v400_4_13 = pipeline.cis_v400_4_13
+    cis_v400_4_14 = pipeline.cis_v400_4_14
+    cis_v400_4_15 = pipeline.cis_v400_4_15
+    cis_v400_4_16 = pipeline.cis_v400_4_16
   }
 }
 
@@ -30,16 +30,16 @@ variable "cis_v400_4_enabled_pipelines" {
     "cis_v400_4_4",
     "cis_v400_4_5",
     "cis_v400_4_6",
-		"cis_v400_4_7",
-		"cis_v400_4_8",
-		"cis_v400_4_9",
-		"cis_v400_4_10",
-		"cis_v400_4_11",
-		"cis_v400_4_12",
-		"cis_v400_4_13",
-		"cis_v400_4_14",
-		"cis_v400_4_15",
-		"cis_v400_4_16"
+    "cis_v400_4_7",
+    "cis_v400_4_8",
+    "cis_v400_4_9",
+    "cis_v400_4_10",
+    "cis_v400_4_11",
+    "cis_v400_4_12",
+    "cis_v400_4_13",
+    "cis_v400_4_14",
+    "cis_v400_4_15",
+    "cis_v400_4_16"
   ]
 
   enum = [
@@ -49,16 +49,16 @@ variable "cis_v400_4_enabled_pipelines" {
     "cis_v400_4_4",
     "cis_v400_4_5",
     "cis_v400_4_6",
-		"cis_v400_4_7",
-		"cis_v400_4_8",
-		"cis_v400_4_9",
-		"cis_v400_4_10",
-		"cis_v400_4_11",
-		"cis_v400_4_12",
-		"cis_v400_4_13",
-		"cis_v400_4_14",
-		"cis_v400_4_15",
-		"cis_v400_4_16"
+    "cis_v400_4_7",
+    "cis_v400_4_8",
+    "cis_v400_4_9",
+    "cis_v400_4_10",
+    "cis_v400_4_11",
+    "cis_v400_4_12",
+    "cis_v400_4_13",
+    "cis_v400_4_14",
+    "cis_v400_4_15",
+    "cis_v400_4_16"
   ]
 }
 
