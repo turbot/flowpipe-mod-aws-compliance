@@ -393,7 +393,8 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_read_eve
 pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_read_events" {
   title       = "Create CloudTrail trail to enable S3 object level logging for read events"
   description = "Create CloudTrail trail to enable S3 object level logging for read events."
-  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
+
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "region" {
     type        = string

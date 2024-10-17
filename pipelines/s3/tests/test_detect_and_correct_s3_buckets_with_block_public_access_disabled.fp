@@ -100,7 +100,7 @@ pipeline "test_detect_and_correct_s3_buckets_with_block_public_access_disabled" 
   step "query" "verify_skip" {
     depends_on = [step.pipeline.run_detection]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         name,
         block_public_acls

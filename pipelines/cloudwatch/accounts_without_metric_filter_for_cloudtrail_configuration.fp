@@ -99,7 +99,8 @@ variable "accounts_without_metric_filter_for_cloudtrail_configuration_trigger_sc
 trigger "query" "detect_and_correct_accounts_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Detect & correct accounts without metric filter for CloudTrail configuration"
   description = "Detect accounts without a metric filter for CloudTrail configuration."
-  tags        = local.cloudwatch_common_tags
+
+  tags = local.cloudwatch_common_tags
 
   enabled  = var.accounts_without_metric_filter_for_cloudtrail_configuration_trigger_enabled
   schedule = var.accounts_without_metric_filter_for_cloudtrail_configuration_trigger_schedule
@@ -117,7 +118,8 @@ trigger "query" "detect_and_correct_accounts_without_metric_filter_for_cloudtrai
 pipeline "detect_and_correct_accounts_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Detect & correct accounts without metric filter for CloudTrail configuration"
   description = "Detects accounts without a metric filter for CloudTrail configuration."
-  tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
+
+  tags = merge(local.cloudwatch_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -155,7 +157,8 @@ pipeline "detect_and_correct_accounts_without_metric_filter_for_cloudtrail_confi
 pipeline "correct_accounts_without_metric_filter_for_cloudtrail_configuration" {
   title       = "Correct accounts without metric filter for CloudTrail configuration"
   description = "Send notifications for accounts without a metric filter for CloudTrail configuration."
-  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
+
+  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({

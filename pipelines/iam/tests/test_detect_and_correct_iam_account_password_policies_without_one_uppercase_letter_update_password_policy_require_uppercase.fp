@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppercase_letter_update_password_policy_require_uppercase" {
   title       = "Test detect and correct IAM account password policies without one uppercase letter requirement"
-  description = "Test detect_and_correct_iam_account_password_policies_without_one_uppercase_letter pipeline."
+  description = "Test detect and correct IAM account password policies without one uppercase letter pipeline."
 
   tags = {
     type = "test"
@@ -14,7 +14,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppe
 
   step "query" "get_account_id" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         account_id
       from
@@ -26,7 +26,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppe
   step "query" "get_password_policy" {
     depends_on = [step.query.get_account_id]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         a.account_id as title,
         pol.account_id as password_policy_account_id,
@@ -52,7 +52,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppe
   step "query" "get_password_policy_without_uppercasecase_letter_requirement" {
     depends_on = [step.query.get_password_policy]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         pol.account_id as password_policy_account_id
       from
@@ -66,9 +66,9 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppe
   }
 
   step "pipeline" "disable_password_policy_require_uppercase" {
-    depends_on  = [step.query.get_password_policy_without_uppercasecase_letter_requirement]
-    if          = length(step.query.get_password_policy_without_uppercasecase_letter_requirement.rows) == 0 && (step.query.get_password_policy.rows[0].password_policy_account_id) != null
-    pipeline    = aws.pipeline.update_iam_account_password_policy
+    depends_on = [step.query.get_password_policy_without_uppercasecase_letter_requirement]
+    if         = length(step.query.get_password_policy_without_uppercasecase_letter_requirement.rows) == 0 && (step.query.get_password_policy.rows[0].password_policy_account_id) != null
+    pipeline   = aws.pipeline.update_iam_account_password_policy
     args = {
       allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
       conn                           = param.conn
@@ -88,12 +88,12 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppe
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_uppercase_letter
     args = {
-      title                  = each.value.title
-      account_id             = each.value.title
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "update_password_policy_require_uppercase"
-      enabled_actions        = ["update_password_policy_require_uppercase"]
+      title           = each.value.title
+      account_id      = each.value.title
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "update_password_policy_require_uppercase"
+      enabled_actions = ["update_password_policy_require_uppercase"]
     }
   }
 
@@ -101,7 +101,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppe
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.pipeline.run_detection]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         account_id,
         require_uppercase_characters
@@ -146,7 +146,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppe
   step "container" "delete_iam_account_password_policy" {
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) == null
     depends_on = [step.pipeline.set_password_policy_require_uppercase_to_old_setting]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
       "iam", "delete-account-password-policy"
@@ -160,7 +160,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppe
     value = {
       "get_account_id"                            = !is_error(step.query.get_account_id.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_account_id)}"
       "get_password_policy"                       = (step.query.get_password_policy.rows[0].password_policy_account_id) != null ? !is_error(step.query.get_password_policy.rows[0]) ? "pass" : "fail: ${error_message(step.query.get_password_policy)}" : "No password policy set (Default settings)"
-      "disable_password_policy_require_uppercase" =  (step.query.get_password_policy.rows[0].password_policy_account_id) != null ? !is_error(step.pipeline.disable_password_policy_require_uppercase) ? "pass" : "fail: ${error_message(step.pipeline.disable_password_policy_require_uppercase)}" : "Not required to disable require uppercase"
+      "disable_password_policy_require_uppercase" = (step.query.get_password_policy.rows[0].password_policy_account_id) != null ? !is_error(step.pipeline.disable_password_policy_require_uppercase) ? "pass" : "fail: ${error_message(step.pipeline.disable_password_policy_require_uppercase)}" : "Not required to disable require uppercase"
       "get_password_policy_after_detection"       = (step.query.get_password_policy.rows[0].password_policy_account_id) != null ? length(step.query.get_password_policy_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1" : "Restored to default settings"
     }
   }

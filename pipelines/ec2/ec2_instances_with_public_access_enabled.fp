@@ -42,6 +42,7 @@ trigger "query" "detect_and_correct_ec2_instances_with_public_access_enabled" {
   title       = "Detect & correct EC2 instances with public access enabled"
   description = "Detect EC2 instances with public IP addresses and then skip or stop the instance or terminate the instance."
 
+  tags = local.ec2_common_tags
 
   enabled  = var.ec2_instances_with_public_access_enabled_trigger_enabled
   schedule = var.ec2_instances_with_public_access_enabled_trigger_schedule
@@ -120,7 +121,7 @@ pipeline "correct_ec2_instances_with_public_access_enabled" {
   title       = "Correct EC2 instances with public access enabled"
   description = "Executes corrective actions on EC2 instances with public IP addresses."
 
-  tags = local.ec2_common_tags
+  tags = merge(local.ec2_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -192,7 +193,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
   title       = "Correct one EC2 instance with public access enabled"
   description = "Runs corrective action on an EC2 instance with a public IP address."
 
-  tags = local.ec2_common_tags
+  tags = merge(local.ec2_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

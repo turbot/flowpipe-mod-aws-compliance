@@ -94,7 +94,8 @@ variable "accounts_without_alternate_security_contact_name" {
 trigger "query" "detect_and_correct_accounts_without_alternate_security_contact" {
   title       = "Detect & correct accounts without alternate security contact"
   description = "Detect accounts without alternate security contact and then add alternate security contact."
-  tags        = local.account_common_tags
+
+  tags = local.account_common_tags
 
   enabled  = var.accounts_without_alternate_security_contact_trigger_enabled
   schedule = var.accounts_without_alternate_security_contact_trigger_schedule
@@ -112,7 +113,8 @@ trigger "query" "detect_and_correct_accounts_without_alternate_security_contact"
 pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
   title       = "Detect & correct accounts without alternate security contact"
   description = "Detect accounts without alternate security contact and then add alternate security contact."
-  tags        = local.account_common_tags
+
+  tags = local.account_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -171,7 +173,8 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
 pipeline "correct_accounts_without_alternate_security_contact" {
   title       = "Correct accounts without alternate security contact"
   description = "Add alternate security contact for accounts without alternate security contact."
-  tags        = merge(local.account_common_tags, { type = "internal" })
+
+  tags = merge(local.account_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -235,7 +238,8 @@ pipeline "correct_accounts_without_alternate_security_contact" {
 pipeline "correct_one_account_without_alternate_security_contact" {
   title       = "Correct one account without alternate security contact"
   description = "Add alternate security contact for an account."
-  tags        = merge(local.account_common_tags, { type = "internal" })
+
+  tags = merge(local.account_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

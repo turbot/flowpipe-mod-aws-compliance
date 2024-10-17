@@ -37,10 +37,10 @@ variable "dynamodb_table_dynamodb_tables_with_point_in_time_recovery_disabled_en
 }
 
 trigger "query" "detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled" {
-  title         = "Detect & correct DynamoDB table with point-in-time recovery disabled"
-  description   = "Detect DynamoDB tables with point-in-time recovery disabled and then skip or enable point-in-time recovery."
+  title       = "Detect & correct DynamoDB table with point-in-time recovery disabled"
+  description = "Detect DynamoDB tables with point-in-time recovery disabled and then skip or enable point-in-time recovery."
 
-  tags          = local.dynamodb_common_tags
+  tags = local.dynamodb_common_tags
 
   enabled  = var.dynamodb_tables_with_point_in_time_recovery_disabled_trigger_enabled
   schedule = var.dynamodb_tables_with_point_in_time_recovery_disabled_trigger_schedule
@@ -56,10 +56,10 @@ trigger "query" "detect_and_correct_dynamodb_tables_with_point_in_time_recovery_
 }
 
 pipeline "detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled" {
-  title         = "Detect & correct DynamoDB tables with point-in-time recovery disabled"
-  description   = "Detect DynamoDB tables with point-in-time recovery disabled and then skip or enable point-in-time recovery."
+  title       = "Detect & correct DynamoDB tables with point-in-time recovery disabled"
+  description = "Detect DynamoDB tables with point-in-time recovery disabled and then skip or enable point-in-time recovery."
 
-  tags          = merge(local.dynamodb_common_tags, { recommended = "true" })
+  tags = merge(local.dynamodb_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -116,17 +116,17 @@ pipeline "detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disable
 }
 
 pipeline "correct_dynamodb_tables_with_point_in_time_recovery_disabled" {
-  title         = "Correct DynamoDB tables with point-in-time recovery disabled"
-  description   = "Runs corrective action on a collection of DynamoDB tables with point-in-time recovery disabled."
+  title       = "Correct DynamoDB tables with point-in-time recovery disabled"
+  description = "Runs corrective action on a collection of DynamoDB tables with point-in-time recovery disabled."
 
-  tags          = local.dynamodb_common_tags
+  tags = merge(local.dynamodb_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title       = string
-      name        = string
-      region      = string
-      conn        = string
+      title  = string
+      name   = string
+      region = string
+      conn   = string
     }))
     description = local.description_items
   }
@@ -186,10 +186,10 @@ pipeline "correct_dynamodb_tables_with_point_in_time_recovery_disabled" {
 }
 
 pipeline "correct_one_dynamodb_tables_with_point_in_time_recovery_disabled" {
-  title         = "Correct one DynamoDB table with point-in-time recovery disabled"
-  description   = "Runs corrective action on a DynamoDB table with point-in-time recovery disabled."
+  title       = "Correct one DynamoDB table with point-in-time recovery disabled"
+  description = "Runs corrective action on a DynamoDB table with point-in-time recovery disabled."
 
-  tags          = local.dynamodb_common_tags
+  tags = merge(local.dynamodb_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -270,9 +270,9 @@ pipeline "correct_one_dynamodb_tables_with_point_in_time_recovery_disabled" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.update_dynamodb_continuous_backup
           pipeline_args = {
-            table_name  = param.name
-            region      = param.region
-            conn        = param.conn
+            table_name = param.name
+            region     = param.region
+            conn       = param.conn
           }
           success_msg = "Enabled point-in-time recovery for DynamoDB table ${param.title}."
           error_msg   = "Error enabling point-in-time recovery for DynamoDB table ${param.title}."

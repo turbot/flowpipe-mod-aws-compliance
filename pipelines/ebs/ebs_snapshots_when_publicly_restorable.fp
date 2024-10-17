@@ -53,9 +53,10 @@ variable "ebs_snapshots_when_publicly_restorable_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
-  title         = "Detect & correct EBS snapshots when publicly restorable"
-  description   = "Detect EBS snapshots that are publicly restorable and then skip or update snapshot permission to private or delete the snapshot."
-  tags        = local.ebs_common_tags
+  title       = "Detect & correct EBS snapshots when publicly restorable"
+  description = "Detect EBS snapshots that are publicly restorable and then skip or update snapshot permission to private or delete the snapshot."
+
+  tags = local.ebs_common_tags
 
   enabled  = var.ebs_snapshots_when_publicly_restorable_trigger_enabled
   schedule = var.ebs_snapshots_when_publicly_restorable_trigger_schedule
@@ -71,9 +72,10 @@ trigger "query" "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
 }
 
 pipeline "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
-  title         = "Detect & correct EBS snapshots when publicly restorable"
-  description   = "Detect EBS snapshots that are publicly restorable and then skip or update snapshot permission to private or delete the snapshot."
-  tags          = merge(local.ebs_common_tags, { recommended = "true" })
+  title       = "Detect & correct EBS snapshots when publicly restorable"
+  description = "Detect EBS snapshots that are publicly restorable and then skip or update snapshot permission to private or delete the snapshot."
+
+  tags = merge(local.ebs_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -130,9 +132,10 @@ pipeline "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
 }
 
 pipeline "correct_ebs_snapshots_when_publicly_restorable" {
-  title         = "Correct EBS snapshots when publicly restorable"
-  description   = "Update snapshot permission to private or delete the snapshot on a collection of EBS snapshots that are publicly restorable."
-  tags          = merge(local.ebs_common_tags, { type = "internal" })
+  title       = "Correct EBS snapshots when publicly restorable"
+  description = "Update snapshot permission to private or delete the snapshot on a collection of EBS snapshots that are publicly restorable."
+
+  tags = merge(local.ebs_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -199,9 +202,10 @@ pipeline "correct_ebs_snapshots_when_publicly_restorable" {
 }
 
 pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
-  title         = "Correct one EBS snapshot when publicly restorable"
-  description   = "Runs corrective action on an EBS snapshot if it is publicly restorable."
-  tags          = merge(local.ebs_common_tags, { type = "internal" })
+  title       = "Correct one EBS snapshot when publicly restorable"
+  description = "Runs corrective action on an EBS snapshot if it is publicly restorable."
+
+  tags = merge(local.ebs_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

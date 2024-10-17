@@ -9,7 +9,7 @@ locals {
       aws_rds_db_instance
     where
       engine not ilike '%aurora-mysql%'
-    	and engine not ilike '%aurora-postgresql%'
+      and engine not ilike '%aurora-postgresql%'
       and not multi_az;
   EOQ
 }

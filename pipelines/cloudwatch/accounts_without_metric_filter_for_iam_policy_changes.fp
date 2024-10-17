@@ -100,7 +100,8 @@ variable "accounts_without_metric_filter_for_iam_policy_changes_trigger_schedule
 trigger "query" "detect_and_correct_accounts_without_metric_filter_for_iam_policy_changes" {
   title       = "Detect & correct accounts without metric filter for IAM policy changes"
   description = "Detect accounts without a metric filter for IAM policy changes."
-  tags        = local.cloudwatch_common_tags
+
+  tags = local.cloudwatch_common_tags
 
   enabled  = var.accounts_without_metric_filter_for_iam_policy_changes_trigger_enabled
   schedule = var.accounts_without_metric_filter_for_iam_policy_changes_trigger_schedule
@@ -118,7 +119,8 @@ trigger "query" "detect_and_correct_accounts_without_metric_filter_for_iam_polic
 pipeline "detect_and_correct_accounts_without_metric_filter_for_iam_policy_changes" {
   title       = "Detect & correct accounts without metric filter for IAM policy changes"
   description = "Detects accounts without a metric filter for IAM policy changes."
-  tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
+
+  tags = merge(local.cloudwatch_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -156,7 +158,8 @@ pipeline "detect_and_correct_accounts_without_metric_filter_for_iam_policy_chang
 pipeline "correct_accounts_without_metric_filter_for_iam_policy_changes" {
   title       = "Correct accounts without metric filter for IAM policy changes"
   description = "Send notifications for accounts without a metric filter for IAM policy changes."
-  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
+
+  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({

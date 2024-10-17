@@ -147,7 +147,7 @@ pipeline "correct_cloudtrail_trails_with_public_s3_bucket" {
   title       = "Correct CloudTrail trails with public S3 bucket access"
   description = "Runs corrective action on a collection of CloudTrail trails with public S3 buckets."
 
-  tags = local.cloudtrail_common_tags
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -220,7 +220,7 @@ pipeline "correct_one_cloudtrail_trail_with_public_s3_bucket" {
   title       = "Correct one CloudTrail trail with public S3 bucket access"
   description = "Runs corrective action on a CloudTrail trail with a public S3 bucket."
 
-  tags = local.cloudtrail_common_tags
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

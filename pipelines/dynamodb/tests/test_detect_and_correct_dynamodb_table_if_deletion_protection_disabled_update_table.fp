@@ -1,5 +1,5 @@
 pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled_update_table" {
-  title       = "Test Create DynamoDB DynamoDB Table Deletion Protection Disabled"
+  title       = "Test Create DynamoDB table deletion protection disabled"
   description = "Test the detect_and_correct_dynamodb_table_if_deletion_protection_disabled pipeline."
 
   tags = {

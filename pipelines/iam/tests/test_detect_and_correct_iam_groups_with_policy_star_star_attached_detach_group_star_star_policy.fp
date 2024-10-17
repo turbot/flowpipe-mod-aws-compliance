@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_detach_group_star_star_policy" {
   title       = "Test detect and correct IAM groups attached with *:* policy"
-  description = "Test detect_and_correct_iam_groups_with_policy_star_star_attached pipeline."
+  description = "Test detect and correct IAM groups with policy star star attached pipeline."
 
   tags = {
     type = "test"

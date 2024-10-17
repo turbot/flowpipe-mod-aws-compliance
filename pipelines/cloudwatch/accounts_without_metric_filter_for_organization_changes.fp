@@ -99,7 +99,8 @@ variable "accounts_without_metric_filter_for_organization_changes_trigger_schedu
 trigger "query" "detect_and_correct_accounts_without_metric_filter_for_organization_changes" {
   title       = "Detect & correct CloudWatch log groups without metric filter for organizationy changes"
   description = "Detect CloudWatch log groups without metric filter for organization changes and then enable organization changes metric filter."
-  tags        = local.cloudwatch_common_tags
+
+  tags = local.cloudwatch_common_tags
 
   enabled  = var.accounts_without_metric_filter_for_organization_changes_trigger_enabled
   schedule = var.accounts_without_metric_filter_for_organization_changes_trigger_schedule
@@ -117,7 +118,8 @@ trigger "query" "detect_and_correct_accounts_without_metric_filter_for_organizat
 pipeline "detect_and_correct_accounts_without_metric_filter_for_organization_changes" {
   title       = "Detect & correct accounts without metric filter for organization changes"
   description = "Detect accounts without a metric filter for organization changes."
-  tags        = merge(local.cloudwatch_common_tags, { recommended = "true" })
+
+  tags = merge(local.cloudwatch_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -155,7 +157,8 @@ pipeline "detect_and_correct_accounts_without_metric_filter_for_organization_cha
 pipeline "correct_accounts_without_metric_filter_for_organization_changes" {
   title       = "Correct accounts without metric filter for organization changes"
   description = "Send notifications for accounts without a metric filter for organization changes."
-  tags        = merge(local.cloudwatch_common_tags, { type = "internal" })
+
+  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({

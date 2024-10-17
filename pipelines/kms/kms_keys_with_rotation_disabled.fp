@@ -42,6 +42,7 @@ variable "kms_keys_with_rotation_disabled_enabled_actions" {
 trigger "query" "detect_and_correct_kms_keys_with_rotation_disabled" {
   title       = "Detect & correct KMS keys with rotation disabled"
   description = "Detect KMS keys with rotation disabled and then enable rotation."
+  tags        = local.kms_common_tags
 
   enabled  = var.kms_keys_with_rotation_disabled_trigger_enabled
   schedule = var.kms_keys_with_rotation_disabled_trigger_schedule
@@ -59,6 +60,7 @@ trigger "query" "detect_and_correct_kms_keys_with_rotation_disabled" {
 pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
   title       = "Detect & correct KMS keys with rotation disabled"
   description = "Detect KMS keys with rotation disabled and then enable rotation."
+  tags        = local.kms_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -117,6 +119,7 @@ pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
 pipeline "correct_kms_keys_with_rotation_disabled" {
   title       = "Correct KMS Keys with rotation disabled"
   description = "Enable rotation for KMS keys with rotation disabled."
+  tags        = merge(local.kms_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -165,7 +168,7 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
 
 
   step "pipeline" "correct_item" {
-    for_each        = { for item in param.items: item.key_id => item }
+    for_each        = { for item in param.items : item.key_id => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_correct_kms_key_with_rotation_disabled
     args = {
@@ -185,6 +188,7 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
 pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
   title       = "Correct KMS key with rotation disabled"
   description = "Runs corrective action for a KMS key with rotation disabled."
+  tags        = merge(local.kms_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

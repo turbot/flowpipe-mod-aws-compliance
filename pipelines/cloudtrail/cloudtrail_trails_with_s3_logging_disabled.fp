@@ -69,7 +69,8 @@ variable "cloudtrail_trails_with_s3_logging_disabled_default_actions" {
 trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 logging disabled"
   description = "Detect CloudTrail trails with S3 logging disabled and then enable S3 logging."
-  tags        = merge(local.cloudtrail_common_tags)
+
+  tags = merge(local.cloudtrail_common_tags)
 
   enabled  = var.cloudtrail_trails_with_s3_logging_disabled_trigger_enabled
   schedule = var.cloudtrail_trails_with_s3_logging_disabled_trigger_schedule
@@ -87,7 +88,8 @@ trigger "query" "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" 
 pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
   title       = "Detect & correct CloudTrail trails with S3 logging disabled"
   description = "Detect CloudTrail trails with S3 logging disabled and then enable S3 logging."
-  tags        = merge(local.cloudtrail_common_tags, { recommended = "true" })
+
+  tags = merge(local.cloudtrail_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -153,7 +155,8 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
 pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
   title       = "Correct CloudTrail trails with S3 logging disabled"
   description = "Enable S3 logging for CloudTrail trails with S3 logging disabled."
-  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
+
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -231,7 +234,8 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
 pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
   title       = "Correct one CloudTrail trail with S3 logging disabled"
   description = "Enable S3 logging for a CloudTrail trail."
-  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
+
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

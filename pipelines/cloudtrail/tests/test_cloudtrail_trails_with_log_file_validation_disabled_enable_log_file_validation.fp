@@ -1,5 +1,5 @@
 pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_file_validation" {
-  title       = "Test detect and correct cloudtrail trails with log file validation disabled"
+  title       = "Test detect and correct CloudTrail trails with log file validation disabled"
   description = "Test detect CloudTrail trails with log file validation disabled."
 
   tags = {

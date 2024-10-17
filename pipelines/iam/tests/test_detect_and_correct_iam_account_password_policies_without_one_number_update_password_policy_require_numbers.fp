@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_account_password_policies_without_one_number_update_password_policy_require_numbers" {
   title       = "Test detect and correct IAM account password policies without one number requirement"
-  description = "Test detect_and_correct_iam_account_password_policies_without_one_number pipeline."
+  description = "Test detect and correct IAM account password policies without one number pipeline."
 
   tags = {
     type = "test"
@@ -14,7 +14,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_numb
 
   step "query" "get_account_id" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         account_id
       from
@@ -26,7 +26,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_numb
   step "query" "get_password_policy" {
     depends_on = [step.query.get_account_id]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         a.account_id as title,
         pol.account_id as password_policy_account_id,
@@ -52,7 +52,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_numb
   step "query" "get_password_policy_without_number_requirement" {
     depends_on = [step.query.get_password_policy]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
        select
         pol.account_id as password_policy_account_id
       from
@@ -88,12 +88,12 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_numb
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_number
     args = {
-      title                  = each.value.title
-      account_id             = each.value.title
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "update_password_policy_require_numbers"
-      enabled_actions        = ["update_password_policy_require_numbers"]
+      title           = each.value.title
+      account_id      = each.value.title
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "update_password_policy_require_numbers"
+      enabled_actions = ["update_password_policy_require_numbers"]
     }
   }
 
@@ -101,7 +101,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_numb
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.pipeline.run_detection]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         account_id,
         require_numbers
@@ -146,7 +146,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_numb
   step "container" "delete_iam_account_password_policy" {
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) == null
     depends_on = [step.pipeline.set_password_policy_require_number_to_old_setting]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
       "iam", "delete-account-password-policy"

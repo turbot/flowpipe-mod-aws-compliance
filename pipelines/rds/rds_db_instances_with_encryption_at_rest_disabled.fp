@@ -31,9 +31,10 @@ variable "rds_db_instances_with_encryption_at_rest_disabled_trigger_schedule" {
   description = "If the trigger is enabled, run it on this schedule."
 }
 
- trigger "query" "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
-  title         = "Detect & correct RDS DB instances with encryption at rest disabled"
-  description   = "Detect RDS DB instances with encryption at rest disabled."
+trigger "query" "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
+  title       = "Detect & correct RDS DB instances with encryption at rest disabled"
+  description = "Detect RDS DB instances with encryption at rest disabled."
+  tags        = local.rds_common_tags
 
   enabled  = var.rds_db_instances_with_encryption_at_rest_disabled_trigger_enabled
   schedule = var.rds_db_instances_with_encryption_at_rest_disabled_trigger_schedule
@@ -49,8 +50,9 @@ variable "rds_db_instances_with_encryption_at_rest_disabled_trigger_schedule" {
 }
 
 pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
-  title         = "Detect & correct RDS DB instances with encryption at rest disabled"
-  description   = "Detect RDS DB instances with encryption at rest disabled."
+  title       = "Detect & correct RDS DB instances with encryption at rest disabled"
+  description = "Detect RDS DB instances with encryption at rest disabled."
+  tags        = local.rds_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -86,8 +88,9 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
 }
 
 pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
-  title         = "Correct RDS DB instances with encryption at rest disabled"
-  description   = "Send notifications for RDS DB instances with encryption at rest disabled."
+  title       = "Correct RDS DB instances with encryption at rest disabled"
+  description = "Send notifications for RDS DB instances with encryption at rest disabled."
+  tags        = merge(local.rds_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({

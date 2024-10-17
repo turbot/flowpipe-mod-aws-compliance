@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_account_password_policies_without_one_symbol_update_password_policy_require_symbols" {
   title       = "Test detect and correct IAM account password policies without one symbol requirement"
-  description = "Test detect_and_correct_iam_account_password_policies_without_one_symbol pipeline."
+  description = "Test detect and correct IAM account password policies without one symbol pipeline."
 
   tags = {
     type = "test"

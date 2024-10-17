@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_account_password_policies_without_one_lowercase_letter_update_password_policy_require_lowercase" {
   title       = "Test detect and correct IAM account password policies without one lowercase letter requirement"
-  description = "Test detect_and_correct_iam_account_password_policies_without_one_lowercase_letter pipeline ."
+  description = "Test detect and correct IAM account password policies without one lowercase letter pipeline."
 
   tags = {
     type = "test"
@@ -14,7 +14,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_lowe
 
   step "query" "get_account_id" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         account_id
       from
@@ -26,7 +26,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_lowe
   step "query" "get_password_policy" {
     depends_on = [step.query.get_account_id]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         a.account_id as title,
         pol.account_id as password_policy_account_id,
@@ -52,7 +52,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_lowe
   step "query" "get_password_policy_without_lowercase_letter_requirement" {
     depends_on = [step.query.get_password_policy]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         pol.account_id as password_policy_account_id
       from
@@ -88,20 +88,20 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_lowe
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_lowercase_letter
     args = {
-      title                  = each.value.title
-      account_id             = each.value.title
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "update_password_policy_require_lowercase"
-      enabled_actions        = ["update_password_policy_require_lowercase"]
+      title           = each.value.title
+      account_id      = each.value.title
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "update_password_policy_require_lowercase"
+      enabled_actions = ["update_password_policy_require_lowercase"]
     }
   }
 
   step "query" "get_password_policy_after_detection" {
-    if          = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
-    depends_on  = [step.pipeline.run_detection]
-    database    = var.database
-    sql = <<-EOQ
+    if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
+    depends_on = [step.pipeline.run_detection]
+    database   = var.database
+    sql        = <<-EOQ
       select
         account_id,
         require_lowercase_characters

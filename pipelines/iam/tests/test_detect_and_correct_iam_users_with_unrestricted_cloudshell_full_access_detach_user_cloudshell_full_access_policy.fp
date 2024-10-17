@@ -1,6 +1,6 @@
 pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access_detach_user_cloudshell_full_access_policy" {
   title       = "Test detect and correct IAM users attached with unrestricted cloudshell full access policy"
-  description = "Test detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access pipeline."
+  description = "Test detect and correct IAM users attached with unrestricted cloudshell full access pipeline."
 
   tags = {
     type = "test"

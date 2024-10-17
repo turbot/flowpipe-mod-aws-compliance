@@ -1,5 +1,5 @@
 pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_disabled" {
-  title       = "Test Correct One CloudTrail Trail with S3 Object Level Logging for Write Events Disabled"
+  title       = "Test correct one CloudTrail trail with S3 object level logging for write events disabled"
   description = "Tests the correction of a CloudTrail trail with S3 object level logging for write events disabled."
 
   tags = {
@@ -77,15 +77,15 @@ pipeline "test_cloudtrail_trail_with_s3_object_level_logging_for_write_events_di
     pipeline = pipeline.correct_one_cloudtrail_trail_with_s3_object_level_logging_for_write_events_disabled
     args = {
       bucket_selector_count = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].bucket_selector_count
-      title           = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].title
-      s3_bucket_name  = param.s3_bucket_name
-      trail_name      = param.trail_name
-      account_id      = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].account_id
-      conn            = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].conn
-      approvers       = []
-      default_action  = "enable_s3_object_level_logging_for_write_events"
-      enabled_actions = ["enable_s3_object_level_logging_for_write_events"]
-      home_region     = param.region
+      title                 = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].title
+      s3_bucket_name        = param.s3_bucket_name
+      trail_name            = param.trail_name
+      account_id            = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].account_id
+      conn                  = step.query.cloudtrail_trails_with_s3_object_level_logging_for_write_events_disabled.rows[0].conn
+      approvers             = []
+      default_action        = "enable_s3_object_level_logging_for_write_events"
+      enabled_actions       = ["enable_s3_object_level_logging_for_write_events"]
+      home_region           = param.region
     }
   }
 

@@ -1,5 +1,5 @@
 pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
-  title       = "Test CloudTrail Trail Logs Not Encrypted with KMS CMK"
+  title       = "Test CloudTrail trail logs not encrypted with KMS CMK"
   description = "Tests the CloudTrail Trail Logs Not Encrypted with KMS CMK."
 
   param "conn" {

@@ -122,7 +122,7 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
   title       = "Correct EC2 instances with multiple ENIs"
   description = "Executes corrective actions on EC2 instances using multiple Elastic Network Interfaces."
 
-  tags = local.ec2_common_tags
+  tags = merge(local.ec2_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -198,7 +198,7 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
   title       = "Correct one EC2 instance with multiple ENIs"
   description = "Runs corrective action on an EC2 instance using multiple Elastic Network Interfaces."
 
-  tags = local.ec2_common_tags
+  tags = merge(local.ec2_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
