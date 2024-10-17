@@ -134,7 +134,7 @@ pipeline "cis_v300_3_1" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports
+    pipeline   = pipeline.detect_and_correct_cloudtrail_trails_with_multi_region_read_write_disabled
 
     args = {
       database           = param.database
@@ -147,7 +147,7 @@ pipeline "cis_v300_3_1" {
 
 pipeline "cis_v300_3_2" {
   title         = "3.2 Ensure CloudTrail log file validation is enabled"
-  documentation = file("./cis_v300/docs/cis_v300_5_1.md")
+  documentation = file("./cis_v300/docs/cis_v300_3_2.md")
 
   tags = {
     type   = "terminal"
@@ -300,7 +300,7 @@ pipeline "cis_v300_3_4" {
 
 pipeline "cis_v300_3_5" {
   title         = "3.5 Ensure CloudTrail logs are encrypted at rest using KMS CMKs"
-  documentation = file("./cis_v300/docs/cis_v300_5_1.md")
+  documentation = file("./cis_v300/docs/cis_v300_3_5.md")
 
   tags = {
     type   = "terminal"
@@ -504,7 +504,7 @@ pipeline "cis_v300_3_8" {
 
 pipeline "cis_v300_3_9" {
   title         = "3.9 Ensure that Object-level logging for read events is enabled for S3 bucket"
-  documentation = file("./cis_v300/docs/cis_v300_3_7.md")
+  documentation = file("./cis_v300/docs/cis_v300_3_9.md")
 
   tags = {
     type   = "terminal"

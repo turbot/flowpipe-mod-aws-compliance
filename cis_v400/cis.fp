@@ -1,10 +1,10 @@
 locals {
   cis_v400_control_mapping = {
     cis_v400_1 = pipeline.cis_v400_1
-    // cis_v400_2 = pipeline.cis_v400_2
-    // cis_v400_3 = pipeline.cis_v400_3
-    // cis_v400_4 = pipeline.cis_v400_4
-    // cis_v400_5 = pipeline.cis_v400_5
+    cis_v400_2 = pipeline.cis_v400_2
+    cis_v400_3 = pipeline.cis_v400_3
+    cis_v400_4 = pipeline.cis_v400_4
+    cis_v400_5 = pipeline.cis_v400_5
   }
 }
 
@@ -14,18 +14,18 @@ variable "cis_v400_enabled_pipelines" {
 
   default = [
     "cis_v400_1",
-    // "cis_v400_2",
-    // "cis_v400_3",
-    // "cis_v400_4",
-    // // "cis_v400_5"
+    "cis_v400_2",
+    "cis_v400_3",
+    "cis_v400_4",
+    "cis_v400_5"
   ]
 
   enum = [
     "cis_v400_1",
-    // "cis_v400_2",
-    // "cis_v400_3",
-    // "cis_v400_4",
-    // // "cis_v400_5"
+    "cis_v400_2",
+    "cis_v400_3",
+    "cis_v400_4",
+    "cis_v400_5"
   ]
 }
 
