@@ -42,33 +42,33 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
   }
 
   step "transform" "get_security_group_id" {
-    value   = jsondecode(step.container.create_security_group.stdout).GroupId
+    value = jsondecode(step.container.create_security_group.stdout).GroupId
   }
 
   output "security_group_id" {
     description = "Security group ID from the transform step"
-    value = step.transform.get_security_group_id
+    value       = step.transform.get_security_group_id
   }
 
   step "pipeline" "create_vpc_security_rules" {
     depends_on = [step.container.create_security_group]
     pipeline   = pipeline.create_vpc_security_group_rules
-    args       = {
-      region    = param.region
-      conn      = param.conn
-      group_id  = step.transform.get_security_group_id.value
+    args = {
+      region   = param.region
+      conn     = param.conn
+      group_id = step.transform.get_security_group_id.value
     }
   }
 
   step "sleep" "sleep_10_seconds" {
-    depends_on = [ step.pipeline.create_vpc_security_rules ]
+    depends_on = [step.pipeline.create_vpc_security_rules]
     duration   = "10s"
   }
 
   step "query" "get_security_group_details" {
     depends_on = [step.pipeline.create_vpc_security_rules]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with ingress_and_egress_rules as (
         select
           group_id,
@@ -118,14 +118,14 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
   }
 
   step "sleep" "sleep_20_seconds" {
-    depends_on = [ step.pipeline.correct_item ]
+    depends_on = [step.pipeline.correct_item]
     duration   = "20s"
   }
 
   step "query" "get_security_group_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with ingress_and_egress_rules as (
         select
           group_id,
@@ -174,7 +174,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
       "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_security_group_details_after_remediation]
   }
 }
@@ -182,6 +182,10 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
 pipeline "create_vpc_security_group_rules" {
   title       = "Create VPC Security Group Rules"
   description = "Creates ingress and egress rules for a security group."
+
+  tags = {
+    type = "internal"
+  }
 
   param "region" {
     type        = string
@@ -208,7 +212,7 @@ pipeline "create_vpc_security_group_rules" {
     type        = string
     description = "The port or port range for the rule (e.g., 80, 22-80)."
     // TOD: Try passing 80-80 in the port range
-    default     = "80"
+    default = "80"
   }
 
   param "cidr_block" {

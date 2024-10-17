@@ -393,7 +393,8 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_write_ev
 pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_write_events" {
   title       = "Create CloudTrail Trail with S3 Object-level logging for write events"
   description = "Creates a CloudTrail trail with S3 Object-level logging for write events."
-  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
+
+  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
 
   param "region" {
     type        = string

@@ -53,9 +53,10 @@ variable "regions_with_ebs_encryption_by_default_disabled_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_regions_with_ebs_encryption_by_default_disabled" {
-  title         = "Detect & correct regions with EBS encryption by default disabled"
-  description   = "Detect regions with EBS encryption by default disabled and then skip or enable encryption."
-  tags          = local.ebs_common_tags
+  title       = "Detect & correct regions with EBS encryption by default disabled"
+  description = "Detect regions with EBS encryption by default disabled and then skip or enable encryption."
+
+  tags = local.ebs_common_tags
 
   enabled  = var.regions_with_ebs_encryption_by_default_disabled_trigger_enabled
   schedule = var.regions_with_ebs_encryption_by_default_disabled_trigger_schedule
@@ -71,9 +72,10 @@ trigger "query" "detect_and_correct_regions_with_ebs_encryption_by_default_disab
 }
 
 pipeline "detect_and_correct_regions_with_ebs_encryption_by_default_disabled" {
-  title         = "Detect & correct regions with EBS encryption by default disabled"
-  description   = "Detect regions with EBS encryption by default disabled and then skip or enable encryption."
-  tags          = merge(local.ebs_common_tags, { recommended = "true" })
+  title       = "Detect & correct regions with EBS encryption by default disabled"
+  description = "Detect regions with EBS encryption by default disabled and then skip or enable encryption."
+
+  tags = merge(local.ebs_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -130,15 +132,16 @@ pipeline "detect_and_correct_regions_with_ebs_encryption_by_default_disabled" {
 }
 
 pipeline "correct_regions_with_ebs_encryption_by_default_disabled" {
-  title         = "Correct regions with EBS encryption by default disabled"
-  description   = "Enable EBS encryption by default in regions with EBS encryption by default disabled."
-  tags          = merge(local.ebs_common_tags, { type = "internal" })
+  title       = "Correct regions with EBS encryption by default disabled"
+  description = "Enable EBS encryption by default in regions with EBS encryption by default disabled."
+
+  tags = merge(local.ebs_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title       = string
-      region      = string
-      conn        = string
+      title  = string
+      region = string
+      conn   = string
     }))
     description = local.description_items
   }
@@ -197,9 +200,10 @@ pipeline "correct_regions_with_ebs_encryption_by_default_disabled" {
 }
 
 pipeline "correct_one_region_with_ebs_encryption_by_default_disabled" {
-  title         = "Correct one region with EBS encryption by default disabled"
-  description   = "Enable EBS encryption by default in one region with EBS encryption by default disabled."
-  tags          = merge(local.ebs_common_tags, { type = "internal" })
+  title       = "Correct one region with EBS encryption by default disabled"
+  description = "Enable EBS encryption by default in one region with EBS encryption by default disabled."
+
+  tags = merge(local.ebs_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -275,8 +279,8 @@ pipeline "correct_one_region_with_ebs_encryption_by_default_disabled" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.enable_ebs_encryption_by_default
           pipeline_args = {
-            region    = param.region
-            conn      = param.conn
+            region = param.region
+            conn   = param.conn
           }
           success_msg = "Enabled EBS encryption by default for region ${param.title}."
           error_msg   = "Error enabling EBS encryption by default for region ${param.title}."

@@ -13,10 +13,10 @@ locals {
 }
 
 trigger "query" "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" {
-  title         = "Detect & correct DynamoDB table with deletion protection disabled"
-  description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
+  title       = "Detect & correct DynamoDB table with deletion protection disabled"
+  description = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
 
-  tags          = local.dynamodb_common_tags
+  tags = local.dynamodb_common_tags
 
   enabled  = var.dynamodb_tables_with_deletion_protection_disabled_trigger_enabled
   schedule = var.dynamodb_tables_with_deletion_protection_disabled_trigger_schedule
@@ -56,10 +56,10 @@ variable "dynamodb_tables_with_deletion_protection_disabled_enabled_actions" {
 }
 
 pipeline "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" {
-  title         = "Detect & correct DynamoDB tables with deletion protection disabled"
-  description   = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
+  title       = "Detect & correct DynamoDB tables with deletion protection disabled"
+  description = "Detect DynamoDB tables with deletion protection disabled and then skip or enable deletion protection."
 
-  tags          = merge(local.dynamodb_common_tags, { recommended = "true" })
+  tags = merge(local.dynamodb_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -116,17 +116,17 @@ pipeline "detect_and_correct_dynamodb_tables_with_deletion_protection_disabled" 
 }
 
 pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
-  title         = "Correct DynamoDB tables with deletion protection disabled"
-  description   = "Runs corrective action on a collection of DynamoDB tables with deletion protection disabled."
+  title       = "Correct DynamoDB tables with deletion protection disabled"
+  description = "Runs corrective action on a collection of DynamoDB tables with deletion protection disabled."
 
-  tags          = local.dynamodb_common_tags
+  tags = merge(local.dynamodb_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title       = string
-      name        = string
-      region      = string
-      conn        = string
+      title  = string
+      name   = string
+      region = string
+      conn   = string
     }))
     description = local.description_items
   }
@@ -186,10 +186,10 @@ pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
 }
 
 pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
-  title         = "Correct one DynamoDB table with deletion protection disabled"
-  description   = "Runs corrective action on an DynamoDB table with deletion protection disabled."
+  title       = "Correct one DynamoDB table with deletion protection disabled"
+  description = "Runs corrective action on an DynamoDB table with deletion protection disabled."
 
-  tags          = local.dynamodb_common_tags
+  tags = merge(local.dynamodb_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -270,9 +270,9 @@ pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.update_dynamodb_table
           pipeline_args = {
-            table_name  = param.name
-            region      = param.region
-            conn        = param.conn
+            table_name = param.name
+            region     = param.region
+            conn       = param.conn
           }
           success_msg = "Enabled deletion protection for DynamoDB table ${param.title}."
           error_msg   = "Error enabling deletion protection for DynamoDB table ${param.title}."

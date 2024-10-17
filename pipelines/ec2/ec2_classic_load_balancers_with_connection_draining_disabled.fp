@@ -40,7 +40,7 @@ trigger "query" "detect_and_correct_ec2_classic_load_balancers_with_connection_d
   title       = "Detect & correct EC2 classic load balancers with connection draining disabled"
   description = "Detect EC2 classic load balancers with connection draining disabled and then skip or enable connection draining."
 
-  tags          = local.ec2_common_tags
+  tags = local.ec2_common_tags
 
   enabled  = var.ec2_classic_load_balancers_with_connection_draining_disabled_trigger_enabled
   schedule = var.ec2_classic_load_balancers_with_connection_draining_disabled_trigger_schedule
@@ -56,10 +56,10 @@ trigger "query" "detect_and_correct_ec2_classic_load_balancers_with_connection_d
 }
 
 pipeline "detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled" {
-  title         = "Detect & correct EC2 classic load balancers with connection draining disabled"
-  description   = "Detect EC2 classic load balancers with connection draining disabled and then skip or enable connection draining."
+  title       = "Detect & correct EC2 classic load balancers with connection draining disabled"
+  description = "Detect EC2 classic load balancers with connection draining disabled and then skip or enable connection draining."
 
-  tags          = merge(local.ec2_common_tags, { recommended = "true" })
+  tags = merge(local.ec2_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -116,10 +116,10 @@ pipeline "detect_and_correct_ec2_classic_load_balancers_with_connection_draining
 }
 
 pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" {
-  title         = "Correct EC2 classic load balancers with connection draining disabled"
-  description   = "Executes corrective actions on EC2 classic load balancers with connection draining disabled."
+  title       = "Correct EC2 classic load balancers with connection draining disabled"
+  description = "Executes corrective actions on EC2 classic load balancers with connection draining disabled."
 
-  tags          = local.ec2_common_tags
+  tags = merge(local.ec2_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -188,6 +188,7 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
   title       = "Correct one EC2 classic load balancer with connection draining disabled"
   description = "Runs corrective action on a single EC2 classic load balancer with connection draining disabled."
 
+  tags          = merge(local.ec2_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

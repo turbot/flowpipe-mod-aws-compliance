@@ -134,7 +134,7 @@ pipeline "detect_and_correct_security_hub_disabled_in_regions" {
 pipeline "correct_security_hub_disabled_in_regions" {
   title       = "Correct regions with Security Hub disabled"
   description = "Enable Security Hub in regions with Security Hub disabled."
-  tags          = merge(local.security_hub_common_tags, { type = "internal" })
+  tags        = merge(local.security_hub_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
@@ -200,7 +200,7 @@ pipeline "correct_security_hub_disabled_in_regions" {
 pipeline "correct_one_region_with_security_hub_disabled" {
   title       = "Correct one region with Security Hub disabled"
   description = "Enable Security Hub in a single region with Security Hub disabled."
-  tags          = merge(local.security_hub_common_tags, { type = "internal" })
+  tags        = merge(local.security_hub_common_tags, { type = "internal" })
 
   param "title" {
     type        = string

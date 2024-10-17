@@ -53,7 +53,8 @@ trigger "query" "detect_and_correct_efs_file_systems_with_encryption_at_rest_dis
 pipeline "detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled" {
   title       = "Detect & correct EFS file systems with encryption at rest disabled"
   description = "Detect EFS file systems with encryption at rest disabled."
-  tags        = merge(local.efs_common_tags, { recommended = "true" })
+
+  tags = merge(local.efs_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -91,7 +92,8 @@ pipeline "detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled" 
 pipeline "correct_efs_file_systems_with_encryption_at_rest_disabled" {
   title       = "Correct EFS file systems with encryption at rest disabled"
   description = "Send notifications for EFS file systems with encryption at rest disabled."
-  tags        = merge(local.efs_common_tags, { type = "internal" })
+
+  tags = merge(local.efs_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
