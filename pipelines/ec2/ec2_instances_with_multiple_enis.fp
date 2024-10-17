@@ -40,10 +40,10 @@ variable "ec2_instances_with_multiple_enis_enabled_actions" {
 
 
 trigger "query" "detect_and_correct_ec2_instances_with_multiple_enis" {
-  title         = "Detect & correct EC2 instances with multiple ENIs"
-  description   = "Detect EC2 instances with multiple Elastic Network Interfaces and then skip or detach the network interface(s)."
+  title       = "Detect & correct EC2 instances with multiple ENIs"
+  description = "Detect EC2 instances with multiple Elastic Network Interfaces and then skip or detach the network interface(s)."
 
-  tags          = merge(local.ec2_common_tags, { class = "configuration" })
+  tags = local.ec2_common_tags
 
   enabled  = var.ec2_instances_with_multiple_enis_trigger_enabled
   schedule = var.ec2_instances_with_multiple_enis_trigger_schedule
@@ -59,10 +59,10 @@ trigger "query" "detect_and_correct_ec2_instances_with_multiple_enis" {
 }
 
 pipeline "detect_and_correct_ec2_instances_with_multiple_enis" {
-  title         = "Detect & correct EC2 instances with multiple ENIs"
-  description   = "Detect EC2 instances with multiple Elastic Network Interfaces and then skip or detach the network interface(s)."
+  title       = "Detect & correct EC2 instances with multiple ENIs"
+  description = "Detect EC2 instances with multiple Elastic Network Interfaces and then skip or detach the network interface(s)."
 
-  tags          = merge(local.ec2_common_tags, { class = "configuration", recommended = "true" })
+  tags = merge(local.ec2_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -119,10 +119,10 @@ pipeline "detect_and_correct_ec2_instances_with_multiple_enis" {
 }
 
 pipeline "correct_ec2_instances_with_multiple_enis" {
-  title         = "Correct EC2 instances with multiple ENIs"
-  description   = "Executes corrective actions on EC2 instances using multiple Elastic Network Interfaces."
+  title       = "Correct EC2 instances with multiple ENIs"
+  description = "Executes corrective actions on EC2 instances using multiple Elastic Network Interfaces."
 
-  tags          = merge(local.ec2_common_tags, { class = "configuration" })
+  tags = local.ec2_common_tags
 
   param "items" {
     type = list(object({
@@ -195,10 +195,10 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
 }
 
 pipeline "correct_one_ec2_instance_with_multiple_enis" {
-  title         = "Correct one EC2 instance with multiple ENIs"
-  description   = "Runs corrective action on an EC2 instance using multiple Elastic Network Interfaces."
+  title       = "Correct one EC2 instance with multiple ENIs"
+  description = "Runs corrective action on an EC2 instance using multiple Elastic Network Interfaces."
 
-  tags          = merge(local.ec2_common_tags, { class = "configuration" })
+  tags = local.ec2_common_tags
 
   param "title" {
     type        = string

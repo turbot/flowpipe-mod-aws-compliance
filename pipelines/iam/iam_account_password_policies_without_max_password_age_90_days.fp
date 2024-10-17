@@ -303,52 +303,40 @@ pipeline "update_iam_account_password_policy_max_password_age" {
     optional    = true
   }
 
-  step "transform" "detect_msg" {
-    value = <<-EOT
-      format("tets %s", param.conn)
-    EOT
+  step "query" "get_password_policy" {
+    database = var.database
+    sql = <<-EOQ
+      select
+        a.account_id,
+        coalesce(minimum_password_length, 8) as minimum_password_length,
+        coalesce(require_symbols, false) as require_symbols,
+        coalesce(require_numbers, false) as require_numbers,
+        coalesce(require_uppercase_characters, false) as require_uppercase_characters,
+        coalesce(require_lowercase_characters, false) as require_lowercase_characters,
+        coalesce(allow_users_to_change_password, false) as allow_users_to_change_password,
+        coalesce(max_password_age, 0) as max_password_age,
+        coalesce(password_reuse_prevention, 0) as password_reuse_prevention
+      from
+        aws_account as a
+        left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
+      where
+       a.sp_connection_name = '${param.conn.short_name}';
+    EOQ
   }
 
-  output "tetst"{
-    value = step.transform.detect_msg.value
+  step "pipeline" "update_iam_account_password_policy" {
+    depends_on = [step.query.get_password_policy]
+    pipeline   = aws.pipeline.update_iam_account_password_policy
+    args = {
+      allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
+      conn                           = param.conn
+      max_password_age               = param.max_password_age
+      minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
+      password_reuse_prevention      = step.query.get_password_policy.rows[0].password_reuse_prevention
+      require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
+      require_numbers                = step.query.get_password_policy.rows[0].require_numbers
+      require_symbols                = step.query.get_password_policy.rows[0].require_symbols
+      require_uppercase_characters   = step.query.get_password_policy.rows[0].require_uppercase_characters
+    }
   }
-
-  // step "query" "get_password_policy" {
-  //   database = var.database
-  //   sql = <<-EOQ
-  //     select
-  //       a.account_id,
-  //       coalesce(minimum_password_length, 8) as minimum_password_length,
-  //       coalesce(require_symbols, false) as require_symbols,
-  //       coalesce(require_numbers, false) as require_numbers,
-  //       coalesce(require_uppercase_characters, false) as require_uppercase_characters,
-  //       coalesce(require_lowercase_characters, false) as require_lowercase_characters,
-  //       coalesce(allow_users_to_change_password, false) as allow_users_to_change_password,
-  //       coalesce(max_password_age, 0) as max_password_age,
-  //       coalesce(password_reuse_prevention, 0) as password_reuse_prevention
-  //     from
-  //       aws_account as a
-  //       left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
-  //     where
-  //      a.sp_connection_name = split_part('${step.transform.detect_msg.value}', '.', 3);
-  //      -- TODO: Fix this to work with sp_connection_name and param.conn
-  //   EOQ
-  // }
-
-  // step "pipeline" "update_iam_account_password_policy" {
-  //   depends_on = [step.query.get_password_policy]
-  //   pipeline   = aws.pipeline.update_iam_account_password_policy
-  //   args = {
-  //     allow_users_to_change_password = step.query.get_password_policy.rows[0].allow_users_to_change_password
-  //     conn                           = param.conn
-  //     max_password_age               = param.max_password_age
-  //     minimum_password_length        = step.query.get_password_policy.rows[0].minimum_password_length
-  //     password_reuse_prevention      = step.query.get_password_policy.rows[0].password_reuse_prevention
-  //     require_lowercase_characters   = step.query.get_password_policy.rows[0].require_lowercase_characters
-  //     require_numbers                = step.query.get_password_policy.rows[0].require_numbers
-  //     require_symbols                = step.query.get_password_policy.rows[0].require_symbols
-  //     require_uppercase_characters   = step.query.get_password_policy.rows[0].require_uppercase_characters
-  //   }
-  // }
-
 }

@@ -271,7 +271,7 @@ pipeline "correct_one_iam_account_password_policy_without_password_reuse_24" {
           error_msg   = ""
         },
         "update_password_policy_reuse_prevention" = {
-          label        = "Update Password Policy Reuse Prevention"
+          label        = "Update password policy reuse prevention to 24"
           value        = "update_password_policy_reuse_prevention"
           style        = local.style_alert
           pipeline_ref = pipeline.update_iam_account_password_policy_password_reuse
@@ -320,7 +320,7 @@ pipeline "update_iam_account_password_policy_password_reuse" {
         aws_account as a
         left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-        a.sp_connection_name = '${param.conn}'; -- TODO: Fix this to work with sp_connection_name and param.conn
+        a.sp_connection_name = '${param.conn.short_name}';
     EOQ
   }
 
