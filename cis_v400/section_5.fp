@@ -181,7 +181,7 @@ pipeline "cis_v400_5_1_2" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.manual_detection
+    pipeline   = pipeline.detect_and_correct_vpc_security_groups_allowing_ingress_to_port_445
 
     args = {
       database           = param.database
