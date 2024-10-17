@@ -218,7 +218,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
 
   param "policy_arn" {
     type        = string
-    description = "The name of the IAM user."
+    description = "The Amazon Resource Name (ARN) of the IAM policy you want to detach."
   }
 
   param "account_id" {
@@ -267,7 +267,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM user with the specified policy attached ${param.title}."
+      detect_msg         = "Detected IAM user${param.title} with the ${param.policy_arn} policy attached ."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -279,13 +279,13 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped detaching policy from IAM user ${param.title}."
+            text     = "Skipped IAM user ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
         },
         "detach_iam_policy" = {
-          label        = "Detach IAM policy"
+          label        = "Detach IAM policy ${param.policy_arn}"
           value        = "detach_iam_policy"
           style        = local.style_alert
           pipeline_ref = pipeline.detach_iam_users_with_iam_policy_attached
@@ -294,8 +294,8 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
             policy_arn = param.policy_arn
             conn       = param.conn
           }
-          success_msg = "Detached IAM policy from IAM user ${param.title}."
-          error_msg   = "Error detaching policy from IAM user ${param.title}."
+          success_msg = "Detached IAM policy ${param.policy_arn} from user ${param.title}."
+          error_msg   = "Error detaching IAM policy ${param.policy_arn} from user ${param.title}."
         }
       }
     }
