@@ -33,7 +33,7 @@
 //   title         = "Detect & correct EC2 Launch Templates with public IPs"
 //   description   = "Detects EC2 Launch Templates that automatically assign public IPs to network interfaces and executes the chosen action."
 
-//   tags          = merge(local.ec2_common_tags, { class = "configuration" })
+//   tags          = local.ec2_common_tags
 
 //   enabled  = var.ec2_launch_templates_with_public_ips_trigger_enabled
 //   schedule = var.ec2_launch_templates_with_public_ips_trigger_schedule
@@ -52,7 +52,7 @@
 //   title         = "Detect & correct EC2 Launch Templates with public IPs"
 //   description   = "Detects EC2 Launch Templates that automatically assign public IPs and performs the chosen action."
 
-//   tags          = merge(local.ec2_common_tags, { class = "configuration", recommended = "true" })
+//   tags          = merge(local.ec2_common_tags, { recommended = "true" })
 
 //   param "database" {
 //     type        = string
@@ -112,7 +112,7 @@
 //   title         = "Correct EC2 Launch Templates with public IPs"
 //   description   = "Executes corrective actions on EC2 Launch Templates to disable automatic public IP assignment."
 
-//   tags          = merge(local.ec2_common_tags, { class = "configuration" })
+//   tags          = local.ec2_common_tags
 
 //   param "items" {
 //     type = list(object({
@@ -187,7 +187,7 @@
 //   title         = "Correct one EC2 Launch Template with public IPs"
 //   description   = "Runs corrective action to disable automatic public IP assignment on an EC2 Launch Template."
 
-//   tags          = merge(local.ec2_common_tags, { class = "configuration" })
+//   tags          = local.ec2_common_tags
 
 //   param "title" {
 //     type        = string

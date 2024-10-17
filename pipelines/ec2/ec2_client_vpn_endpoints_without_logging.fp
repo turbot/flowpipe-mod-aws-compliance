@@ -17,7 +17,7 @@
 //   title         = "Detect & correct EC2 Client VPN endpoints without client connection logging"
 //   description   = "Detects EC2 Client VPN endpoints without connection logging enabled and executes the chosen action."
 
-//   tags          = merge(local.vpn_common_tags, { class = "compliance" })
+//   tags          = local.vpn_common_tags
 
 //   enabled  = var.ec2_client_vpn_endpoints_without_logging_trigger_enabled
 //   schedule = var.ec2_client_vpn_endpoints_without_logging_trigger_schedule
@@ -36,7 +36,7 @@
 //   title         = "Detect & correct EC2 Client VPN endpoints without client connection logging"
 //   description   = "Detects EC2 Client VPN endpoints without connection logging enabled and performs the chosen action."
 
-//   tags          = merge(local.vpn_common_tags, { class = "compliance", recommended = "true" })
+//   tags          = merge(local.vpn_common_tags, { recommended = "true" })
 
 //   param "database" {
 //     type        = string
@@ -96,7 +96,7 @@
 //   title         = "Correct EC2 Client VPN endpoints without client connection logging"
 //   description   = "Executes corrective actions on EC2 Client VPN endpoints to enable connection logging."
 
-//   tags          = merge(local.vpn_common_tags, { class = "compliance" })
+//   tags          = local.vpn_common_tags
 
 //   param "items" {
 //     type = list(object({
@@ -171,7 +171,7 @@
 //   title         = "Correct one EC2 Client VPN endpoint without client connection logging"
 //   description   = "Runs corrective action to enable logging on a EC2 Client VPN endpoint."
 
-//   tags          = merge(local.vpn_common_tags, { class = "compliance" })
+//   tags          = local.vpn_common_tags
 
 //   param "title" {
 //     type        = string
