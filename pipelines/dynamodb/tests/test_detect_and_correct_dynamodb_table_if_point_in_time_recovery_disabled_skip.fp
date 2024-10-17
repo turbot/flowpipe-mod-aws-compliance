@@ -1,5 +1,5 @@
 pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disabled_skip" {
-  title       = "Test DynamoDB Table Point In Time Recovery Disabled"
+  title       = "Test DynamoDB table point in time recovery disabled"
   description = "Test the detect_and_correct_dynamodb_table_if_point_in_time_recovery_disabled pipeline."
 
   tags = {
