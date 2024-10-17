@@ -1,5 +1,5 @@
 locals {
-  s3_buckets_with_public_access_enabled_query = <<-EOQ
+  s3_buckets_with_block_public_access_disabled_query = <<-EOQ
     select
       concat(bucket.name, ' [', bucket.account_id, '/', bucket.region, ']') as title,
       bucket.region,
@@ -53,27 +53,27 @@ variable "s3_bucket_public_access_enabled_enabled_actions" {
   default     = ["skip", "block_public_access"]
 }
 
-trigger "query" "detect_and_correct_s3_buckets_with_public_access_enabled" {
-  title       = "Detect & correct S3 Buckets With Public Access Enabled"
-  description = "Detect S3 buckets with public access enabled and then skip or block public access."
+trigger "query" "detect_and_correct_s3_buckets_with_block_public_access_disabled" {
+  title       = "Detect & correct S3 buckets with block public access disabled"
+  description = "Detect S3 buckets with block public access disabled and then skip or block public access."
   tags        = local.s3_common_tags
 
   enabled  = var.s3_bucket_public_access_enabled_trigger_enabled
   schedule = var.s3_bucket_public_access_enabled_trigger_schedule
   database = var.database
-  sql      = local.s3_buckets_with_public_access_enabled_query
+  sql      = local.s3_buckets_with_block_public_access_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_s3_buckets_with_public_access_enabled
+    pipeline = pipeline.correct_s3_buckets_with_block_public_access_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_s3_buckets_with_public_access_enabled" {
-  title       = "Detect & correct S3 Buckets With Public Access Enabled"
-  description = "Detect S3 buckets with public access enabled and then skip or block public access."
+pipeline "detect_and_correct_s3_buckets_with_block_public_access_disabled" {
+  title       = "Detect & correct S3 buckets with block public access disabled"
+  description = "Detect S3 buckets with block public access disabled and then skip or block public access."
   tags = merge(local.s3_common_tags, { recommended = "true" })
 
   param "database" {
@@ -114,11 +114,11 @@ pipeline "detect_and_correct_s3_buckets_with_public_access_enabled" {
 
   step "query" "detect" {
     database = param.database
-    sql      = local.s3_buckets_with_public_access_enabled_query
+    sql      = local.s3_buckets_with_block_public_access_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_s3_buckets_with_public_access_enabled
+    pipeline = pipeline.correct_s3_buckets_with_block_public_access_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -130,9 +130,9 @@ pipeline "detect_and_correct_s3_buckets_with_public_access_enabled" {
   }
 }
 
-pipeline "correct_s3_buckets_with_public_access_enabled" {
-  title       = "Correct S3 Buckets With Public Access Enabled"
-  description = "Executes corrective actions on publicly accessible S3 buckets."
+pipeline "correct_s3_buckets_with_block_public_access_disabled" {
+  title       = "Correct S3 buckets with block public access disabled"
+  description = "Block public access for S3 buckets that have block public access disabled."
   tags        = merge(local.s3_common_tags, { type = "internal" })
 
   param "items" {
@@ -177,13 +177,13 @@ pipeline "correct_s3_buckets_with_public_access_enabled" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} S3 bucket(s) with public access."
+    text     = "Detected ${length(param.items)} S3 bucket(s) with block public access disabled."
   }
 
   step "pipeline" "correct_item" {
     for_each        = { for item in param.items : item.bucket_name => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_s3_bucket_if_publicly_accessible
+    pipeline        = pipeline.correct_one_s3_bucket_with_block_public_access_disabled
     args = {
       title              = each.value.title
       bucket_name        = each.value.bucket_name
@@ -198,9 +198,9 @@ pipeline "correct_s3_buckets_with_public_access_enabled" {
   }
 }
 
-pipeline "correct_one_s3_bucket_if_publicly_accessible" {
-  title       = "Correct One S3 Bucket With Public Access Enabled"
-  description = "Runs corrective action on a single S3 bucket with public access enabled."
+pipeline "correct_one_s3_bucket_with_block_public_access_disabled" {
+  title       = "Correct one S3 bucket with block public access disabled"
+  description = "Block public access for an S3 bucket that has block public access disabled."
   tags        = merge(local.s3_common_tags, { type = "internal" })
 
   param "title" {
@@ -259,7 +259,7 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected S3 bucket ${param.title} with public access enabled."
+      detect_msg         = "Detected S3 bucket ${param.title} with block public access disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -273,11 +273,11 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
             send     = param.notification_level == local.level_verbose
             text     = "Skipped S3 bucket ${param.title}."
           }
-          success_msg = "Skipped S3 bucket ${param.title}."
-          error_msg   = "Error skipping S3 bucket ${param.title}."
+          success_msg = ""
+          error_msg   = ""
         },
         "block_public_access" = {
-          label        = "Block public access for S3 bucket ${param.bucket_name}"
+          label        = "Block public access"
           value        = "block_public_access"
           style        = local.style_alert
           pipeline_ref  = aws.pipeline.put_s3_bucket_public_access_block
@@ -290,8 +290,8 @@ pipeline "correct_one_s3_bucket_if_publicly_accessible" {
             block_public_policy     = true
             restrict_public_buckets = true
           }
-          success_msg = "Enabled blocking of public access on S3 bucket ${param.title}."
-          error_msg   = "Error disabling public access on S3 bucket ${param.title}."
+          success_msg = "Blocked public access for S3 bucket ${param.title}."
+          error_msg   = "Error blocking public access for S3 bucket ${param.title}."
         }
       }
     }

@@ -1,6 +1,7 @@
-pipeline "test_detect_and_correct_s3_buckets_with_public_access_enabled" {
-  title       = "Test Detect and Correct S3 Buckets if Publicly Accessible - Block Public Access"
-  description = "Test the block public access action for publicly accessible S3 buckets."
+pipeline "test_detect_and_correct_s3_buckets_with_block_public_access_disabled" {
+  title       = "Test detect and correct S3 buckets with block public access disabled"
+  description = "Test the block public access action for the detect_and_correct_s3_buckets_with_block_public_access_disabled pipeline."
+
   tags = {
     type = "test"
   }
@@ -60,12 +61,12 @@ pipeline "test_detect_and_correct_s3_buckets_with_public_access_enabled" {
   step "transform" "base_args_bucket_policy" {
     output "base_args" {
       value = {
-        bucket = param.bucket
-        conn   = param.conn
-        region = param.region
-        block_public_acls = param.block_public_acls
-        ignore_public_acls = param.ignore_public_acls
-        block_public_policy = param.block_public_policy
+        bucket                  = param.bucket
+        conn                    = param.conn
+        region                  = param.region
+        block_public_acls       = param.block_public_acls
+        ignore_public_acls      = param.ignore_public_acls
+        block_public_policy     = param.block_public_policy
         restrict_public_buckets = param.restrict_public_buckets
       }
     }
@@ -84,12 +85,13 @@ pipeline "test_detect_and_correct_s3_buckets_with_public_access_enabled" {
 
   step "pipeline" "run_detection" {
     depends_on = [step.pipeline.put_s3_bucket_public_access_block]
-    pipeline   = pipeline.correct_one_s3_bucket_if_publicly_accessible
+    pipeline   = pipeline.correct_one_s3_bucket_with_block_public_access_disabled
     args = {
       title            = param.bucket
       bucket_name      = param.bucket
       conn             = param.conn
       region           = param.region
+      approvers        = []
       default_action   = "block_public_access"
       enabled_actions  = ["block_public_access"]
     }

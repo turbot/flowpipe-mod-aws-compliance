@@ -340,7 +340,7 @@ pipeline "cis_v400_2_1_4" {
 
   step "pipeline" "run_pipeline" {
     depends_on = [step.message.header]
-    pipeline   = pipeline.detect_and_correct_s3_buckets_with_public_access_enabled
+    pipeline   = pipeline.detect_and_correct_s3_buckets_with_block_public_access_disabled
 
     args = {
       database           = param.database
