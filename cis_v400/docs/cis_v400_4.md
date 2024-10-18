@@ -1,5 +1,0 @@
-## Overview
-
-This section contains recommendations for configuring AWS to assist with monitoring and responding to account activities.
-
-Metric filter-related recommendations in this section are dependent on the `Ensure CloudTrail is enabled in all regions` and `Ensure CloudTrail trails are integrated with CloudWatch Logs` recommendation in the "Logging" section.
