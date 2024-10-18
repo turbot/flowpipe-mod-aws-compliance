@@ -59,9 +59,9 @@ variable "vpcs_without_flow_logs_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
-  title         = "Detect & correct VPCs without flow logs"
-  description   = "Detect VPCs without flow logs and then skip or create flow logs."
-
+  title       = "Detect & correct VPCs without flow logs"
+  description = "Detect VPCs without flow logs and then skip or create flow logs."
+  tags        = local.vpc_common_tags
 
   enabled  = var.vpcs_without_flow_logs_trigger_enabled
   schedule = var.vpcs_without_flow_logs_trigger_schedule
@@ -77,9 +77,9 @@ trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
 }
 
 pipeline "detect_and_correct_vpcs_without_flow_logs" {
-  title         = "Detect & correct VPCs without flow logs"
-  description   = "Detect VPCs without flow logs and then skip or create flow logs."
-
+  title       = "Detect & correct VPCs without flow logs"
+  description = "Detect VPCs without flow logs and then skip or create flow logs."
+  tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -136,16 +136,16 @@ pipeline "detect_and_correct_vpcs_without_flow_logs" {
 }
 
 pipeline "correct_vpcs_without_flow_logs" {
-  title         = "Correct VPCs without flow logs"
-  description   = "Create flow logs for a collection of VPCs without flow logs."
-
+  title       = "Correct VPCs without flow logs"
+  description = "Create flow logs for a collection of VPCs without flow logs."
+  tags        = merge(local.vpc_common_tags, { type = "internal" })
 
   param "items" {
     type = list(object({
-      title       = string
-      vpc_id      = string
-      region      = string
-      conn        = string
+      title  = string
+      vpc_id = string
+      region = string
+      conn   = string
     }))
     description = local.description_items
   }
@@ -209,10 +209,10 @@ pipeline "correct_vpcs_without_flow_logs" {
 }
 
 pipeline "correct_one_vpc_without_flowlog" {
-  title         = "Correct one VPC without flow log"
-  description   = "Create a flow log for a VPC without flow log."
+  title       = "Correct one VPC without flow log"
+  description = "Create a flow log for a VPC without flow log."
 
-  tags          = local.vpc_common_tags
+  tags = merge(local.vpc_common_tags, { type = "internal" })
 
   param "title" {
     type        = string
@@ -293,9 +293,9 @@ pipeline "correct_one_vpc_without_flowlog" {
           style        = local.style_alert
           pipeline_ref = pipeline.create_vpc_flowlog
           pipeline_args = {
-            vpc_id      = param.vpc_id
-            region      = param.region
-            conn        = param.conn
+            vpc_id = param.vpc_id
+            region = param.region
+            conn   = param.conn
           }
           success_msg = "Created Flow log ${param.title}."
           error_msg   = "Error creating Flow log ${param.title}."
