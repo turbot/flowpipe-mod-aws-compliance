@@ -119,7 +119,7 @@ pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" 
   title       = "Correct EC2 classic load balancers with connection draining disabled"
   description = "Executes corrective actions on EC2 classic load balancers with connection draining disabled."
 
-  tags = merge(local.ec2_common_tags, { type = "internal" })
+  tags = merge(local.ec2_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -188,7 +188,7 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
   title       = "Correct one EC2 classic load balancer with connection draining disabled"
   description = "Runs corrective action on a single EC2 classic load balancer with connection draining disabled."
 
-  tags          = merge(local.ec2_common_tags, { type = "internal" })
+  tags = merge(local.ec2_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

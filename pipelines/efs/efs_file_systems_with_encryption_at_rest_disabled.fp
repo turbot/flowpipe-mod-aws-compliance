@@ -93,7 +93,7 @@ pipeline "correct_efs_file_systems_with_encryption_at_rest_disabled" {
   title       = "Correct EFS file systems with encryption at rest disabled"
   description = "Send notifications for EFS file systems with encryption at rest disabled."
 
-  tags = merge(local.efs_common_tags, { type = "internal" })
+  tags = merge(local.efs_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

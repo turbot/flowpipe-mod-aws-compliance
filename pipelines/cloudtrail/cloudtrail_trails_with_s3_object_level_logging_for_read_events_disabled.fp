@@ -184,7 +184,7 @@ pipeline "correct_cloudtrail_trails_with_s3_object_level_logging_for_read_events
   title       = "Correct CloudTrail trails with S3 object level logging for read events disabled"
   description = "Runs corrective action on a collection of CloudTrail trails that have S3 object level logging for read events disabled."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -276,7 +276,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_object_level_logging_for_read_eve
   title       = "Correct one CloudTrail trail with S3 object level logging for read events disabled"
   description = "Runs corrective action on a CloudTrail trail with S3 object level logging for read events disabled."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -394,7 +394,7 @@ pipeline "create_cloudtrail_trail_to_enable_s3_object_level_logging_for_read_eve
   title       = "Create CloudTrail trail to enable S3 object level logging for read events"
   description = "Create CloudTrail trail to enable S3 object level logging for read events."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "region" {
     type        = string

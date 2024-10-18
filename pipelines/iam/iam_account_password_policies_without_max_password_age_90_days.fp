@@ -133,7 +133,7 @@ pipeline "detect_and_correct_iam_account_password_policies_without_max_password_
 pipeline "correct_iam_account_password_policies_without_max_password_age_90_days" {
   title       = "Correct IAM account password policies without maximum password age of 90 days"
   description = "Update password policy to maximum password age of 90 days for IAM accounts without maximum password age of 90 days."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -200,7 +200,7 @@ pipeline "correct_iam_account_password_policies_without_max_password_age_90_days
 pipeline "correct_one_iam_account_password_policy_without_max_password_age_90_days" {
   title       = "Correct one IAM account password policy without maximum password age of 90 days"
   description = "Update password policy to maximum password age of 90 days for an IAM account without maximum password age of 90 days."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -290,7 +290,7 @@ pipeline "correct_one_iam_account_password_policy_without_max_password_age_90_da
 pipeline "update_iam_account_password_policy_max_password_age" {
   title       = "Update IAM account password policy max password age"
   description = "Updates the account password policymax password age for the AWS account."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "conn" {
     type        = connection.aws

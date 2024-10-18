@@ -138,7 +138,7 @@ pipeline "detect_and_correct_iam_users_with_unused_login_profile_45_days" {
 pipeline "correct_iam_users_with_unused_login_profile_45_days" {
   title       = "Correct IAM users with unused login profile from 45 days or more"
   description = "Runs corrective action to delete IAM users login profile that have been unused for 45 days or more."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -214,7 +214,7 @@ pipeline "correct_iam_users_with_unused_login_profile_45_days" {
 pipeline "correct_one_iam_user_with_unused_login_profile_45_days" {
   title       = "Correct one IAM user with unused login profile from 45 days or more"
   description = "Runs corrective action to delete a IAM user login profile that have been unused for 45 days or more."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -332,7 +332,7 @@ step "pipeline" "respond" {
 pipeline "delete_user_login_profile" {
   title       = "Delete IAM user login profile"
   description = "Delete the IAM user's login profile."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "conn" {
     type        = connection.aws

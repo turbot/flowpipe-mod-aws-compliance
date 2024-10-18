@@ -90,14 +90,14 @@ pipeline "detect_and_correct_iam_users_with_console_access_mfa_disabled" {
 }
 
 pipeline "correct_iam_users_with_console_access_mfa_disabled" {
-  title         = "Correct IAM users with console access MFA disabled"
-  description   = "Send notifications for IAM users with console access MFA disabled."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM users with console access MFA disabled"
+  description = "Send notifications for IAM users with console access MFA disabled."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title       = string
-      conn        = string
+      title = string
+      conn  = string
     }))
     description = local.description_items
   }

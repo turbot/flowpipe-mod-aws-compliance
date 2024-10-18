@@ -59,9 +59,9 @@ variable "iam_users_with_unused_login_profile_90_days_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_users_with_unused_login_profile_90_days" {
-  title         = "Detect & correct IAM users with unused login profile from 90 days or more"
-  description   = "Detects IAM users with login profile that have been unused for 90 days or more and delete them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unused login profile from 90 days or more"
+  description = "Detects IAM users with login profile that have been unused for 90 days or more and delete them."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_users_with_unused_login_profile_90_days_trigger_enabled
   schedule = var.iam_users_with_unused_login_profile_90_days_trigger_schedule
@@ -77,9 +77,9 @@ trigger "query" "detect_and_correct_iam_users_with_unused_login_profile_90_days"
 }
 
 pipeline "detect_and_correct_iam_users_with_unused_login_profile_90_days" {
-  title         = "Detect & correct IAM users with unused login profile from 90 days or more"
-  description   = "Detects IAM users with login profile that have been unused for 90 days or more and delete them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unused login profile from 90 days or more"
+  description = "Detects IAM users with login profile that have been unused for 90 days or more and delete them."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -136,9 +136,9 @@ pipeline "detect_and_correct_iam_users_with_unused_login_profile_90_days" {
 }
 
 pipeline "correct_iam_users_with_unused_login_profile_90_days" {
-  title         = "Correct IAM users with unused login profile from 90 days or more"
-  description   = "Runs corrective action to delete IAM users login profile that have been unused for 90 days or more."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM users with unused login profile from 90 days or more"
+  description = "Runs corrective action to delete IAM users login profile that have been unused for 90 days or more."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -212,9 +212,9 @@ pipeline "correct_iam_users_with_unused_login_profile_90_days" {
 }
 
 pipeline "correct_one_iam_user_with_unused_login_profile_90_days" {
-  title         = "Correct one IAM user with unused login profile from 90 days or more"
-  description   = "Runs corrective action to delete a IAM user login profile that have been unused for 90 days or more."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM user with unused login profile from 90 days or more"
+  description = "Runs corrective action to delete a IAM user login profile that have been unused for 90 days or more."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -284,47 +284,47 @@ pipeline "correct_one_iam_user_with_unused_login_profile_90_days" {
   step "transform" "detect_msg" {
     value = <<-EOT
       ${param.password_last_used != "Never Used" ?
-      format("Detected IAM user %s with password last used on %s (%s days).", param.user_name, param.password_last_used, param.password_last_used_in_days) :
-      format("Detected IAM user %s with password never used and last changed on %s (%s days ).", param.user_name, param.password_last_changed, param.password_last_changed_in_days)}
+    format("Detected IAM user %s with password last used on %s (%s days).", param.user_name, param.password_last_used, param.password_last_used_in_days) :
+  format("Detected IAM user %s with password never used and last changed on %s (%s days ).", param.user_name, param.password_last_changed, param.password_last_changed_in_days)}
     EOT
-  }
+}
 
-  step "pipeline" "respond" {
-    pipeline = detect_correct.pipeline.correction_handler
-    args = {
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-      detect_msg         = step.transform.detect_msg.value
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
-      actions = {
-        "skip" = {
-          label        = "Skip"
-          value        = "skip"
-          style        = local.style_info
-          pipeline_ref = detect_correct.pipeline.optional_message
-          pipeline_args = {
-            notifier = param.notifier
-            send     = param.notification_level == local.level_verbose
-            text     = "Skipped IAM user ${param.title}."
-          }
-          success_msg = ""
-          error_msg   = ""
-        },
-        "delete_user_login_profile_unused_90_days" = {
-          label        = "Delete IAM user login profile unsued from 90 days or more"
-          value        = "delete_user_login_profile_unused_90_days"
-          style        = local.style_alert
-          pipeline_ref = pipeline.delete_user_login_profile
-          pipeline_args = {
-            user_name  = param.user_name
-            conn       = param.conn
-          }
-          success_msg = "Deleted IAM user ${param.title} login profile."
-          error_msg   = "Error deleting IAM user ${param.title} login profile."
+step "pipeline" "respond" {
+  pipeline = detect_correct.pipeline.correction_handler
+  args = {
+    notifier           = param.notifier
+    notification_level = param.notification_level
+    approvers          = param.approvers
+    detect_msg         = step.transform.detect_msg.value
+    default_action     = param.default_action
+    enabled_actions    = param.enabled_actions
+    actions = {
+      "skip" = {
+        label        = "Skip"
+        value        = "skip"
+        style        = local.style_info
+        pipeline_ref = detect_correct.pipeline.optional_message
+        pipeline_args = {
+          notifier = param.notifier
+          send     = param.notification_level == local.level_verbose
+          text     = "Skipped IAM user ${param.title}."
         }
+        success_msg = ""
+        error_msg   = ""
+      },
+      "delete_user_login_profile_unused_90_days" = {
+        label        = "Delete IAM user login profile unsued from 90 days or more"
+        value        = "delete_user_login_profile_unused_90_days"
+        style        = local.style_alert
+        pipeline_ref = pipeline.delete_user_login_profile
+        pipeline_args = {
+          user_name = param.user_name
+          conn      = param.conn
+        }
+        success_msg = "Deleted IAM user ${param.title} login profile."
+        error_msg   = "Error deleting IAM user ${param.title} login profile."
       }
     }
   }
+}
 }

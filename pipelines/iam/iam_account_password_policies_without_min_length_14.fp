@@ -133,7 +133,7 @@ pipeline "detect_and_correct_iam_account_password_policies_without_min_length_14
 pipeline "correct_iam_account_password_policies_without_min_length_14" {
   title       = "Correct IAM account password policies without minimum length of 14"
   description = "Update password policies to minimum length of 14 for IAM accounts without password policy of minimum length 14."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -200,7 +200,7 @@ pipeline "correct_iam_account_password_policies_without_min_length_14" {
 pipeline "correct_one_iam_account_password_policy_without_min_length_14" {
   title       = "Correct one IAM account password policy without minimum length of 14"
   description = "Update password policy to minimum length of 14 for an IAM account without password policy of minimum length 14."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -290,7 +290,7 @@ pipeline "correct_one_iam_account_password_policy_without_min_length_14" {
 pipeline "update_iam_account_password_policy_min_length" {
   title       = "Update IAM account password policy minimumn length"
   description = "Updates the account password policy minimumn length for the AWS account."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "conn" {
     type        = connection.aws

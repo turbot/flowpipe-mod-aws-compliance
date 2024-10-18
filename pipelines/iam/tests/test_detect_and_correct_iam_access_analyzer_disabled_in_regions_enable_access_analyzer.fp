@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
   description = "Test detect and correcr IAM Access Analyzer disabled in regions pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -14,7 +14,7 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
 
   step "query" "get_access_analyzer_disabled_region" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         concat(r.region, ' [', r.account_id, ']') as title,
         r.region,
@@ -34,18 +34,18 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
   }
 
   step "pipeline" "run_detection" {
-    depends_on = [step.query.get_access_analyzer_disabled_region]
+    depends_on      = [step.query.get_access_analyzer_disabled_region]
     for_each        = { for item in step.query.get_access_analyzer_disabled_region.rows : item.title => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_access_analyzer_disabled_in_region
     args = {
-      title                  = each.value.title
-      analyzer_name          = "flowpipe-test-access-analyser"
-      region                 = each.value.region
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "enable_access_analyzer"
-      enabled_actions        = ["enable_access_analyzer"]
+      title           = each.value.title
+      analyzer_name   = "flowpipe-test-access-analyser"
+      region          = each.value.region
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "enable_access_analyzer"
+      enabled_actions = ["enable_access_analyzer"]
     }
   }
 
@@ -71,9 +71,9 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
     depends_on = [step.query.get_details_after_detection]
     pipeline   = aws.pipeline.delete_iam_access_analyzer
     args = {
-      analyzer_name  = "flowpipe-test-access-analyser"
-      region         = step.query.get_access_analyzer_disabled_region.rows[0].region
-      conn           = param.conn
+      analyzer_name = "flowpipe-test-access-analyser"
+      region        = step.query.get_access_analyzer_disabled_region.rows[0].region
+      conn          = param.conn
     }
   }
 
@@ -81,8 +81,8 @@ pipeline "test_detect_and_correct_iam_access_analyzer_disabled_in_regions_enable
     description = "Test results for each step."
     value = {
       "get_access_analyzer_disabled_region" = step.query.get_access_analyzer_disabled_region.rows
-      "get_details_after_detection" = length(step.query.get_details_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
-      "delete_iam_access_analyzer"      = !is_error(step.pipeline.delete_iam_access_analyzer) ? "pass" : "fail: ${error_message(step.pipeline.delete_iam_access_analyzer)}"
+      "get_details_after_detection"         = length(step.query.get_details_after_detection.rows) == 1 ? "pass" : "fail: Row length is not 1"
+      "delete_iam_access_analyzer"          = !is_error(step.pipeline.delete_iam_access_analyzer) ? "pass" : "fail: ${error_message(step.pipeline.delete_iam_access_analyzer)}"
     }
   }
 }

@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
   description = "Test the detect_and_correct_ec2_classic_load_balancers_without_connection_draining_enabled pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {

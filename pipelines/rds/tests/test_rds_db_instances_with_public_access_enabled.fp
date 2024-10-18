@@ -2,7 +2,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
   title       = "Test detect and correct RDS DB instances with public access enabled"
   description = "Test the disable public access action for RDS DB instances with public access enabled."
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "region" {
@@ -93,7 +93,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "ec2", "create-internet-gateway"
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_vpc]
   }
 
@@ -107,7 +107,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--vpc-id", step.container.get_default_vpc.stdout
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_internet_gateway]
   }
 
@@ -123,7 +123,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--output", "text"
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_vpc]
   }
 
@@ -139,24 +139,24 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--master-username", param.master_username,
       "--master-user-password", param.master_user_password,
       "--allocated-storage", tostring(param.allocated_storage),
-      "--vpc-security-group-ids", trimspace(step.container.get_default_security_group.stdout),  # Ensure no extra characters
+      "--vpc-security-group-ids", trimspace(step.container.get_default_security_group.stdout), # Ensure no extra characters
       "--db-name", param.db_name,
       "--backup-retention-period", tostring(param.backup_retention_period),
       "--publicly-accessible"
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.get_default_security_group]
   }
 
   step "sleep" "sleep_60_seconds_after_rds_creation" {
-    depends_on = [ step.container.create_rds_db_instance ]
+    depends_on = [step.container.create_rds_db_instance]
     duration   = "60s"
   }
 
   step "query" "get_rds_db_instance_details" {
-    database   = var.database
-    sql        = <<-EOQ
+    database = var.database
+    sql      = <<-EOQ
     select
       concat(db_instance_identifier, ' [', account_id, '/', region, ']') as title,
       db_instance_identifier,
@@ -186,7 +186,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
   }
 
   step "sleep" "sleep_60_seconds_after_remediation" {
-    depends_on = [ step.pipeline.correct_item ]
+    depends_on = [step.pipeline.correct_item]
     duration   = "60s"
   }
 
@@ -217,7 +217,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
   }
 
   step "sleep" "sleep_60_seconds_after_verification" {
-    depends_on = [ step.query.get_rds_db_instance_details_after_remediation ]
+    depends_on = [step.query.get_rds_db_instance_details_after_remediation]
     duration   = "60s"
   }
 
@@ -231,7 +231,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--skip-final-snapshot"
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_rds_db_instance_details_after_remediation]
   }
 
@@ -245,7 +245,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--vpc-id", step.container.get_default_vpc.stdout
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_rds_db_instance]
   }
 
@@ -258,7 +258,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_public_access_enabled" {
       "--internet-gateway-id", jsondecode(step.container.create_internet_gateway.stdout).InternetGateway.InternetGatewayId
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.detach_internet_gateway]
   }
 

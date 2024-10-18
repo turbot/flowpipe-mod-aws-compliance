@@ -2,7 +2,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
   title       = "Test detect & correct VPC network ACLs allowing ingress to remote server administration ports - delete network ACL entry"
   description = "Test the Delete network ACL entry action for VPC network ACLs allowing ingress to remote server administration ports."
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "region" {
@@ -55,7 +55,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
   }
 
   step "transform" "nacl_id" {
-    value       = jsondecode(step.container.create_nacl.stdout).NetworkAcl.NetworkAclId
+    value = jsondecode(step.container.create_nacl.stdout).NetworkAcl.NetworkAclId
   }
 
   step "container" "allow_ssh_ingress" {
@@ -96,8 +96,8 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
 
   step "query" "get_nacl_details" {
     depends_on = [step.container.allow_rdp_ingress]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with bad_rules as (
         select
           network_acl_id,
@@ -167,26 +167,26 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administration_ports
     args = {
-      title                  = each.value.title
-      network_acl_id         = each.value.network_acl_id
-      rule_number            = each.value.rule_number
-      region                 = each.value.region
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "delete_network_acl_entry"
-      enabled_actions        = ["delete_network_acl_entry"]
+      title           = each.value.title
+      network_acl_id  = each.value.network_acl_id
+      rule_number     = each.value.rule_number
+      region          = each.value.region
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "delete_network_acl_entry"
+      enabled_actions = ["delete_network_acl_entry"]
     }
   }
 
   step "sleep" "sleep_20_seconds" {
-    depends_on = [ step.pipeline.correct_item ]
+    depends_on = [step.pipeline.correct_item]
     duration   = "20s"
   }
 
   step "query" "get_nacl_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with bad_rules as (
         select
           network_acl_id,
@@ -260,7 +260,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_nacl_details_after_remediation]
   }
 
@@ -273,7 +273,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_nacl]
   }
 
@@ -286,7 +286,7 @@ pipeline "test_detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_se
       "--region", param.region
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_subnet]
   }
 

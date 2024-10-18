@@ -3,7 +3,7 @@ pipeline "test_ec2_instances_with_imdsv1_enabled" {
   description = "Tests the detection and correction of EC2 instances with IMDSv1 enabled."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {

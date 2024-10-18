@@ -183,7 +183,7 @@ pipeline "detect_and_correct_iam_account_without_support_role" {
 pipeline "correct_iam_account_without_support_role" {
   title       = "Correct IAM account without support role"
   description = "Create a new support role for IAM account without support role"
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -264,7 +264,7 @@ pipeline "correct_iam_account_without_support_role" {
 pipeline "correct_one_iam_account_without_support_role" {
   title       = "Correct one IAM account without support role"
   description = "Runs corrective action for an IAM account to create a new support role."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -367,7 +367,7 @@ pipeline "correct_one_iam_account_without_support_role" {
 pipeline "create_iam_account_support_role" {
   title       = "Create IAM account support role"
   description = "Creates a new support role for your Amazon Web Services account."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "conn" {
     type        = connection.aws

@@ -79,9 +79,9 @@ variable "aws_cloudwatch_log_group_name" {
 }
 
 pipeline "create_iam_role_and_policy" {
-  title = "Create IAM role and policy"
+  title       = "Create IAM role and policy"
   description = "Create IAM role and policy."
-  tags        = merge(local.vpc_common_tags, { type = "internal" })
+  tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "conn" {
     type        = connection.aws
@@ -91,7 +91,7 @@ pipeline "create_iam_role_and_policy" {
 
   step "query" "get_iam_role" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         name,
         arn
@@ -104,7 +104,7 @@ pipeline "create_iam_role_and_policy" {
 
   step "query" "get_iam_policy" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         name,
         arn
@@ -119,7 +119,7 @@ pipeline "create_iam_role_and_policy" {
     if       = length(step.query.get_iam_role.rows) == 0
     pipeline = aws.pipeline.create_iam_role
     args = {
-      role_name = var.aws_vpc_flow_log_role_name
+      role_name                   = var.aws_vpc_flow_log_role_name
       assume_role_policy_document = var.vpc_flow_log_role_policy
     }
   }
@@ -128,7 +128,7 @@ pipeline "create_iam_role_and_policy" {
     if       = length(step.query.get_iam_policy.rows) == 0
     pipeline = aws.pipeline.create_iam_policy
     args = {
-      policy_name = var.aws_vpc_flow_log_iam_policy_name
+      policy_name     = var.aws_vpc_flow_log_iam_policy_name
       policy_document = var.vpc_flow_log_iam_policy
     }
   }
@@ -137,7 +137,7 @@ pipeline "create_iam_role_and_policy" {
     if       = length(step.query.get_iam_policy.rows) == 0
     pipeline = aws.pipeline.attach_iam_role_policy
     args = {
-      role_name = var.aws_vpc_flow_log_role_name
+      role_name  = var.aws_vpc_flow_log_role_name
       policy_arn = step.pipeline.create_iam_policy.stdout.policy.Arn
     }
   }
@@ -150,9 +150,9 @@ pipeline "create_iam_role_and_policy" {
 }
 
 pipeline "create_cloudwatch_log_group" {
-  title = "Create Cloud Watch Log Group"
+  title       = "Create Cloud Watch Log Group"
   description = "Create Cloud Watch log group."
-  tags        = merge(local.vpc_common_tags, { type = "internal" })
+  tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "region" {
     type        = string
@@ -167,7 +167,7 @@ pipeline "create_cloudwatch_log_group" {
 
   step "query" "get_cloudwatch_log_group_name" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         name
       from
@@ -188,12 +188,12 @@ pipeline "create_cloudwatch_log_group" {
 }
 
 pipeline "create_vpc_flowlog" {
-  title = "Create VPC Flow Log"
+  title       = "Create VPC Flow Log"
   description = "Create VPC flow log."
-  tags        = merge(local.vpc_common_tags, { type = "internal" })
+  tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "region" {
-    type  = string
+    type        = string
     description = local.description_region
   }
 
@@ -203,31 +203,31 @@ pipeline "create_vpc_flowlog" {
   }
 
   param "vpc_id" {
-    type  = string
+    type        = string
     description = "The VPC ID."
   }
 
   step "pipeline" "create_cloudwatch_log_group" {
     pipeline = pipeline.create_cloudwatch_log_group
     args = {
-      region  = param.region
-      conn    = param.conn
+      region = param.region
+      conn   = param.conn
     }
   }
 
   step "pipeline" "create_iam_role_and_policy" {
     pipeline = pipeline.create_iam_role_and_policy
-    args  = {
+    args = {
       conn = param.conn
     }
   }
 
   step "pipeline" "create_vpc_flow_logs" {
-    pipeline  = aws.pipeline.create_vpc_flow_logs
+    pipeline = aws.pipeline.create_vpc_flow_logs
     args = {
-      region = param.region
-      conn   = param.conn
-      vpc_id = param.vpc_id
+      region         = param.region
+      conn           = param.conn
+      vpc_id         = param.vpc_id
       log_group_name = var.aws_cloudwatch_log_group_name
       iam_role_arn   = step.pipeline.create_iam_role_and_policy.output.iam_role_arn
     }

@@ -2,7 +2,7 @@ pipeline "test_detect_and_correct_security_hub_disabled_in_regions" {
   title       = "Test detect and correct Security Hub disabled in regions"
   description = "Test the enable Security Hub action for regions that have security hub disabled."
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "region" {
@@ -18,8 +18,8 @@ pipeline "test_detect_and_correct_security_hub_disabled_in_regions" {
   }
 
   step "query" "get_security_hub_details" {
-    database   = var.database
-    sql        = <<-EOQ
+    database = var.database
+    sql      = <<-EOQ
       select
         concat('[', r.account_id, '/', r.name, ']') as title,
         r.sp_connection_name as conn,
@@ -40,12 +40,12 @@ pipeline "test_detect_and_correct_security_hub_disabled_in_regions" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_region_with_security_hub_disabled
     args = {
-      title                  = each.value.title
-      region                 = each.value.region
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "enable_without_default_standards"
-      enabled_actions        = ["enable_without_default_standards"]
+      title           = each.value.title
+      region          = each.value.region
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "enable_without_default_standards"
+      enabled_actions = ["enable_without_default_standards"]
     }
   }
 
@@ -78,8 +78,8 @@ pipeline "test_detect_and_correct_security_hub_disabled_in_regions" {
   }
 
   step "container" "enable_security_hub" {
-    depends_on  = [step.query.get_security_hub_details_after_remediation]
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    depends_on = [step.query.get_security_hub_details_after_remediation]
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
       "securityhub", "disable-security-hub"

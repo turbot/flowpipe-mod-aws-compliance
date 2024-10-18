@@ -207,7 +207,7 @@ pipeline "correct_cloudtrail_trail_with_multi_region_read_write_disabled" {
   title       = "Correct CloudTrail trails with multi-region read/write disabled"
   description = "Enabled multi-region read/write for CloudTrail trails with multi-region read/write disabled."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -296,7 +296,7 @@ pipeline "correct_one_cloudtrail_trail_with_multi_region_read_write_disabled" {
   title       = "Correct one CloudTrail trail with multi-region read/write disabled"
   description = "Enabled multi-region read/write for a CloudTrail trail."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -408,7 +408,7 @@ pipeline "create_cloudtrail_trail_enable_read_write" {
   title       = "Create CloudTrail Trail with Multi-Region Read/Write Enabled"
   description = "Creates a CloudTrail trail with multi-region read/write enabled."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "region" {
     type        = string

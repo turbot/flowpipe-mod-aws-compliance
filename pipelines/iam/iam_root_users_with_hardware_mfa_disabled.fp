@@ -35,7 +35,7 @@ variable "iam_root_users_with_hardware_mfa_disabled_trigger_schedule" {
 trigger "query" "detect_and_correct_iam_root_users_with_hardware_mfa_disabled" {
   title       = "Detect & correct IAM root users with hardware MFA disabled"
   description = "Detect IAM root users with hardware MFA disabled."
-  tags          = local.iam_common_tags
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_root_users_with_hardware_mfa_disabled_trigger_enabled
   schedule = var.iam_root_users_with_hardware_mfa_disabled_trigger_schedule
@@ -53,7 +53,7 @@ trigger "query" "detect_and_correct_iam_root_users_with_hardware_mfa_disabled" {
 pipeline "detect_and_correct_iam_root_users_with_hardware_mfa_disabled" {
   title       = "Detect & correct IAM root users with hardware MFA disabled"
   description = "Detect IAM root users with hardware MFA disabled."
-  tags          = local.iam_common_tags
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -89,14 +89,14 @@ pipeline "detect_and_correct_iam_root_users_with_hardware_mfa_disabled" {
 }
 
 pipeline "correct_iam_root_users_with_hardware_mfa_disabled" {
-  title         = "Correct IAM root users with hardware MFA disabled"
-  description   = "Send notifications for IAM root users with hardware MFA disabled."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM root users with hardware MFA disabled"
+  description = "Send notifications for IAM root users with hardware MFA disabled."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title       = string
-      conn        = string
+      title = string
+      conn  = string
     }))
     description = local.description_items
   }

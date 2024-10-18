@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_min_leng
   description = "Test detect and correct IAM account password policies without min length 14 pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {

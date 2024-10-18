@@ -98,7 +98,7 @@ pipeline "detect_and_correct_iam_root_users_last_used_90_days" {
 pipeline "correct_iam_root_users_last_used_90_days" {
   title         = "Correct IAM root users last used in 90 days or more"
   description   = "Send notifications for IAM root users last used in 90 days or more."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  tags          = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
   description = "Test detect and correct IAM groups with policy star star attached pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -27,21 +27,21 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
   param "policy_document" {
     type        = string
     description = "The policy document."
-    default     = jsonencode({
-      "Version": "2012-10-17",
-      "Statement": [
+    default = jsonencode({
+      "Version" : "2012-10-17",
+      "Statement" : [
         {
-          "Sid": "AllowAllActionsAllResources",
-          "Effect": "Allow",
-          "Action": "*",  # Grants all actions
-          "Resource": "*"  # Grants access to all resources
+          "Sid" : "AllowAllActionsAllResources",
+          "Effect" : "Allow",
+          "Action" : "*",  # Grants all actions
+          "Resource" : "*" # Grants access to all resources
         }
       ]
     })
   }
 
   step "pipeline" "create_iam_policy" {
-    pipeline   = aws.pipeline.create_iam_policy
+    pipeline = aws.pipeline.create_iam_policy
     args = {
       conn            = param.conn
       policy_name     = param.policy_name
@@ -60,7 +60,7 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
   }
 
   step "sleep" "sleep_60_seconds" {
-    depends_on = [ step.pipeline.create_iam_policy ]
+    depends_on = [step.pipeline.create_iam_policy]
     duration   = "60s"
   }
 
@@ -78,7 +78,7 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
   }
 
   step "container" "attach_group_policy" {
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     depends_on = [step.query.get_iam_policy_arn]
     cmd = [
       "iam", "attach-group-policy",
@@ -138,26 +138,26 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_group_with_policy_star_star_attached
     args = {
-      title                  = each.value.title
-      group_name              = each.value.group_name
-      policy_arn             = each.value.policy_arn
-      account_id             = each.value.account_id
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "detach_group_star_star_policy"
-      enabled_actions        = ["detach_group_star_star_policy"]
+      title           = each.value.title
+      group_name      = each.value.group_name
+      policy_arn      = each.value.policy_arn
+      account_id      = each.value.account_id
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "detach_group_star_star_policy"
+      enabled_actions = ["detach_group_star_star_policy"]
     }
   }
 
   step "sleep" "sleep_70_seconds" {
-    depends_on = [ step.pipeline.run_detection ]
+    depends_on = [step.pipeline.run_detection]
     duration   = "70s"
   }
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
-    database  = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with star_star_policy as (
         select
           arn,
@@ -212,22 +212,22 @@ pipeline "test_detect_and_correct_iam_groups_with_policy_star_star_attached_deta
     depends_on = [step.container.delete_iam_group]
     pipeline   = aws.pipeline.delete_iam_policy
     args = {
-      conn        = param.conn
-      policy_arn  = step.query.get_iam_policy_arn.rows[0].arn
+      conn       = param.conn
+      policy_arn = step.query.get_iam_policy_arn.rows[0].arn
     }
   }
 
   output "test_results" {
     description = "Test results for each step."
     value = {
-      "create_iam_group"                              = !is_error(step.container.create_iam_group) ? "pass" : "fail: ${error_message(step.container.create_iam_group)}"
-      "create_iam_policy"                             = !is_error(step.pipeline.create_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.create_iam_policy)}"
-      "get_iam_policy_arn"                            = length(step.query.get_iam_policy_arn.rows) == 1 ? "pass" : "fail: Row length is not 1"
-      "attach_group_policy"                           = !is_error(step.container.attach_group_policy) ? "pass" : "fail: ${error_message(step.container.attach_group_policy)}"
+      "create_iam_group"                             = !is_error(step.container.create_iam_group) ? "pass" : "fail: ${error_message(step.container.create_iam_group)}"
+      "create_iam_policy"                            = !is_error(step.pipeline.create_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.create_iam_policy)}"
+      "get_iam_policy_arn"                           = length(step.query.get_iam_policy_arn.rows) == 1 ? "pass" : "fail: Row length is not 1"
+      "attach_group_policy"                          = !is_error(step.container.attach_group_policy) ? "pass" : "fail: ${error_message(step.container.attach_group_policy)}"
       "get_group_with_iam_star_star_policy_attached" = length(step.query.get_group_with_iam_star_star_policy_attached.rows) == 1 ? "pass" : "fail: Row length is not 1"
-      "get_details_after_detection"                   = length(step.query.get_details_after_detection.rows) == 0 ? "pass" : "fail: Row length is not 0"
-      "delete_iam_group"                              = !is_error(step.container.delete_iam_group) ? "pass" : "fail: ${error_message(step.container.delete_iam_group)}"
-      "delete_iam_policy"                             = !is_error(step.pipeline.delete_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.delete_iam_policy)}"
+      "get_details_after_detection"                  = length(step.query.get_details_after_detection.rows) == 0 ? "pass" : "fail: Row length is not 0"
+      "delete_iam_group"                             = !is_error(step.container.delete_iam_group) ? "pass" : "fail: ${error_message(step.container.delete_iam_group)}"
+      "delete_iam_policy"                            = !is_error(step.pipeline.delete_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.delete_iam_policy)}"
     }
   }
 }

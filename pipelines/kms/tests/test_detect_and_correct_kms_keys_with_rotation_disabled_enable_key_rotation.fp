@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
   description = "Test the detect_and_correct_kms_keys_with_rotation_disabled pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -14,7 +14,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
   param "region" {
     type        = string
     description = local.description_region
-    default    = "us-east-1"
+    default     = "us-east-1"
   }
 
   step "container" "create_kms_key" {
@@ -23,7 +23,7 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
     cmd = [
       "kms", "create-key",
       "--key-usage", "ENCRYPT_DECRYPT",
-      "--origin", "AWS_KMS",  # Specifies AWS-managed origin
+      "--origin", "AWS_KMS", # Specifies AWS-managed origin
     ]
 
     env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
@@ -31,8 +31,8 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
 
   step "query" "get_kms_key_with_rotation_disabled" {
     depends_on = [step.container.create_kms_key]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         concat(id, ' [', account_id, '/', region, ']') as title,
         id as key_id,
@@ -66,8 +66,8 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
 
   step "query" "get_kms_key_after_detection" {
     depends_on = [step.pipeline.run_detection]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         *
       from
@@ -80,13 +80,13 @@ pipeline "test_detect_and_correct_kms_keys_with_rotation_disabled_enable_key_rot
 
   step "container" "delete_kms_key" {
     depends_on = [step.query.get_kms_key_after_detection]
-      image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
 
-      cmd = [
-        "kms", "schedule-key-deletion",
-        "--key-id", jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId,
-        "--pending-window-in-days", "7"
-      ]
+    cmd = [
+      "kms", "schedule-key-deletion",
+      "--key-id", jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId,
+      "--pending-window-in-days", "7"
+    ]
 
     env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
   }

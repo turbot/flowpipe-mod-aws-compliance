@@ -147,7 +147,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   title       = "Correct CloudTrail Trail logs not encrypted with KMS CMK"
   description = "Executes corrective actions on CloudTrail trail logs not encrypted with KMS CMK."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -232,7 +232,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
   title       = "Correct one CloudTrail trail log not encrypted with KMS CMK"
   description = "Runs corrective action on a single CloudTrail trail logs not encrypted with KMS CMK."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -348,7 +348,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
 pipeline "encrypt_cloud_trail_logs" {
   title       = "Encrypt CloudTrail logs"
   description = "Encrypts CloudTrail logs with a cmk."
-  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags        = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "key_id" {
     type        = string

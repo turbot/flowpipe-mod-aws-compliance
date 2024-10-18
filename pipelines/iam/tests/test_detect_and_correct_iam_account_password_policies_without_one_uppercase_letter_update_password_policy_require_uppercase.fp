@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_uppe
   description = "Test detect and correct IAM account password policies without one uppercase letter pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {

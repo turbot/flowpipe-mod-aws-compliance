@@ -74,7 +74,7 @@ trigger "query" "detect_and_correct_s3_buckets_with_block_public_access_disabled
 pipeline "detect_and_correct_s3_buckets_with_block_public_access_disabled" {
   title       = "Detect & correct S3 buckets with block public access disabled"
   description = "Detect S3 buckets with block public access disabled and then skip or block public access."
-  tags = merge(local.s3_common_tags, { recommended = "true" })
+  tags        = merge(local.s3_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -133,7 +133,7 @@ pipeline "detect_and_correct_s3_buckets_with_block_public_access_disabled" {
 pipeline "correct_s3_buckets_with_block_public_access_disabled" {
   title       = "Correct S3 buckets with block public access disabled"
   description = "Block public access for S3 buckets that have block public access disabled."
-  tags        = merge(local.s3_common_tags, { type = "internal" })
+  tags        = merge(local.s3_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -201,7 +201,7 @@ pipeline "correct_s3_buckets_with_block_public_access_disabled" {
 pipeline "correct_one_s3_bucket_with_block_public_access_disabled" {
   title       = "Correct one S3 bucket with block public access disabled"
   description = "Block public access for an S3 bucket that has block public access disabled."
-  tags        = merge(local.s3_common_tags, { type = "internal" })
+  tags        = merge(local.s3_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -280,7 +280,7 @@ pipeline "correct_one_s3_bucket_with_block_public_access_disabled" {
           label        = "Block public access"
           value        = "block_public_access"
           style        = local.style_alert
-          pipeline_ref  = aws.pipeline.put_s3_bucket_public_access_block
+          pipeline_ref = aws.pipeline.put_s3_bucket_public_access_block
           pipeline_args = {
             bucket                  = param.bucket_name
             region                  = param.region

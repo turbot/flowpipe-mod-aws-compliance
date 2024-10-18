@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_password
   description = "Test setect and correct IAM account password policies without password reuse 24 pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {

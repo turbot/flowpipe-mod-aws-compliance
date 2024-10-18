@@ -132,7 +132,7 @@ pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access"
 pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
   title         = "Correct IAM users with unrestricted CloudShellFullAccess policy"
   description   = "Runs corrective action to detach the CloudShellFullAccess policy from IAM users."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  tags          = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -201,7 +201,7 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
 pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
   title         = "Correct one IAM user with unrestricted CloudShellFullAccess policy"
   description   = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from a IAM user."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  tags          = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

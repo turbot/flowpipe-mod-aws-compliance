@@ -2,7 +2,7 @@ pipeline "test_detect_and_correct_rds_db_instances_with_auto_minor_version_upgra
   title       = "Test detect and correct RDS DB instances with auto minor version upgrade disabled"
   description = "Test the enable auto minor version upgrade action for RDS DB instances with auto minor version upgrade disabled."
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "region" {

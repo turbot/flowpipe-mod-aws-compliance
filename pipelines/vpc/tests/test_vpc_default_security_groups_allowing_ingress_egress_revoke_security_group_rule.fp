@@ -2,7 +2,7 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
   title       = "Test detect and correct VPC Default Security Group allowing ingress egress - revoke security group rule"
   description = "Test the  Revoke security group rule action for VPC Default Security Group Allowing Ingress Egress."
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -184,7 +184,7 @@ pipeline "create_vpc_security_group_rules" {
   description = "Creates ingress and egress rules for a security group."
 
   tags = {
-    type = "internal"
+    folder = "Internal"
   }
 
   param "region" {

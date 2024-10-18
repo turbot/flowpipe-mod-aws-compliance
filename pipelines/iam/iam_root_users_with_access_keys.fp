@@ -32,9 +32,9 @@ variable "iam_root_users_with_access_keys_trigger_schedule" {
 }
 
 trigger "query" "detect_and_correct_iam_root_users_with_access_keys" {
-  title         = "Detect & correct IAM root users with access keys"
-  description   = "Detects IAM root users with access keys."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM root users with access keys"
+  description = "Detects IAM root users with access keys."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_root_users_with_access_keys_trigger_enabled
   schedule = var.iam_root_users_with_access_keys_trigger_schedule
@@ -52,7 +52,7 @@ trigger "query" "detect_and_correct_iam_root_users_with_access_keys" {
 pipeline "detect_and_correct_iam_root_users_with_access_keys" {
   title       = "Detect & correct IAM root users with access keys"
   description = "Detects IAM root users with access keys."
-  tags          = local.iam_common_tags
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -90,7 +90,7 @@ pipeline "detect_and_correct_iam_root_users_with_access_keys" {
 pipeline "correct_iam_root_users_with_access_keys" {
   title       = "Correct IAM root users with access keys"
   description = "Send notifications for IAM root users with access keys."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

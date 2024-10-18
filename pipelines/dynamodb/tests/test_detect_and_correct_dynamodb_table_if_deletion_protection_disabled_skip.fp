@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
   description = "Test the detect and correct Dynamodb table if deletion protection disabled pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -15,7 +15,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
   param "region" {
     type        = string
     description = local.description_region
-    default    = "us-east-1"
+    default     = "us-east-1"
 
   }
 
@@ -41,17 +41,17 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
 
   step "pipeline" "run_detection" {
     depends_on = [step.container.create_dynamodb_table]
-    pipeline = pipeline.detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled
+    pipeline   = pipeline.detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled
     args = {
-      default_action     = "skip"
-      enabled_actions    = ["skip"]
+      default_action  = "skip"
+      enabled_actions = ["skip"]
     }
   }
 
   step "query" "get_dynamodb_table" {
     depends_on = [step.pipeline.run_detection]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         arn
       from
@@ -63,17 +63,17 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
   }
 
   step "sleep" "sleep_300_seconds" {
-    depends_on = [ step.container.create_dynamodb_table ]
+    depends_on = [step.container.create_dynamodb_table]
     duration   = "100s"
   }
 
   step "pipeline" "delete_dynamodb_table" {
     depends_on = [step.sleep.sleep_300_seconds]
-    pipeline = aws.pipeline.delete_dynamodb_table
+    pipeline   = aws.pipeline.delete_dynamodb_table
     args = {
-      table_name  = param.table_name
-      region      = param.region
-      conn        = param.conn
+      table_name = param.table_name
+      region     = param.region
+      conn       = param.conn
     }
   }
 

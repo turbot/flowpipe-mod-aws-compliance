@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
   description = "Test detect and correct IAM users with inline policies attached pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -27,7 +27,7 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
   param "policy_document" {
     type        = string
     description = "The policy document."
-    default     = jsonencode({
+    default = jsonencode({
       "Version" : "2012-10-17",
       "Statement" : [
         {
@@ -55,10 +55,10 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
   }
 
   step "pipeline" "create_iam_user" {
-    pipeline   = aws.pipeline.create_iam_user
+    pipeline = aws.pipeline.create_iam_user
     args = {
-      conn        = param.conn
-      user_name   = param.user_name
+      conn      = param.conn
+      user_name = param.user_name
     }
   }
 
@@ -98,20 +98,20 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_users_with_inline_policy_attached
     args = {
-      title                  = each.value.title
-      user_name              = each.value.user_name
-      inline_policy_name     = each.value.inline_policy_name
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "delete_inline_policy"
-      enabled_actions        = ["delete_inline_policy"]
+      title              = each.value.title
+      user_name          = each.value.user_name
+      inline_policy_name = each.value.inline_policy_name
+      conn               = connection.aws[each.value.conn]
+      approvers          = []
+      default_action     = "delete_inline_policy"
+      enabled_actions    = ["delete_inline_policy"]
     }
   }
 
   step "query" "get_user_details_after_detection" {
     depends_on = [step.pipeline.run_detection]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         name
       from
@@ -126,8 +126,8 @@ pipeline "test_detect_and_correct_iam_users_with_inline_policy_attached_delete_i
     depends_on = [step.query.get_user_details_after_detection]
     pipeline   = aws.pipeline.delete_iam_user
     args = {
-      conn        = param.conn
-      user_name   = param.user_name
+      conn      = param.conn
+      user_name = param.user_name
     }
   }
 

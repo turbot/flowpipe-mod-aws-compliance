@@ -56,9 +56,9 @@ variable "iam_users_with_access_key_age_90_days_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_users_with_access_key_age_90_days" {
-  title         = "Detect & correct IAM users with unused access key from 90 days or more"
-  description   = "Detects IAM users access key that have been unused for 90 days or more and deactivates them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unused access key from 90 days or more"
+  description = "Detects IAM users access key that have been unused for 90 days or more and deactivates them."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_users_with_access_key_age_90_days_trigger_enabled
   schedule = var.iam_users_with_access_key_age_90_days_trigger_schedule
@@ -74,9 +74,9 @@ trigger "query" "detect_and_correct_iam_users_with_access_key_age_90_days" {
 }
 
 pipeline "detect_and_correct_iam_users_with_access_key_age_90_days" {
-  title         = "Detect & correct IAM users with unused access key from 90 days or more"
-  description   = "Detects IAM users access key that have been unused for 90 days or more and deactivates them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unused access key from 90 days or more"
+  description = "Detects IAM users access key that have been unused for 90 days or more and deactivates them."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -133,19 +133,19 @@ pipeline "detect_and_correct_iam_users_with_access_key_age_90_days" {
 }
 
 pipeline "correct_iam_users_with_access_key_age_90_days" {
-  title         = "Correct IAM users with unused access key from 90 days or more"
-  description   = "Runs corrective action to deactivate IAM users access key that have been unused for 90 days or more."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM users with unused access key from 90 days or more"
+  description = "Runs corrective action to deactivate IAM users access key that have been unused for 90 days or more."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title                   = string
-      user_name               = string
-      account_id              = string
-      access_key_create_date  = string
-      access_key_create_day   = string
-      access_key_id           = string
-      conn                    = string
+      title                  = string
+      user_name              = string
+      account_id             = string
+      access_key_create_date = string
+      access_key_create_day  = string
+      access_key_id          = string
+      conn                   = string
     }))
     description = local.description_items
   }
@@ -191,25 +191,25 @@ pipeline "correct_iam_users_with_access_key_age_90_days" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_user_with_access_key_age_90_days
     args = {
-      title                     = each.value.title
-      user_name                 = each.value.user_name
-      access_key_id             = each.value.access_key_id
-      access_key_create_date    = each.value.access_key_create_date
-      access_key_create_day     = each.value.access_key_create_day
-      conn                      = connection.aws[each.value.conn]
-      notifier                  = param.notifier
-      notification_level        = param.notification_level
-      approvers                 = param.approvers
-      default_action            = param.default_action
-      enabled_actions           = param.enabled_actions
+      title                  = each.value.title
+      user_name              = each.value.user_name
+      access_key_id          = each.value.access_key_id
+      access_key_create_date = each.value.access_key_create_date
+      access_key_create_day  = each.value.access_key_create_day
+      conn                   = connection.aws[each.value.conn]
+      notifier               = param.notifier
+      notification_level     = param.notification_level
+      approvers              = param.approvers
+      default_action         = param.default_action
+      enabled_actions        = param.enabled_actions
     }
   }
 }
 
 pipeline "correct_one_iam_user_with_access_key_age_90_days" {
-  title         = "Correct one IAM user with unused access key from 90 days or more"
-  description   = "Runs corrective action to deactivate a IAM user access key that have been unused for 90 days or more."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM user with unused access key from 90 days or more"
+  description = "Runs corrective action to deactivate a IAM user access key that have been unused for 90 days or more."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -226,7 +226,7 @@ pipeline "correct_one_iam_user_with_access_key_age_90_days" {
     description = "The access key ID of the IAM user."
   }
 
-   param "access_key_create_date" {
+  param "access_key_create_date" {
     type        = string
     description = "The IAM user access key creation date."
   }
@@ -300,9 +300,9 @@ pipeline "correct_one_iam_user_with_access_key_age_90_days" {
           style        = local.style_alert
           pipeline_ref = pipeline.deactivate_user_access_key
           pipeline_args = {
-            user_name      = param.user_name
-            access_key_id  = param.access_key_id
-            conn           = param.conn
+            user_name     = param.user_name
+            access_key_id = param.access_key_id
+            conn          = param.conn
           }
           success_msg = "Deactivated IAM user ${param.user_name} with access key ${param.title} created on ${param.access_key_create_date} (${param.access_key_create_day} days old)."
           error_msg   = "Error deactivating IAM user ${param.user_name} with access key ${param.title} created on ${param.access_key_create_date} (${param.access_key_create_day} days old)."

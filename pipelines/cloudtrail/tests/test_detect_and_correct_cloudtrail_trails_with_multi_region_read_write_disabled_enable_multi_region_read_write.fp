@@ -3,7 +3,7 @@ pipeline "test_test_detect_and_correct_cloudtrail_trails_with_multi_region_read_
   description = "Test enable mulit-region trail read/write in the account."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {

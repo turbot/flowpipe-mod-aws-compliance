@@ -119,7 +119,7 @@ pipeline "correct_dynamodb_tables_with_deletion_protection_disabled" {
   title       = "Correct DynamoDB tables with deletion protection disabled"
   description = "Runs corrective action on a collection of DynamoDB tables with deletion protection disabled."
 
-  tags = merge(local.dynamodb_common_tags, { type = "internal" })
+  tags = merge(local.dynamodb_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -189,7 +189,7 @@ pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
   title       = "Correct one DynamoDB table with deletion protection disabled"
   description = "Runs corrective action on an DynamoDB table with deletion protection disabled."
 
-  tags = merge(local.dynamodb_common_tags, { type = "internal" })
+  tags = merge(local.dynamodb_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
   description = "Test add the alternate security contact register action for accounts."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -96,7 +96,7 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
     EOQ
   }
 
- step "transform" "alternate_contact_registeration_is_matched" {
+  step "transform" "alternate_contact_registeration_is_matched" {
     depends_on = [step.pipeline.run_detection, step.query.registered_alternative_security_contact_after_detection]
     output "match_output" {
       value = (
@@ -122,8 +122,8 @@ pipeline "test_detect_and_correct_accounts_without_alternate_security_contact_ad
     description = "Test result for each step"
     value = {
       "registered_alternative_security_contact_after_detection" = length(step.query.registered_alternative_security_contact_after_detection.rows) == 1 ? "pass" : "fail"
-      "matched_register_contact" = step.transform.alternate_contact_registeration_is_matched.output.match_output ? "pass" : "fail"
-      "delete_register_alternative_security_contact" = !is_error(step.pipeline.delete_register_alternative_security_contact)? "pass" : "fail ${error_message(step.pipeline.delete_register_alternative_security_contact)}"
+      "matched_register_contact"                                = step.transform.alternate_contact_registeration_is_matched.output.match_output ? "pass" : "fail"
+      "delete_register_alternative_security_contact"            = !is_error(step.pipeline.delete_register_alternative_security_contact) ? "pass" : "fail ${error_message(step.pipeline.delete_register_alternative_security_contact)}"
     }
   }
 }

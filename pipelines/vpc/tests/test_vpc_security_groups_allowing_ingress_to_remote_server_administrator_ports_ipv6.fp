@@ -2,7 +2,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
   title       = "Test detect and correct VPC Security Group allowing ingress to remote server administrator ports IPv6"
   description = "Test the  Revoke security group rule action for VPC Security Group rules Allowing Ingress to remote server administrator ports IPv6."
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -28,7 +28,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
 
     cmd = [
       "ec2", "create-vpc",
-      "--cidr-block", "10.0.0.0/16"  # A small default IPv6 CIDR is required for the VPC
+      "--cidr-block", "10.0.0.0/16" # A small default IPv6 CIDR is required for the VPC
     ]
 
     env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
@@ -43,7 +43,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--amazon-provided-ipv6-cidr-block"
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_vpc]
   }
 
@@ -57,7 +57,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.associate_ipv6_cidr_block]
   }
 
@@ -69,16 +69,16 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId,
       "--ip-permissions", jsonencode([
         {
-          IpProtocol = "-1",  # All traffic
+          IpProtocol = "-1", # All traffic
           Ipv6Ranges = [{
-            CidrIpv6 = "::/0",
+            CidrIpv6    = "::/0",
             Description = "Allow all IPv6 traffic"
           }]
         }
       ])
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_security_group]
   }
 
@@ -91,17 +91,17 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--ip-permissions", jsonencode([
         {
           IpProtocol = "tcp",
-          FromPort = 22,
-          ToPort = 22,
+          FromPort   = 22,
+          ToPort     = 22,
           Ipv6Ranges = [{
-            CidrIpv6 = "::/0",
+            CidrIpv6    = "::/0",
             Description = "Allow SSH over IPv6"
           }]
         }
       ])
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.allow_all_traffic_ipv6]
   }
 
@@ -114,33 +114,33 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--ip-permissions", jsonencode([
         {
           IpProtocol = "tcp",
-          FromPort = 3389,
-          ToPort = 3389,
+          FromPort   = 3389,
+          ToPort     = 3389,
           Ipv6Ranges = [{
-            CidrIpv6 = "::/0",
+            CidrIpv6    = "::/0",
             Description = "Allow RDP over IPv6"
           }]
         }
       ])
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.allow_ssh_ipv6]
   }
 
   step "transform" "get_security_group_id" {
-    value   = jsondecode(step.container.create_security_group.stdout).GroupId
+    value = jsondecode(step.container.create_security_group.stdout).GroupId
   }
 
   step "sleep" "sleep_10_seconds" {
-    depends_on = [ step.pipeline.correct_item ]
+    depends_on = [step.pipeline.correct_item]
     duration   = "10s"
   }
 
   step "query" "get_security_group_details" {
     depends_on = [step.container.allow_rdp_ipv6]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with bad_rules as (
         select
           group_id,
@@ -213,14 +213,14 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
   }
 
   step "sleep" "sleep_20_seconds" {
-    depends_on = [ step.pipeline.correct_item ]
+    depends_on = [step.pipeline.correct_item]
     duration   = "20s"
   }
 
   step "query" "get_security_group_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with bad_rules as (
         select
           group_id,
@@ -293,7 +293,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.allow_rdp_ipv6]
   }
 
@@ -305,7 +305,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_remote
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_security_group]
   }
 }

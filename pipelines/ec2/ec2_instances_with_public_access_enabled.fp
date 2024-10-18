@@ -121,7 +121,7 @@ pipeline "correct_ec2_instances_with_public_access_enabled" {
   title       = "Correct EC2 instances with public access enabled"
   description = "Executes corrective actions on EC2 instances with public IP addresses."
 
-  tags = merge(local.ec2_common_tags, { type = "internal" })
+  tags = merge(local.ec2_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -193,7 +193,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
   title       = "Correct one EC2 instance with public access enabled"
   description = "Runs corrective action on an EC2 instance with a public IP address."
 
-  tags = merge(local.ec2_common_tags, { type = "internal" })
+  tags = merge(local.ec2_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

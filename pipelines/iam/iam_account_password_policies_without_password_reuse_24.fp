@@ -133,7 +133,7 @@ pipeline "detect_and_correct_iam_account_password_policies_without_password_reus
 pipeline "correct_iam_account_password_policies_without_password_reuse_24" {
   title       = "Correct IAM account password policies without password reuse 24"
   description = "Runs corrective action on a collection of IAM account password policies that do not enforce a password reuse prevention policy of 24."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -200,7 +200,7 @@ pipeline "correct_iam_account_password_policies_without_password_reuse_24" {
 pipeline "correct_one_iam_account_password_policy_without_password_reuse_24" {
   title       = "Correct one IAM account password policy without password reuse 24"
   description = "Runs corrective action for an IAM account password policy that do not enforce a password reuse prevention policy of 24."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -290,7 +290,7 @@ pipeline "correct_one_iam_account_password_policy_without_password_reuse_24" {
 pipeline "update_iam_account_password_policy_password_reuse" {
   title       = "Update IAM account password policy password reuse"
   description = "Updates the account password policy password reuse for the AWS account."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "conn" {
     type        = connection.aws

@@ -2,7 +2,7 @@ pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl
   title       = "Test detect and correct S3 buckets without SSL enforcement - enforce SSL"
   description = "Test the enforce SSL action for S3 buckets."
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {

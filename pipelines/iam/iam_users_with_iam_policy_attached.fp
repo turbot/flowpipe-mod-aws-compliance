@@ -133,7 +133,7 @@ pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
 pipeline "correct_iam_users_with_iam_policy_attached" {
   title       = "Correct IAM users with IAM policy attached"
   description = "Detaches IAM policy from IAM users with IAM policy attached."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -204,7 +204,7 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
 pipeline "correct_one_iam_user_with_iam_policy_attached" {
   title       = "Correct one IAM user with IAM policy attached"
   description = "Detaches IAM policy from a IAM user with IAM policy attached."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -305,7 +305,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
 pipeline "detach_iam_users_with_iam_policy_attached" {
   title       = "Detach IAM user policy"
   description = "Detaches the specified managed policy from the specified IAM user."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "conn" {
     type        = connection.aws

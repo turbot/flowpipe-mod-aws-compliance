@@ -135,7 +135,7 @@ pipeline "detect_and_correct_iam_users_with_unused_access_key_90_days" {
 pipeline "correct_iam_users_with_unused_access_key_90_days" {
   title         = "Correct IAM users with unused access key from 90 days or more"
   description   = "Runs corrective action to deactivate IAM users access key that have been unused for 90 days or more."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  tags          = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -209,7 +209,7 @@ pipeline "correct_iam_users_with_unused_access_key_90_days" {
 pipeline "correct_one_iam_user_with_unused_access_key_90_days" {
   title         = "Correct one IAM user with unused access key from 90 days or more"
   description   = "Runs corrective action to deactivate a IAM user access key that have been unused for 90 days or more."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  tags          = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

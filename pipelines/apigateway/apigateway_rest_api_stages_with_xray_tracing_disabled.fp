@@ -120,7 +120,7 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
   title       = "Correct API Gateway rest API stages with x-ray tracing disabled"
   description = "Enable x-ray tracing for API Gateway rest API stages with x-ray tracing disabled."
 
-  tags = merge(local.apigateway_common_tags, { type = "internal" })
+  tags = merge(local.apigateway_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -191,7 +191,7 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
   title       = "Correct API Gateway rest API stage x-ray tracing disabled"
   description = "Enable x-ray tracing for API Gateway rest API stage with x-ray tracing disabled."
 
-  tags = merge(local.apigateway_common_tags, { type = "internal" })
+  tags = merge(local.apigateway_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

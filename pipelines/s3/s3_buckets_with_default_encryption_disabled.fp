@@ -87,10 +87,10 @@ trigger "query" "detect_and_correct_s3_buckets_with_default_encryption_disabled"
   description = "Detect S3 buckets with default encryption disabled and then skip or enable default encryption."
   tags        = local.s3_common_tags
 
-  enabled     = var.s3_bucket_default_encryption_disabled_trigger_enabled
-  schedule    = var.s3_bucket_default_encryption_disabled_trigger_schedule
-  database    = var.database
-  sql         = local.s3_buckets_with_default_encryption_disabled_query
+  enabled  = var.s3_bucket_default_encryption_disabled_trigger_enabled
+  schedule = var.s3_bucket_default_encryption_disabled_trigger_schedule
+  database = var.database
+  sql      = local.s3_buckets_with_default_encryption_disabled_query
 
   capture "insert" {
     pipeline = pipeline.correct_s3_buckets_with_default_encryption_disabled
@@ -162,7 +162,7 @@ pipeline "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
 pipeline "correct_s3_buckets_with_default_encryption_disabled" {
   title       = "Correct S3 Buckets With Default Encryption Disabled"
   description = "Executes corrective actions on S3 buckets with default encryption disabled."
-  tags        = merge(local.s3_common_tags, { type = "internal" })
+  tags        = merge(local.s3_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -252,7 +252,7 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
 pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
   title       = "Correct One S3 Bucket With Default Encryption Disabled"
   description = "Enable default encryption for a single S3 bucket."
-  tags        = merge(local.s3_common_tags, { type = "internal" })
+  tags        = merge(local.s3_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

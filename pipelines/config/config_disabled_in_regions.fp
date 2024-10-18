@@ -108,7 +108,7 @@ pipeline "correct_config_disabled_in_regions" {
   title       = "Correct Config disabled in regions"
   description = "Send notifications for regions with Config disabled."
 
-  tags = merge(local.config_common_tags, { type = "internal" })
+  tags = merge(local.config_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

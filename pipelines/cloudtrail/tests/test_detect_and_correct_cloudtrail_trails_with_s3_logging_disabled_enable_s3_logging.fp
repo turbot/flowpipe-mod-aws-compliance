@@ -3,7 +3,7 @@
 //   description = "Test detect CloudTrail trails with S3 logging disabled and then skip or enable S3 logging."
 
 //   tags = {
-//     type = "test"
+//     folder = "Tests"
 //   }
 
 //   param "conn" {

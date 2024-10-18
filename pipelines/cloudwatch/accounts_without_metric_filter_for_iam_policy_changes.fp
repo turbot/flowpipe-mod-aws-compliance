@@ -159,7 +159,7 @@ pipeline "correct_accounts_without_metric_filter_for_iam_policy_changes" {
   title       = "Correct accounts without metric filter for IAM policy changes"
   description = "Send notifications for accounts without a metric filter for IAM policy changes."
 
-  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
+  tags = merge(local.cloudwatch_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

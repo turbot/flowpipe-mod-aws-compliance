@@ -27,7 +27,7 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   }
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   # Step to create the S3 bucket for CloudTrail logs

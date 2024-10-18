@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
   description = "Test detect and correct IAM users with IAM policy attached pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -27,7 +27,7 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
   param "policy_document" {
     type        = string
     description = "The policy document."
-    default     = jsonencode({
+    default = jsonencode({
       "Version" : "2012-10-17",
       "Statement" : [
         {
@@ -55,10 +55,10 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
   }
 
   step "pipeline" "create_iam_user" {
-    pipeline   = aws.pipeline.create_iam_user
+    pipeline = aws.pipeline.create_iam_user
     args = {
-      conn        = param.conn
-      user_name   = param.user_name
+      conn      = param.conn
+      user_name = param.user_name
     }
   }
 
@@ -121,26 +121,26 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_user_with_iam_policy_attached
     args = {
-      title                  = each.value.title
-      user_name              = each.value.user_name
-      policy_arn             = each.value.policy_arn
-      account_id             = each.value.account_id
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "detach_iam_policy"
-      enabled_actions        = ["detach_iam_policy"]
+      title           = each.value.title
+      user_name       = each.value.user_name
+      policy_arn      = each.value.policy_arn
+      account_id      = each.value.account_id
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "detach_iam_policy"
+      enabled_actions = ["detach_iam_policy"]
     }
   }
 
   step "sleep" "sleep_30_seconds" {
-    depends_on = [ step.pipeline.run_detection ]
+    depends_on = [step.pipeline.run_detection]
     duration   = "30s"
   }
 
   step "query" "get_user_details_after_detection" {
     depends_on = [step.sleep.sleep_30_seconds]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         name
       from
@@ -155,8 +155,8 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
     depends_on = [step.query.get_user_details_after_detection]
     pipeline   = aws.pipeline.delete_iam_user
     args = {
-      conn        = param.conn
-      user_name   = param.user_name
+      conn      = param.conn
+      user_name = param.user_name
     }
   }
 
@@ -164,8 +164,8 @@ pipeline "test_detect_and_correct_iam_users_with_iam_policy_attached_detach_iam_
     depends_on = [step.pipeline.delete_iam_user]
     pipeline   = aws.pipeline.delete_iam_policy
     args = {
-      conn        = param.conn
-      policy_arn  = step.query.get_iam_policy_arn.rows[0].arn
+      conn       = param.conn
+      policy_arn = step.query.get_iam_policy_arn.rows[0].arn
     }
   }
 

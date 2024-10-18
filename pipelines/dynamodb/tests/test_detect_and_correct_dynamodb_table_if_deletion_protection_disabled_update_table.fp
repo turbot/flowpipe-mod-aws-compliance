@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
   description = "Test the detect_and_correct_dynamodb_table_if_deletion_protection_disabled pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -15,7 +15,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
   param "region" {
     type        = string
     description = local.description_region
-    default    = "us-east-1"
+    default     = "us-east-1"
 
   }
 
@@ -40,28 +40,28 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
   }
 
   step "sleep" "sleep_150_seconds" {
-    depends_on = [ step.container.create_dynamodb_table ]
+    depends_on = [step.container.create_dynamodb_table]
     duration   = "100s"
   }
 
   step "pipeline" "respond" {
     depends_on = [step.sleep.sleep_150_seconds]
-    pipeline = pipeline.detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled
+    pipeline   = pipeline.detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled
     args = {
-      default_action     = "update_table"
-      enabled_actions    = ["update_table"]
+      default_action  = "update_table"
+      enabled_actions = ["update_table"]
     }
   }
 
   step "sleep" "sleep_50_seconds" {
-    depends_on = [ step.pipeline.respond ]
+    depends_on = [step.pipeline.respond]
     duration   = "50s"
   }
 
   step "query" "get_dynamodb_table" {
     depends_on = [step.sleep.sleep_50_seconds]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         *
       from
@@ -73,7 +73,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
   }
 
   step "container" "disable_deletion_protection" {
-    image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     depends_on = [step.query.get_dynamodb_table]
 
     cmd = [
@@ -87,21 +87,21 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
 
   step "pipeline" "delete_dynamodb_table" {
     depends_on = [step.container.disable_deletion_protection]
-    pipeline = aws.pipeline.delete_dynamodb_table
+    pipeline   = aws.pipeline.delete_dynamodb_table
     args = {
-      table_name  = param.table_name
-      region      = param.region
-      conn        = param.conn
+      table_name = param.table_name
+      region     = param.region
+      conn       = param.conn
     }
   }
 
   output "test_results" {
     description = "Test results for each step."
     value = {
-      "create_dynamodb_table" = !is_error(step.container.create_dynamodb_table) ? "pass" : "fail: ${error_message(step.container.create_dynamodb_table)}"
-      "get_dynamodb_table" = length(step.query.get_dynamodb_table.rows) == 1 ? "pass" : "fail: Row length is not 1"
+      "create_dynamodb_table"       = !is_error(step.container.create_dynamodb_table) ? "pass" : "fail: ${error_message(step.container.create_dynamodb_table)}"
+      "get_dynamodb_table"          = length(step.query.get_dynamodb_table.rows) == 1 ? "pass" : "fail: Row length is not 1"
       "disable_deletion_protection" = !is_error(step.container.disable_deletion_protection) ? "pass" : "fail: ${error_message(step.container.disable_deletion_protection)}"
-      "delete_dynamodb_table" = !is_error(step.pipeline.delete_dynamodb_table) ? "pass" : "fail: ${error_message(step.pipeline.delete_dynamodb_table)}"
+      "delete_dynamodb_table"       = !is_error(step.pipeline.delete_dynamodb_table) ? "pass" : "fail: ${error_message(step.pipeline.delete_dynamodb_table)}"
     }
   }
 

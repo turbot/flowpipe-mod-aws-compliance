@@ -88,9 +88,9 @@ variable "vpc_security_groups_allowing_ingress_to_port_445_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_445" {
-  title         = "Detect & correct VPC security groups allowing ingress to port 445"
-  description   = "Detect security group rules that allow ingress from 0.0.0.0/0 to port 445 and then revoke security group rule."
-  tags          = local.vpc_common_tags
+  title       = "Detect & correct VPC security groups allowing ingress to port 445"
+  description = "Detect security group rules that allow ingress from 0.0.0.0/0 to port 445 and then revoke security group rule."
+  tags        = local.vpc_common_tags
 
   enabled  = var.vpc_security_groups_allowing_ingress_to_port_445_trigger_enabled
   schedule = var.vpc_security_groups_allowing_ingress_to_port_445_trigger_schedule
@@ -106,9 +106,9 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port
 }
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_445" {
-  title         = "Detect & correct VPC security groups allowing ingress to port 445"
-  description   = "Detect security group rules that allow ingress from 0.0.0.0/0 to port 445 and then revoke security group rule."
-  tags          = merge(local.vpc_common_tags, { recommended = "true" })
+  title       = "Detect & correct VPC security groups allowing ingress to port 445"
+  description = "Detect security group rules that allow ingress from 0.0.0.0/0 to port 445 and then revoke security group rule."
+  tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -165,9 +165,9 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_445" {
 }
 
 pipeline "correct_vpc_security_groups_allowing_ingress_to_port_445" {
-  title         = "Correct VPC security groups allowing ingress to port 445"
-  description   = "Revoke VPC security group rule entries to restrict access to port 445 from 0.0.0.0/0 or ::/0."
-  tags          = merge(local.vpc_common_tags, { type = "internal" })
+  title       = "Correct VPC security groups allowing ingress to port 445"
+  description = "Revoke VPC security group rule entries to restrict access to port 445 from 0.0.0.0/0 or ::/0."
+  tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -246,9 +246,9 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_445" {
 }
 
 pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_445" {
-  title         = "Correct one VPC security group allowing ingress to port 445"
-  description   = "Revoke a VPC security group rule allowing ingress to port 445 from 0.0.0.0/0 or ::/0."
-  tags          = merge(local.vpc_common_tags, { type = "internal" })
+  title       = "Correct one VPC security group allowing ingress to port 445"
+  description = "Revoke a VPC security group rule allowing ingress to port 445 from 0.0.0.0/0 or ::/0."
+  tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

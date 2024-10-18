@@ -172,7 +172,7 @@ pipeline "detect_and_correct_iam_users_with_more_than_one_active_key" {
 pipeline "correct_iam_users_with_more_than_one_active_key" {
   title         = "Correct IAM users with more than one active key"
   description   = "Runs corrective action to delete extra IAM user active keys."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  tags          = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -255,7 +255,7 @@ pipeline "correct_iam_users_with_more_than_one_active_key" {
 pipeline "correct_one_iam_user_with_more_than_one_active_key" {
   title         = "Correct one IAM user with more than one active key"
   description   = "Runs corrective action to deactivate one of the active key from two active keys for a IAM user."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  tags          = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

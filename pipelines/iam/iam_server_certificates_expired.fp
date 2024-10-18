@@ -133,7 +133,7 @@ pipeline "detect_and_correct_iam_server_certificates_expired" {
 pipeline "correct_iam_server_certificates_expired" {
   title       = "Correct expired IAM server certificates"
   description = "Runs corrective action to delete the expired IAM server certificates."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -204,7 +204,7 @@ pipeline "correct_iam_server_certificates_expired" {
 pipeline "correct_one_iam_server_certificate_expired" {
   title       = "Correct one expired IAM server certificate"
   description = "Runs corrective action to delete the expired IAM server certificate."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -304,7 +304,7 @@ pipeline "correct_one_iam_server_certificate_expired" {
 pipeline "delete_iam_server_certificate" {
   title       = "Delete IAM server certificate"
   description = "Delete the specified IAM server certificate."
-  tags        = merge(local.iam_common_tags, { type = "internal" })
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "conn" {
     type        = connection.aws

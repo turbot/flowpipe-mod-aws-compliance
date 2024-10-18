@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_roles_with_unrestricted_cloudshell_full_ac
   description = "Test detect and correct IAM roles attached with unrestricted CloudShell full access pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {

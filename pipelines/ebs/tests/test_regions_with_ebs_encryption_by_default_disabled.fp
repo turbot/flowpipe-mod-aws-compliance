@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
   description = "Test the enable default encryption at rest for EBS volume regions for regions that have default encryption at rest disabled."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "region" {
@@ -19,8 +19,8 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
   }
 
   step "query" "get_ebs_volume_region_encryption_at_rest_details" {
-    database   = var.database
-    sql        = <<-EOQ
+    database = var.database
+    sql      = <<-EOQ
       select
         distinct concat('[', r.account_id, '/', r.name, ']') as title,
         r.sp_connection_name as conn,
@@ -39,12 +39,12 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_region_with_ebs_encryption_by_default_disabled
     args = {
-      title                  = each.value.title
-      region                 = each.value.region
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "enable_encryption_by_default"
-      enabled_actions        = ["enable_encryption_by_default"]
+      title           = each.value.title
+      region          = each.value.region
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "enable_encryption_by_default"
+      enabled_actions = ["enable_encryption_by_default"]
     }
   }
 

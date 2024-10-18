@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
   description = "Test the detect_and_correct_ec2_classic_load_balancers_without_connection_draining_enabled pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -15,7 +15,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
   param "region" {
     type        = string
     description = local.description_region
-    default    = "us-east-1"
+    default     = "us-east-1"
   }
 
   param "elb_name" {
@@ -27,7 +27,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
   param "availability_zones" {
     type        = list(string)
     description = "availability_zones"
-    default    = ["us-east-1a"]
+    default     = ["us-east-1a"]
   }
 
   param "listeners" {
@@ -36,9 +36,9 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     default = [
       {
         Protocol         = "HTTP"
-        LoadBalancerPort = 80  # Must be passed as a string here but converted later
+        LoadBalancerPort = 80 # Must be passed as a string here but converted later
         InstanceProtocol = "HTTP"
-        InstancePort     = 80  # Must be passed as a string here but converted later
+        InstancePort     = 80 # Must be passed as a string here but converted later
       }
     ]
   }
@@ -56,7 +56,7 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
 
   step "pipeline" "run_detection" {
     depends_on = [step.pipeline.create_elb_classic_load_balancer]
-    pipeline = pipeline.detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled
+    pipeline   = pipeline.detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled
     args = {
       approvers       = []
       default_action  = "enable_connection_draining"
@@ -66,8 +66,8 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
 
   step "query" "get_elb_classic_load_balancer" {
     depends_on = [step.pipeline.run_detection]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         *
       from
@@ -78,9 +78,9 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     EOQ
   }
 
- step "pipeline" "delete_elb_load_balancer" {
+  step "pipeline" "delete_elb_load_balancer" {
     depends_on = [step.query.get_elb_classic_load_balancer]
-    pipeline  = aws.pipeline.delete_elb_load_balancer
+    pipeline   = aws.pipeline.delete_elb_load_balancer
     args = {
       conn               = param.conn
       load_balancer_name = param.elb_name
@@ -92,8 +92,8 @@ pipeline "test_detect_and_correct_ec2_classic_load_balancers_without_connection_
     description = "Test results for each step."
     value = {
       "create_elb_classic_load_balancer" = !is_error(step.pipeline.create_elb_classic_load_balancer) ? "pass" : "fail: ${error_message(step.pipeline.create_elb_classic_load_balancer)}"
-      "get_elb_classic_load_balancer" = length(step.query.get_elb_classic_load_balancer.rows) == 1 ? "pass" : "fail: Row length is not 1"
-      "delete_elb_load_balancer" = !is_error(step.pipeline.delete_elb_load_balancer) ? "pass" : "fail: ${error_message(step.pipeline.delete_elb_load_balancer)}"
+      "get_elb_classic_load_balancer"    = length(step.query.get_elb_classic_load_balancer.rows) == 1 ? "pass" : "fail: Row length is not 1"
+      "delete_elb_load_balancer"         = !is_error(step.pipeline.delete_elb_load_balancer) ? "pass" : "fail: ${error_message(step.pipeline.delete_elb_load_balancer)}"
     }
   }
 }

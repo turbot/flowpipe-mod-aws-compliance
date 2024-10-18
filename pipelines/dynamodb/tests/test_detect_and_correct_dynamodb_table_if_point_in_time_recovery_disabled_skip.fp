@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
   description = "Test the detect_and_correct_dynamodb_table_if_point_in_time_recovery_disabled pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -15,7 +15,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
   param "region" {
     type        = string
     description = local.description_region
-    default    = "us-east-1"
+    default     = "us-east-1"
 
   }
 
@@ -40,16 +40,16 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
   }
 
   step "sleep" "sleep_100_seconds" {
-    depends_on = [ step.container.create_dynamodb_table ]
+    depends_on = [step.container.create_dynamodb_table]
     duration   = "100s"
   }
 
   step "pipeline" "run_detection" {
     depends_on = [step.sleep.sleep_100_seconds]
-    pipeline = pipeline.detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled
+    pipeline   = pipeline.detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled
     args = {
-      database         = var.database
-      notifier         = var.notifier
+      database           = var.database
+      notifier           = var.notifier
       notification_level = var.notification_level
       approvers          = var.approvers
       default_action     = "skip"
@@ -59,8 +59,8 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
 
   step "query" "get_dynamodb_table" {
     depends_on = [step.pipeline.run_detection]
-    database = var.database
-    sql = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       select
         arn
       from
@@ -73,11 +73,11 @@ pipeline "test_detect_and_correct_dynamodb_table_if_point_in_time_recovery_disab
 
   step "pipeline" "delete_dynamodb_table" {
     depends_on = [step.query.get_dynamodb_table]
-    pipeline = aws.pipeline.delete_dynamodb_table
+    pipeline   = aws.pipeline.delete_dynamodb_table
     args = {
-      table_name  = param.table_name
-      region      = param.region
-      conn        = param.conn
+      table_name = param.table_name
+      region     = param.region
+      conn       = param.conn
     }
   }
 

@@ -135,7 +135,7 @@ pipeline "correct_regions_with_ebs_encryption_by_default_disabled" {
   title       = "Correct regions with EBS encryption by default disabled"
   description = "Enable EBS encryption by default in regions with EBS encryption by default disabled."
 
-  tags = merge(local.ebs_common_tags, { type = "internal" })
+  tags = merge(local.ebs_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -203,7 +203,7 @@ pipeline "correct_one_region_with_ebs_encryption_by_default_disabled" {
   title       = "Correct one region with EBS encryption by default disabled"
   description = "Enable EBS encryption by default in one region with EBS encryption by default disabled."
 
-  tags = merge(local.ebs_common_tags, { type = "internal" })
+  tags = merge(local.ebs_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

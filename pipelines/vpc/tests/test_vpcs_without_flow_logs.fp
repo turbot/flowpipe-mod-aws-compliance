@@ -2,7 +2,7 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
   title       = "Test detect and correct VPCs without flow logs"
   description = "Test the  Revoke security group rule action for VPC Security Group rules Allowing Ingress to remote server administrator ports."
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "region" {
@@ -35,23 +35,23 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
   }
 
   step "transform" "get_vpc_id" {
-    value   = jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
+    value = jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
   }
 
   output "vpc_id" {
     description = "VPC ID from the transform step"
-    value = step.transform.get_vpc_id
+    value       = step.transform.get_vpc_id
   }
 
   step "sleep" "sleep_10_seconds" {
-    depends_on = [ step.pipeline.correct_item ]
+    depends_on = [step.pipeline.correct_item]
     duration   = "10s"
   }
 
   step "query" "get_vpc_details" {
     depends_on = [step.container.create_vpc]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with vpcs as (
         select
           vpc_id,
@@ -92,25 +92,25 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_vpc_without_flowlog
     args = {
-      title                  = each.value.title
-      vpc_id                 = each.value.vpc_id
-      region                 = each.value.region
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "create_flow_log"
-      enabled_actions        = ["create_flow_log"]
+      title           = each.value.title
+      vpc_id          = each.value.vpc_id
+      region          = each.value.region
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "create_flow_log"
+      enabled_actions = ["create_flow_log"]
     }
   }
 
   step "sleep" "sleep_20_seconds" {
-    depends_on = [ step.pipeline.correct_item ]
+    depends_on = [step.pipeline.correct_item]
     duration   = "20s"
   }
 
   step "query" "get_vpc_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with vpcs as (
         select
           vpc_id,
@@ -163,7 +163,7 @@ pipeline "test_detect_and_correct_vpcs_without_flow_logs" {
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_vpc]
   }
 }

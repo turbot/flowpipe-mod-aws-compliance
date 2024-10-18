@@ -118,7 +118,7 @@ pipeline "correct_ec2_instances_with_imdsv1_enabled" {
   title       = "Correct EC2 instances with IMDSv1 enabled"
   description = "Disable IMDSv1 for EC2 instances."
 
-  tags = merge(local.ec2_common_tags, { type = "internal" })
+  tags = merge(local.ec2_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -188,7 +188,7 @@ pipeline "correct_one_ec2_instance_with_imdsv1_enabled" {
   title       = "Correct one EC2 instance using IMDSv2"
   description = "Disable IMDSv1 for an EC2 instance."
 
-  tags = merge(local.ec2_common_tags, { type = "internal" })
+  tags = merge(local.ec2_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

@@ -104,9 +104,9 @@ variable "vpc_network_acls_allowing_ingress_to_remote_server_administration_port
 }
 
 trigger "query" "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports" {
-  title         = "Detect & correct VPC network ACLs allowing ingress to remote server administration ports"
-  description   = "Detect VPC network ACL rules that allow ingress from 0.0.0.0/0 to remote server administration ports and then skip or delete network ACL entry."
-  tags          = local.vpc_common_tags
+  title       = "Detect & correct VPC network ACLs allowing ingress to remote server administration ports"
+  description = "Detect VPC network ACL rules that allow ingress from 0.0.0.0/0 to remote server administration ports and then skip or delete network ACL entry."
+  tags        = local.vpc_common_tags
 
   enabled  = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_trigger_enabled
   schedule = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_trigger_schedule
@@ -122,9 +122,9 @@ trigger "query" "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_
 }
 
 pipeline "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports" {
-  title         = "Detect & correct VPC network ACLs allowing ingress to remote server administration ports"
-  description   = "Detect VPC network ACL rules that allow ingress from 0.0.0.0/0 to remote server administration ports and then skip or delete network ACL entry."
-  tags          = merge(local.vpc_common_tags, { recommended = "true" })
+  title       = "Detect & correct VPC network ACLs allowing ingress to remote server administration ports"
+  description = "Detect VPC network ACL rules that allow ingress from 0.0.0.0/0 to remote server administration ports and then skip or delete network ACL entry."
+  tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -181,17 +181,17 @@ pipeline "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_
 }
 
 pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administration_ports" {
-  title         = "Correct VPC network ACLs allowing ingress to remote server administration ports"
-  description   = "Delete network ACL entries allowing ingress to restrict access to remote server administration ports."
-  tags          = merge(local.vpc_common_tags, { type = "internal" })
+  title       = "Correct VPC network ACLs allowing ingress to remote server administration ports"
+  description = "Delete network ACL entries allowing ingress to restrict access to remote server administration ports."
+  tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title           = string,
-      network_acl_id  = string,
-      rule_number     = number,
-      region          = string,
-      conn            = string
+      title          = string,
+      network_acl_id = string,
+      rule_number    = number,
+      region         = string,
+      conn           = string
     }))
     description = local.description_items
   }
@@ -252,9 +252,9 @@ pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administrat
 }
 
 pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administration_ports" {
-  title         = "Correct one VPC network ACL allowing ingress to remote server administration ports"
-  description   = "Delete a network ACL entry allowing ingress to restrict access to remote server administration ports."
-  tags          = merge(local.vpc_common_tags, { type = "internal" })
+  title       = "Correct one VPC network ACL allowing ingress to remote server administration ports"
+  description = "Delete a network ACL entry allowing ingress to restrict access to remote server administration ports."
+  tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

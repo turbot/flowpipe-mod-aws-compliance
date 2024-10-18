@@ -2,7 +2,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
   title       = "Test detect and correct VPC Default Security Group allowing ingress to port 22 - revoke security group rule"
   description = "Test the  Revoke security group rule action for VPC Default Security Group Allowing Ingress to port 22."
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -44,7 +44,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_vpc]
   }
 
@@ -59,23 +59,23 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       "--cidr", "0.0.0.0/0"
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.create_security_group]
   }
 
   step "transform" "get_security_group_id" {
-    value   = jsondecode(step.container.create_security_group.stdout).GroupId
+    value = jsondecode(step.container.create_security_group.stdout).GroupId
   }
 
   step "sleep" "sleep_10_seconds" {
-    depends_on = [ step.pipeline.correct_item ]
+    depends_on = [step.pipeline.correct_item]
     duration   = "10s"
   }
 
   step "query" "get_security_group_details" {
     depends_on = [step.container.add_ingress_rule]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with ingress_rdp_rules as (
         select
           group_id,
@@ -131,14 +131,14 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
   }
 
   step "sleep" "sleep_20_seconds" {
-    depends_on = [ step.pipeline.correct_item ]
+    depends_on = [step.pipeline.correct_item]
     duration   = "20s"
   }
 
   step "query" "get_security_group_details_after_remediation" {
     depends_on = [step.pipeline.correct_item]
-    database = var.database
-    sql      = <<-EOQ
+    database   = var.database
+    sql        = <<-EOQ
       with ingress_rdp_rules as (
         select
           group_id,
@@ -186,7 +186,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
     value       = length(step.query.get_security_group_details_after_remediation.rows) == 0 ? "pass" : "fail"
   }
 
- step "container" "delete_security_group" {
+  step "container" "delete_security_group" {
     image = "public.ecr.aws/aws-cli/aws-cli"
 
     cmd = [
@@ -194,7 +194,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       "--group-id", jsondecode(step.container.create_security_group.stdout).GroupId
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.query.get_security_group_details_after_remediation]
   }
 
@@ -206,7 +206,7 @@ pipeline "test_detect_and_correct_vpc_security_groups_allowing_ingress_to_port_2
       "--vpc-id", jsondecode(step.container.create_vpc.stdout).Vpc.VpcId
     ]
 
-    env = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
+    env        = merge(connection.aws[param.conn].env, { AWS_REGION = param.region })
     depends_on = [step.container.delete_security_group]
   }
 }

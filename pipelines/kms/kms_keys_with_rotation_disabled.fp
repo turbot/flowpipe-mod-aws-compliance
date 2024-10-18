@@ -119,7 +119,7 @@ pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
 pipeline "correct_kms_keys_with_rotation_disabled" {
   title       = "Correct KMS Keys with rotation disabled"
   description = "Enable rotation for KMS keys with rotation disabled."
-  tags        = merge(local.kms_common_tags, { type = "internal" })
+  tags        = merge(local.kms_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -188,7 +188,7 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
 pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
   title       = "Correct KMS key with rotation disabled"
   description = "Runs corrective action for a KMS key with rotation disabled."
-  tags        = merge(local.kms_common_tags, { type = "internal" })
+  tags        = merge(local.kms_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

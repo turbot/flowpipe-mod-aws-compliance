@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
   description = "Test detect and correct IAM users attached with *:* policy pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -27,21 +27,21 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
   param "policy_document" {
     type        = string
     description = "The policy document."
-    default     = jsonencode({
-      "Version": "2012-10-17",
-      "Statement": [
+    default = jsonencode({
+      "Version" : "2012-10-17",
+      "Statement" : [
         {
-          "Sid": "AllowAllActionsAllResources",
-          "Effect": "Allow",
-          "Action": "*",  # Grants all actions
-          "Resource": "*"  # Grants access to all resources
+          "Sid" : "AllowAllActionsAllResources",
+          "Effect" : "Allow",
+          "Action" : "*",  # Grants all actions
+          "Resource" : "*" # Grants access to all resources
         }
       ]
     })
   }
 
   step "pipeline" "create_iam_policy" {
-    pipeline   = aws.pipeline.create_iam_policy
+    pipeline = aws.pipeline.create_iam_policy
     args = {
       conn            = param.conn
       policy_name     = param.policy_name
@@ -60,7 +60,7 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
   }
 
   step "sleep" "sleep_60_seconds" {
-    depends_on = [ step.pipeline.create_iam_policy ]
+    depends_on = [step.pipeline.create_iam_policy]
     duration   = "60s"
   }
 
@@ -138,26 +138,26 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_user_with_policy_star_star_attached
     args = {
-      title                  = each.value.title
-      user_name              = each.value.user_name
-      policy_arn             = each.value.policy_arn
-      account_id             = each.value.account_id
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "detach_user_star_star_policy"
-      enabled_actions        = ["detach_user_star_star_policy"]
+      title           = each.value.title
+      user_name       = each.value.user_name
+      policy_arn      = each.value.policy_arn
+      account_id      = each.value.account_id
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "detach_user_star_star_policy"
+      enabled_actions = ["detach_user_star_star_policy"]
     }
   }
 
   step "sleep" "sleep_70_seconds" {
-    depends_on = [ step.pipeline.run_detection ]
+    depends_on = [step.pipeline.run_detection]
     duration   = "70s"
   }
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       with star_star_policy as (
         select
           arn,
@@ -212,22 +212,22 @@ pipeline "test_detect_and_correct_iam_users_with_policy_star_star_attached_detac
     depends_on = [step.container.delete_iam_user]
     pipeline   = aws.pipeline.delete_iam_policy
     args = {
-      conn        = param.conn
-      policy_arn  = step.query.get_iam_policy_arn.rows[0].arn
+      conn       = param.conn
+      policy_arn = step.query.get_iam_policy_arn.rows[0].arn
     }
   }
 
   output "test_results" {
     description = "Test results for each step."
     value = {
-      "create_iam_user"                              = !is_error(step.container.create_iam_user) ? "pass" : "fail: ${error_message(step.container.create_iam_user)}"
-      "create_iam_policy"                             = !is_error(step.pipeline.create_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.create_iam_policy)}"
-      "get_iam_policy_arn"                            = length(step.query.get_iam_policy_arn.rows) == 1 ? "pass" : "fail: Row length is not 1"
-      "attach_user_policy"                           = !is_error(step.container.attach_user_policy) ? "pass" : "fail: ${error_message(step.container.attach_user_policy)}"
+      "create_iam_user"                             = !is_error(step.container.create_iam_user) ? "pass" : "fail: ${error_message(step.container.create_iam_user)}"
+      "create_iam_policy"                           = !is_error(step.pipeline.create_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.create_iam_policy)}"
+      "get_iam_policy_arn"                          = length(step.query.get_iam_policy_arn.rows) == 1 ? "pass" : "fail: Row length is not 1"
+      "attach_user_policy"                          = !is_error(step.container.attach_user_policy) ? "pass" : "fail: ${error_message(step.container.attach_user_policy)}"
       "get_user_with_iam_star_star_policy_attached" = length(step.query.get_user_with_iam_star_star_policy_attached.rows) == 1 ? "pass" : "fail: Row length is not 1"
-      "get_details_after_detection"                   = length(step.query.get_details_after_detection.rows) == 0 ? "pass" : "fail: Row length is not 0"
-      "delete_iam_user"                              = !is_error(step.container.delete_iam_user) ? "pass" : "fail: ${error_message(step.container.delete_iam_user)}"
-      "delete_iam_policy"                             = !is_error(step.pipeline.delete_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.delete_iam_policy)}"
+      "get_details_after_detection"                 = length(step.query.get_details_after_detection.rows) == 0 ? "pass" : "fail: Row length is not 0"
+      "delete_iam_user"                             = !is_error(step.container.delete_iam_user) ? "pass" : "fail: ${error_message(step.container.delete_iam_user)}"
+      "delete_iam_policy"                           = !is_error(step.pipeline.delete_iam_policy) ? "pass" : "fail: ${error_message(step.pipeline.delete_iam_policy)}"
     }
   }
 }

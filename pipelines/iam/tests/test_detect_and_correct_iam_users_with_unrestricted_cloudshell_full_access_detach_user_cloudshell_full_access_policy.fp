@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
   description = "Test detect and correct IAM users attached with unrestricted cloudshell full access pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -19,15 +19,15 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
   }
 
   step "pipeline" "create_iam_user" {
-    pipeline   = aws.pipeline.create_iam_user
+    pipeline = aws.pipeline.create_iam_user
     args = {
-      conn        = param.conn
-      user_name   = param.user_name
+      conn      = param.conn
+      user_name = param.user_name
     }
   }
 
   step "container" "attach_user_policy" {
-   image = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     depends_on = [step.pipeline.create_iam_user]
     cmd = [
       "iam", "attach-user-policy",
@@ -61,25 +61,25 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_user_with_unrestricted_cloudshell_full_access
     args = {
-      title                  = each.value.title
-      user_name             = each.value.user_name
-      account_id             = each.value.account_id
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "detach_user_cloudshell_full_access_policy"
-      enabled_actions        = ["detach_user_cloudshell_full_access_policy"]
+      title           = each.value.title
+      user_name       = each.value.user_name
+      account_id      = each.value.account_id
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "detach_user_cloudshell_full_access_policy"
+      enabled_actions = ["detach_user_cloudshell_full_access_policy"]
     }
   }
 
   step "sleep" "sleep_70_seconds" {
-    depends_on = [ step.pipeline.run_detection ]
+    depends_on = [step.pipeline.run_detection]
     duration   = "70s"
   }
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         concat(name, ' [', account_id,  ']') as title,
         name as user_name,
@@ -97,8 +97,8 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
     depends_on = [step.query.get_details_after_detection]
     pipeline   = aws.pipeline.delete_iam_user
     args = {
-      conn        = param.conn
-      user_name   = param.user_name
+      conn      = param.conn
+      user_name = param.user_name
     }
   }
 

@@ -53,9 +53,9 @@ variable "iam_roles_with_unrestricted_cloudshell_full_access_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_roles_with_unrestricted_cloudshell_full_access" {
-  title         = "Detect & correct IAM roles with unrestricted CloudShellFullAccess policy"
-  description   = "Detects IAM roles with unrestricted CloudShellFullAccess policy attached and then detaches that policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM roles with unrestricted CloudShellFullAccess policy"
+  description = "Detects IAM roles with unrestricted CloudShellFullAccess policy attached and then detaches that policy."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_roles_with_unrestricted_cloudshell_full_access_trigger_enabled
   schedule = var.iam_roles_with_unrestricted_cloudshell_full_access_trigger_schedule
@@ -71,9 +71,9 @@ trigger "query" "detect_and_correct_iam_roles_with_unrestricted_cloudshell_full_
 }
 
 pipeline "detect_and_correct_iam_roles_with_unrestricted_cloudshell_full_access" {
-  title         = "Detect & correct IAM roles with unrestricted CloudShellFullAccess policy"
-  description   = "Detects IAM roles with unrestricted CloudShellFullAccess policy attached and detaches that policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM roles with unrestricted CloudShellFullAccess policy"
+  description = "Detects IAM roles with unrestricted CloudShellFullAccess policy attached and detaches that policy."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -130,16 +130,16 @@ pipeline "detect_and_correct_iam_roles_with_unrestricted_cloudshell_full_access"
 }
 
 pipeline "correct_iam_roles_with_unrestricted_cloudshell_full_access" {
-  title         = "Correct IAM roles with unrestricted CloudShellFullAccess policy"
-  description   = "Runs corrective action to detach the CloudShellFullAccess policy from IAM roles."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM roles with unrestricted CloudShellFullAccess policy"
+  description = "Runs corrective action to detach the CloudShellFullAccess policy from IAM roles."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      role_name      = string
-      account_id     = string
-      conn           = string
+      title      = string
+      role_name  = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }
@@ -199,9 +199,9 @@ pipeline "correct_iam_roles_with_unrestricted_cloudshell_full_access" {
 }
 
 pipeline "correct_one_iam_role_with_unrestricted_cloudshell_full_access" {
-  title         = "Correct one IAM role with unrestricted CloudShellFullAccess policy"
-  description   = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from a IAM role."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM role with unrestricted CloudShellFullAccess policy"
+  description = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from a IAM role."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -282,9 +282,9 @@ pipeline "correct_one_iam_role_with_unrestricted_cloudshell_full_access" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_role_policy
           pipeline_args = {
-            role_name   = param.role_name
-            policy_arn  = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
-            conn        = param.conn
+            role_name  = param.role_name
+            policy_arn = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
+            conn       = param.conn
           }
           success_msg = "Detached policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM role ${param.title}."
           error_msg   = "Error detaching policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM role ${param.title}."

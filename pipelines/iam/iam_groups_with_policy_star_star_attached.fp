@@ -77,9 +77,9 @@ variable "iam_groups_with_policy_star_star_attached_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_groups_with_policy_star_star_attached" {
-  title         = "Detect & correct IAM groups attached with *:* policy"
-  description   = "Detects IAM groups attached with the *:* policy and then detaches the policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM groups attached with *:* policy"
+  description = "Detects IAM groups attached with the *:* policy and then detaches the policy."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_groups_with_policy_star_star_attached_trigger_enabled
   schedule = var.iam_groups_with_policy_star_star_attached_trigger_schedule
@@ -95,9 +95,9 @@ trigger "query" "detect_and_correct_iam_groups_with_policy_star_star_attached" {
 }
 
 pipeline "detect_and_correct_iam_groups_with_policy_star_star_attached" {
-  title         = "Detect & correct IAM groups attached with *:* policy"
-  description   = "Detects IAM groups attached with the *:* policy and then detaches the policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM groups attached with *:* policy"
+  description = "Detects IAM groups attached with the *:* policy and then detaches the policy."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -154,17 +154,17 @@ pipeline "detect_and_correct_iam_groups_with_policy_star_star_attached" {
 }
 
 pipeline "correct_iam_groups_with_policy_star_star_attached" {
-  title         = "Correct IAM groups attached with *:* policy"
-  description   = "Runs corrective action to detach the *:* policy from IAM groups."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM groups attached with *:* policy"
+  description = "Runs corrective action to detach the *:* policy from IAM groups."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      group_name    = string
-      policy_arn     = string
-      account_id     = string
-      conn           = string
+      title      = string
+      group_name = string
+      policy_arn = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }
@@ -211,7 +211,7 @@ pipeline "correct_iam_groups_with_policy_star_star_attached" {
     pipeline        = pipeline.correct_one_iam_group_with_policy_star_star_attached
     args = {
       title              = each.value.title
-      group_name        = each.value.group_name
+      group_name         = each.value.group_name
       policy_arn         = each.value.policy_arn
       account_id         = each.value.account_id
       conn               = connection.aws[each.value.conn]
@@ -225,9 +225,9 @@ pipeline "correct_iam_groups_with_policy_star_star_attached" {
 }
 
 pipeline "correct_one_iam_group_with_policy_star_star_attached" {
-  title         = "Correct one IAM group attached with *:* policy"
-  description   = "Runs corrective action to detach the *:* policy from a IAM group."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM group attached with *:* policy"
+  description = "Runs corrective action to detach the *:* policy from a IAM group."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -313,9 +313,9 @@ pipeline "correct_one_iam_group_with_policy_star_star_attached" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_group_policy
           pipeline_args = {
-            group_name  = param.group_name
-            policy_arn   = param.policy_arn
-            conn         = param.conn
+            group_name = param.group_name
+            policy_arn = param.policy_arn
+            conn       = param.conn
           }
           success_msg = "Detached *:* policy ${param.policy_arn} from IAM group ${param.group_name} [${param.account_id}]."
           error_msg   = "Error detaching *:* policy ${param.policy_arn} from IAM group ${param.group_name} [${param.account_id}]."

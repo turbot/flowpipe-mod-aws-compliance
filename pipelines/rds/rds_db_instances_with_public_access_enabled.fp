@@ -53,9 +53,9 @@ variable "rds_db_instances_with_public_access_enabled_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_rds_db_instances_with_public_access_enabled" {
-  title         = "Detect & correct RDS DB instances with public access enabled"
-  description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
-  tags          = local.rds_common_tags
+  title       = "Detect & correct RDS DB instances with public access enabled"
+  description = "Detect RDS DB instances with public access enabled and then skip or disable public access."
+  tags        = local.rds_common_tags
 
   enabled  = var.rds_db_instances_with_public_access_enabled_trigger_enabled
   schedule = var.rds_db_instances_with_public_access_enabled_trigger_schedule
@@ -71,9 +71,9 @@ trigger "query" "detect_and_correct_rds_db_instances_with_public_access_enabled"
 }
 
 pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
-  title         = "Detect & correct RDS DB instances with public access enabled"
-  description   = "Detect RDS DB instances with public access enabled and then skip or disable public access."
-  tags          = merge(local.rds_common_tags, { recommended = "true" })
+  title       = "Detect & correct RDS DB instances with public access enabled"
+  description = "Detect RDS DB instances with public access enabled and then skip or disable public access."
+  tags        = merge(local.rds_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -130,9 +130,9 @@ pipeline "detect_and_correct_rds_db_instances_with_public_access_enabled" {
 }
 
 pipeline "correct_rds_db_instances_with_public_access_enabled" {
-  title         = "Correct RDS DB instances with public access enabled"
-  description   = "Disable public access on a collection of RDS DB instances with public access enabled."
-  tags          = merge(local.rds_common_tags, { type = "internal" })
+  title       = "Correct RDS DB instances with public access enabled"
+  description = "Disable public access on a collection of RDS DB instances with public access enabled."
+  tags        = merge(local.rds_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -201,9 +201,9 @@ pipeline "correct_rds_db_instances_with_public_access_enabled" {
 }
 
 pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
-  title         = "Correct one RDS DB instance with public access enabled"
-  description   = "Disable public access on an RDS DB instance with public access enabled."
-  tags          = merge(local.rds_common_tags, { type = "internal" })
+  title       = "Correct one RDS DB instance with public access enabled"
+  description = "Disable public access on an RDS DB instance with public access enabled."
+  tags        = merge(local.rds_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

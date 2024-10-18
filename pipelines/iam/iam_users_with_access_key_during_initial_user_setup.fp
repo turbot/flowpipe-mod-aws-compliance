@@ -59,9 +59,9 @@ variable "iam_users_with_access_key_during_initial_user_setup_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_users_with_access_key_during_initial_user_setup" {
-  title         = "Detect & correct IAM users with access key created during initial user setup"
-  description   = "Detects IAM users with access key created during initial user setup."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with access key created during initial user setup"
+  description = "Detects IAM users with access key created during initial user setup."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_users_with_access_key_during_initial_user_setup_trigger_enabled
   schedule = var.iam_users_with_access_key_during_initial_user_setup_trigger_schedule
@@ -78,9 +78,9 @@ trigger "query" "detect_and_correct_iam_users_with_access_key_during_initial_use
 }
 
 pipeline "detect_and_correct_iam_users_with_access_key_during_initial_user_setup" {
-  title         = "Detect & correct IAM users with access key created during initial user setup"
-  description   = "Detects IAM users with access key created during initial user setup."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with access key created during initial user setup"
+  description = "Detects IAM users with access key created during initial user setup."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -137,9 +137,9 @@ pipeline "detect_and_correct_iam_users_with_access_key_during_initial_user_setup
 }
 
 pipeline "correct_iam_users_with_access_key_during_initial_user_setup" {
-  title         = "Correct IAM users with access key created during initial user setup"
-  description   = "Runs corrective action to delete access key for IAM user created during initial user setup."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM users with access key created during initial user setup"
+  description = "Runs corrective action to delete access key for IAM user created during initial user setup."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -208,9 +208,9 @@ pipeline "correct_iam_users_with_access_key_during_initial_user_setup" {
 }
 
 pipeline "correct_one_iam_users_with_access_key_during_initial_user_setup" {
-  title         = "Correct one IAM user with access key created during initial user setup"
-  description   = "Runs corrective action to deleteaccess key for a IAM user with access key created during initial user setup."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM user with access key created during initial user setup"
+  description = "Runs corrective action to deleteaccess key for a IAM user with access key created during initial user setup."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

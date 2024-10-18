@@ -156,7 +156,7 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
   title       = "Correct CloudTrail trails with S3 logging disabled"
   description = "Enable S3 logging for CloudTrail trails with S3 logging disabled."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -235,7 +235,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
   title       = "Correct one CloudTrail trail with S3 logging disabled"
   description = "Enable S3 logging for a CloudTrail trail."
 
-  tags = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -343,7 +343,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
 pipeline "enable_s3_logging_for_cloudtrail" {
   title       = "Enable S3 logging for Cloudtrail trail"
   description = "Enable S3 logging for Cloudtrail trail."
-  tags        = merge(local.cloudtrail_common_tags, { type = "internal" })
+  tags        = merge(local.cloudtrail_common_tags, { folder = "Internal" })
 
   param "region" {
     type        = string

@@ -138,7 +138,7 @@ pipeline "detect_and_correct_vpcs_without_flow_logs" {
 pipeline "correct_vpcs_without_flow_logs" {
   title       = "Correct VPCs without flow logs"
   description = "Create flow logs for a collection of VPCs without flow logs."
-  tags        = merge(local.vpc_common_tags, { type = "internal" })
+  tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -212,7 +212,7 @@ pipeline "correct_one_vpc_without_flowlog" {
   title       = "Correct one VPC without flow log"
   description = "Create a flow log for a VPC without flow log."
 
-  tags = merge(local.vpc_common_tags, { type = "internal" })
+  tags = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

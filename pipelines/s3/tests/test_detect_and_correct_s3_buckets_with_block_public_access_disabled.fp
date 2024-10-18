@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_s3_buckets_with_block_public_access_disabled" 
   description = "Test the block public access action for the detect_and_correct_s3_buckets_with_block_public_access_disabled pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -87,13 +87,13 @@ pipeline "test_detect_and_correct_s3_buckets_with_block_public_access_disabled" 
     depends_on = [step.pipeline.put_s3_bucket_public_access_block]
     pipeline   = pipeline.correct_one_s3_bucket_with_block_public_access_disabled
     args = {
-      title            = param.bucket
-      bucket_name      = param.bucket
-      conn             = param.conn
-      region           = param.region
-      approvers        = []
-      default_action   = "block_public_access"
-      enabled_actions  = ["block_public_access"]
+      title           = param.bucket
+      bucket_name     = param.bucket
+      conn            = param.conn
+      region          = param.region
+      approvers       = []
+      default_action  = "block_public_access"
+      enabled_actions = ["block_public_access"]
     }
   }
 

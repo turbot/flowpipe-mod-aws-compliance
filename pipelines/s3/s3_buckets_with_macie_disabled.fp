@@ -100,7 +100,7 @@ pipeline "detect_and_correct_s3_buckets_with_macie_disabled" {
 pipeline "correct_s3_buckets_with_macie_disabled" {
   title       = "Correct S3 buckets with Macie disabled"
   description = "Send notifications for S3 buckets with Macie disabled."
-  tags        = merge(local.s3_common_tags, { type = "internal" })
+  tags        = merge(local.s3_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

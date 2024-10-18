@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_symb
   description = "Test detect and correct IAM account password policies without one symbol pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -14,7 +14,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_symb
 
   step "query" "get_account_id" {
     database = var.database
-    sql = <<-EOQ
+    sql      = <<-EOQ
       select
         account_id
       from
@@ -26,7 +26,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_symb
   step "query" "get_password_policy" {
     depends_on = [step.query.get_account_id]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         a.account_id as title,
         pol.account_id as password_policy_account_id,
@@ -52,7 +52,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_symb
   step "query" "get_password_policy_without_symbol_requirement" {
     depends_on = [step.query.get_password_policy]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         pol.account_id as password_policy_account_id
       from
@@ -88,12 +88,12 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_symb
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_account_password_policy_without_one_symbol
     args = {
-      title                  = each.value.title
-      account_id             = each.value.title
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "update_password_policy_require_symbols"
-      enabled_actions        = ["update_password_policy_require_symbols"]
+      title           = each.value.title
+      account_id      = each.value.title
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "update_password_policy_require_symbols"
+      enabled_actions = ["update_password_policy_require_symbols"]
     }
   }
 
@@ -101,7 +101,7 @@ pipeline "test_detect_and_correct_iam_account_password_policies_without_one_symb
     if         = (step.query.get_password_policy.rows[0].password_policy_account_id) != null
     depends_on = [step.pipeline.run_detection]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         account_id
       from

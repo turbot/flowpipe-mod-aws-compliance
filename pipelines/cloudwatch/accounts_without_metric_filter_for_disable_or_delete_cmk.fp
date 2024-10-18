@@ -158,7 +158,7 @@ pipeline "correct_accounts_without_metric_filter_for_disable_or_delete_cmk" {
   title       = "Correct accounts without metric filter for disable or delete CMK"
   description = "Send notifications for accounts without a metric filter for disable or delete CMK."
 
-  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
+  tags = merge(local.cloudwatch_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

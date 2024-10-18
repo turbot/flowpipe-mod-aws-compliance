@@ -3,7 +3,7 @@ pipeline "test_cloudtrail_trails_with_log_file_validation_disabled_enable_log_fi
   description = "Test detect CloudTrail trails with log file validation disabled."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {

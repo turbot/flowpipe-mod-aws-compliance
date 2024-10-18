@@ -64,9 +64,9 @@ variable "iam_access_analyzer_disabled_in_regions_analyzer_name" {
 }
 
 trigger "query" "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Detect and correct regions with IAM Access Analyzer disabled"
-  description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
-  tags          = local.iam_common_tags
+  title       = "Detect and correct regions with IAM Access Analyzer disabled"
+  description = "Detects regions with IAM Access Analyzer disabled and then enable them."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_access_analyzer_disabled_in_regions_trigger_enabled
   schedule = var.iam_access_analyzer_disabled_in_regions_trigger_schedule
@@ -82,9 +82,9 @@ trigger "query" "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
 }
 
 pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Detect and correct regions with IAM Access Analyzer disabled"
-  description   = "Detects regions with IAM Access Analyzer disabled and then enable them."
-  tags          = local.iam_common_tags
+  title       = "Detect and correct regions with IAM Access Analyzer disabled"
+  description = "Detects regions with IAM Access Analyzer disabled and then enable them."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -141,15 +141,15 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
 }
 
 pipeline "correct_iam_access_analyzer_disabled_in_regions" {
-  title         = "Correct regions with IAM Access Analyzer disabled"
-  description   = "Enable IAM Access Analyzer in regions with IAM Access Analyzer disabled."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct regions with IAM Access Analyzer disabled"
+  description = "Enable IAM Access Analyzer in regions with IAM Access Analyzer disabled."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      region         = string
-      conn           = string
+      title  = string
+      region = string
+      conn   = string
     }))
     description = local.description_items
   }
@@ -215,9 +215,9 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
 }
 
 pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
-  title         = "Correct one region with IAM Access Analyzer disabled"
-  description   = "Enable IAM Access Analyzer in a region with IAM Access Analyzer disabled."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one region with IAM Access Analyzer disabled"
+  description = "Enable IAM Access Analyzer in a region with IAM Access Analyzer disabled."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

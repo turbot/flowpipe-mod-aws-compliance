@@ -158,7 +158,7 @@ pipeline "correct_accounts_without_metric_filter_for_config_configuration_change
   title       = "Correct accounts without metric filter for Config configuration changes"
   description = "Send notifications for accounts without a metric filter for Config configuration changes."
 
-  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
+  tags = merge(local.cloudwatch_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

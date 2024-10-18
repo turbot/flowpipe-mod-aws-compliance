@@ -90,7 +90,7 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
 pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
   title       = "Correct RDS DB instances with encryption at rest disabled"
   description = "Send notifications for RDS DB instances with encryption at rest disabled."
-  tags        = merge(local.rds_common_tags, { type = "internal" })
+  tags        = merge(local.rds_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

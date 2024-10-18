@@ -55,9 +55,9 @@ variable "rds_db_instances_with_multi_az_disabled_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_rds_db_instances_with_multi_az_disabled" {
-  title         = "Detect & correct RDS DB instances with Multi-AZ disabled"
-  description   = "Detect RDS DB instances with Multi-AZ disabled and then enable Multi-AZ."
-  tags          = local.rds_common_tags
+  title       = "Detect & correct RDS DB instances with Multi-AZ disabled"
+  description = "Detect RDS DB instances with Multi-AZ disabled and then enable Multi-AZ."
+  tags        = local.rds_common_tags
 
   enabled  = var.rds_db_instances_with_multi_az_disabled_trigger_enabled
   schedule = var.rds_db_instances_with_multi_az_disabled_trigger_schedule
@@ -73,9 +73,9 @@ trigger "query" "detect_and_correct_rds_db_instances_with_multi_az_disabled" {
 }
 
 pipeline "detect_and_correct_rds_db_instances_with_multi_az_disabled" {
-  title         = "Detect & correct RDS DB instances with Multi-AZ disabled"
-  description   = "Detect RDS DB instances with Multi-AZ disabled and then enable Multi-AZ."
-  tags          = merge(local.rds_common_tags, { recommended = "true" })
+  title       = "Detect & correct RDS DB instances with Multi-AZ disabled"
+  description = "Detect RDS DB instances with Multi-AZ disabled and then enable Multi-AZ."
+  tags        = merge(local.rds_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
@@ -132,9 +132,9 @@ pipeline "detect_and_correct_rds_db_instances_with_multi_az_disabled" {
 }
 
 pipeline "correct_rds_db_instances_with_multi_az_disabled" {
-  title         = "Correct RDS DB instance with Multi-AZ disabled"
-  description   = "Enable Multi-AZ on a collection of RDS DB instances with Multi-AZ disabled."
-  tags          = merge(local.rds_common_tags, { type = "internal" })
+  title       = "Correct RDS DB instance with Multi-AZ disabled"
+  description = "Enable Multi-AZ on a collection of RDS DB instances with Multi-AZ disabled."
+  tags        = merge(local.rds_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -187,23 +187,23 @@ pipeline "correct_rds_db_instances_with_multi_az_disabled" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_rds_db_instance_with_multi_az_disabled
     args = {
-      title                      = each.value.title
-      db_instance_identifier     = each.value.db_instance_identifier
-      region                     = each.value.region
-      conn                       = connection.aws[each.value.conn]
-      notifier                   = param.notifier
-      notification_level         = param.notification_level
-      approvers                  = param.approvers
-      default_action             = param.default_action
-      enabled_actions            = param.enabled_actions
+      title                  = each.value.title
+      db_instance_identifier = each.value.db_instance_identifier
+      region                 = each.value.region
+      conn                   = connection.aws[each.value.conn]
+      notifier               = param.notifier
+      notification_level     = param.notification_level
+      approvers              = param.approvers
+      default_action         = param.default_action
+      enabled_actions        = param.enabled_actions
     }
   }
 }
 
 pipeline "correct_one_rds_db_instance_with_multi_az_disabled" {
-  title         = "Correct one RDS DB instance with Multi-AZ disabled"
-  description   = "Enable Multi-AZ on an RDS DB instance with Multi-AZ disabled."
-  tags          = merge(local.rds_common_tags, { type = "internal" })
+  title       = "Correct one RDS DB instance with Multi-AZ disabled"
+  description = "Enable Multi-AZ on an RDS DB instance with Multi-AZ disabled."
+  tags        = merge(local.rds_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string

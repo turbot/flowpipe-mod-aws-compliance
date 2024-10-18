@@ -151,7 +151,7 @@ pipeline "detect_and_correct_s3_buckets_without_ssl_enforcement" {
 pipeline "correct_s3_buckets_without_ssl_enforcement" {
   title       = "Correct S3 buckets without SSL enforcement"
   description = "Executes corrective actions on S3 buckets that do not enforce SSL."
-  tags        = merge(local.s3_common_tags, { type = "internal" })
+  tags        = merge(local.s3_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -220,7 +220,7 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
 pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
   title       = "Correct one S3 bucket without SSL enforcement"
   description = "Enforces SSL on a single S3 bucket."
-  tags        = merge(local.s3_common_tags, { type = "internal" })
+  tags        = merge(local.s3_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -334,7 +334,7 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
 pipeline "put_s3_bucket_policy" {
   title       = "Put or Append to S3 bucket Policy"
   description = "Appends a new policy statement to an existing S3 bucket policy or creates one if it doesn't exist."
-  tags        = merge(local.s3_common_tags, { type = "internal" })
+  tags        = merge(local.s3_common_tags, { folder = "Internal" })
 
   param "region" {
     type        = string

@@ -53,9 +53,9 @@ variable "iam_groups_with_unrestricted_cloudshell_full_access_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_access" {
-  title         = "Detect & correct IAM groups with unrestricted CloudShellFullAccess policy"
-  description   = "Detects IAM groups with unrestricted CloudShellFullAccess policy attached and then detaches that policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM groups with unrestricted CloudShellFullAccess policy"
+  description = "Detects IAM groups with unrestricted CloudShellFullAccess policy attached and then detaches that policy."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_groups_with_unrestricted_cloudshell_full_access_trigger_enabled
   schedule = var.iam_groups_with_unrestricted_cloudshell_full_access_trigger_schedule
@@ -71,9 +71,9 @@ trigger "query" "detect_and_correct_iam_groups_with_unrestricted_cloudshell_full
 }
 
 pipeline "detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_access" {
-  title         = "Detect & correct IAM groups with unrestricted CloudShellFullAccess policy"
-  description   = "Detects IAM groups with unrestricted CloudShellFullAccess policy attached and detaches that policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM groups with unrestricted CloudShellFullAccess policy"
+  description = "Detects IAM groups with unrestricted CloudShellFullAccess policy attached and detaches that policy."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -130,16 +130,16 @@ pipeline "detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_access
 }
 
 pipeline "correct_iam_groups_with_unrestricted_cloudshell_full_access" {
-  title         = "Correct IAM groups with unrestricted CloudShellFullAccess policy"
-  description   = "Runs corrective action to detach the CloudShellFullAccess policy from IAM groups."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM groups with unrestricted CloudShellFullAccess policy"
+  description = "Runs corrective action to detach the CloudShellFullAccess policy from IAM groups."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      group_name      = string
-      account_id     = string
-      conn           = string
+      title      = string
+      group_name = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }
@@ -186,7 +186,7 @@ pipeline "correct_iam_groups_with_unrestricted_cloudshell_full_access" {
     pipeline        = pipeline.correct_one_iam_group_with_unrestricted_cloudshell_full_access
     args = {
       title              = each.value.title
-      group_name          = each.value.group_name
+      group_name         = each.value.group_name
       account_id         = each.value.account_id
       conn               = connection.aws[each.value.conn]
       notifier           = param.notifier
@@ -199,9 +199,9 @@ pipeline "correct_iam_groups_with_unrestricted_cloudshell_full_access" {
 }
 
 pipeline "correct_one_iam_group_with_unrestricted_cloudshell_full_access" {
-  title         = "Correct one IAM group with unrestricted CloudShellFullAccess policy"
-  description   = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from a IAM group."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM group with unrestricted CloudShellFullAccess policy"
+  description = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from a IAM group."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -282,9 +282,9 @@ pipeline "correct_one_iam_group_with_unrestricted_cloudshell_full_access" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_group_policy
           pipeline_args = {
-            group_name   = param.group_name
-            policy_arn  = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
-            conn        = param.conn
+            group_name = param.group_name
+            policy_arn = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
+            conn       = param.conn
           }
           success_msg = "Detached policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM group ${param.title}."
           error_msg   = "Error detaching policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM group ${param.title}."

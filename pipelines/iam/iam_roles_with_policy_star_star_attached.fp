@@ -77,9 +77,9 @@ variable "iam_roles_with_policy_star_star_attached_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_roles_with_policy_star_star_attached" {
-  title         = "Detect & correct IAM roles attached with *:* policy"
-  description   = "Detects IAM roles attached with the *:* policy and then detaches the policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM roles attached with *:* policy"
+  description = "Detects IAM roles attached with the *:* policy and then detaches the policy."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_roles_with_policy_star_star_attached_trigger_enabled
   schedule = var.iam_roles_with_policy_star_star_attached_trigger_schedule
@@ -95,9 +95,9 @@ trigger "query" "detect_and_correct_iam_roles_with_policy_star_star_attached" {
 }
 
 pipeline "detect_and_correct_iam_roles_with_policy_star_star_attached" {
-  title         = "Detect & correct IAM roles attached with *:* policy"
-  description   = "Detects IAM roles attached with the *:* policy and then detaches the policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM roles attached with *:* policy"
+  description = "Detects IAM roles attached with the *:* policy and then detaches the policy."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -154,17 +154,17 @@ pipeline "detect_and_correct_iam_roles_with_policy_star_star_attached" {
 }
 
 pipeline "correct_iam_roles_with_policy_star_star_attached" {
-  title         = "Correct IAM roles attached with *:* policy"
-  description   = "Runs corrective action to detach the *:* policy from IAM roles."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct IAM roles attached with *:* policy"
+  description = "Runs corrective action to detach the *:* policy from IAM roles."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      role_name    = string
-      policy_arn     = string
-      account_id     = string
-      conn           = string
+      title      = string
+      role_name  = string
+      policy_arn = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }
@@ -225,9 +225,9 @@ pipeline "correct_iam_roles_with_policy_star_star_attached" {
 }
 
 pipeline "correct_one_iam_role_with_policy_star_star_attached" {
-  title         = "Correct one IAM role attached with *:* policy"
-  description   = "Runs corrective action to detach the *:* policy from a IAM role."
-  tags          = merge(local.iam_common_tags, { type = "internal" })
+  title       = "Correct one IAM role attached with *:* policy"
+  description = "Runs corrective action to detach the *:* policy from a IAM role."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -314,8 +314,8 @@ pipeline "correct_one_iam_role_with_policy_star_star_attached" {
           pipeline_ref = aws.pipeline.detach_iam_role_policy
           pipeline_args = {
             role_name  = param.role_name
-            policy_arn   = param.policy_arn
-            conn         = param.conn
+            policy_arn = param.policy_arn
+            conn       = param.conn
           }
           success_msg = "Detached *:* policy ${param.policy_arn} from IAM role ${param.role_name} [${param.account_id}]."
           error_msg   = "Error detaching *:* policy ${param.policy_arn} from IAM role ${param.role_name} [${param.account_id}]."

@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
   description = "Test detect and correct IAM groups attached with unrestricted cloudshell full access pipeline."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
@@ -29,7 +29,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
   }
 
   step "container" "attach_group_policy" {
-   image       = "public.ecr.aws/aws-cli/aws-cli"
+    image      = "public.ecr.aws/aws-cli/aws-cli"
     depends_on = [step.container.create_iam_group]
     cmd = [
       "iam", "attach-group-policy",
@@ -63,25 +63,25 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_iam_group_with_unrestricted_cloudshell_full_access
     args = {
-      title                  = each.value.title
-      group_name             = each.value.group_name
-      account_id             = each.value.account_id
-      conn                   = connection.aws[each.value.conn]
-      approvers              = []
-      default_action         = "detach_group_cloudshell_full_access_policy"
-      enabled_actions        = ["detach_group_cloudshell_full_access_policy"]
+      title           = each.value.title
+      group_name      = each.value.group_name
+      account_id      = each.value.account_id
+      conn            = connection.aws[each.value.conn]
+      approvers       = []
+      default_action  = "detach_group_cloudshell_full_access_policy"
+      enabled_actions = ["detach_group_cloudshell_full_access_policy"]
     }
   }
 
   step "sleep" "sleep_70_seconds" {
-    depends_on = [ step.pipeline.run_detection ]
+    depends_on = [step.pipeline.run_detection]
     duration   = "70s"
   }
 
   step "query" "get_details_after_detection" {
     depends_on = [step.sleep.sleep_70_seconds]
     database   = var.database
-    sql = <<-EOQ
+    sql        = <<-EOQ
       select
         concat(name, ' [', account_id,  ']') as title,
         name as group_name,
@@ -112,7 +112,7 @@ pipeline "test_detect_and_correct_iam_groups_with_unrestricted_cloudshell_full_a
       "create_iam_group"                                   = !is_error(step.container.create_iam_group) ? "pass" : "fail: ${error_message(step.container.create_iam_group)}"
       "attach_group_policy"                                = !is_error(step.container.attach_group_policy) ? "pass" : "fail: ${error_message(step.container.attach_group_policy)}"
       "get_group_with_unrestricted_cloudshell_full_access" = length(step.query.get_group_with_unrestricted_cloudshell_full_access.rows) == 1 ? "pass" : "fail: Row length is not 3"
-      "get_details_after_detection"                       = length(step.query.get_details_after_detection.rows) == 0 ? "pass" : "fail: Row length is not 0"
+      "get_details_after_detection"                        = length(step.query.get_details_after_detection.rows) == 0 ? "pass" : "fail: Row length is not 0"
       "delete_iam_group"                                   = !is_error(step.container.delete_iam_group) ? "pass" : "fail: ${error_message(step.container.delete_iam_group)}"
     }
   }

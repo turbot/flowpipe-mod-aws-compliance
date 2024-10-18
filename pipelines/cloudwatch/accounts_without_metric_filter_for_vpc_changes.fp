@@ -158,7 +158,7 @@ pipeline "correct_accounts_without_metric_filter_for_vpc_changes" {
   title       = "Correct accounts without metric filter for VPC changes"
   description = "Send notifications for accounts without a metric filter for VPC changes."
 
-  tags = merge(local.cloudwatch_common_tags, { type = "internal" })
+  tags = merge(local.cloudwatch_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({

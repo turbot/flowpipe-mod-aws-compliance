@@ -3,7 +3,7 @@ pipeline "test_detect_and_correct_cloudtrail_trails_with_public_s3_bucket_update
   description = "Test detect CloudTrail trails with public S3 bucket and then skip or update S3 bucket public access block."
 
   tags = {
-    type = "test"
+    folder = "Tests"
   }
 
   param "conn" {
