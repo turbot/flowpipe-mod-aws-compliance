@@ -48,7 +48,7 @@ variable "iam_users_with_unused_access_key_45_days_default_action" {
 variable "iam_users_with_unused_access_key_45_days_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "deactivate_user_access_key_unused_45_days"]
+  default     = ["skip", "deactivate_access_key"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -294,9 +294,9 @@ pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
           success_msg = ""
           error_msg   = ""
         },
-        "deactivate_user_access_key_unused_45_days" = {
-          label        = "Deactivate user access key unused from 45 days or more"
-          value        = "deactivate_user_access_key_unused_45_days"
+        "deactivate_access_key" = {
+          label        = "Deactivate access key"
+          value        = "deactivate_access_key"
           style        = local.style_alert
           pipeline_ref = pipeline.deactivate_user_access_key
           pipeline_args = {

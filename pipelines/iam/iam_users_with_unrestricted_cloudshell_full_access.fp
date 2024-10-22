@@ -45,7 +45,7 @@ variable "iam_users_with_unrestricted_cloudshell_full_access_default_action" {
 variable "iam_users_with_unrestricted_cloudshell_full_access_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "detach_user_cloudshell_full_access_policy"]
+  default     = ["skip", "detach_policy"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -259,7 +259,7 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected IAM user ${param.title} atttached with the policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess`."
+      detect_msg         = "Detected IAM user ${param.title} with atttached policy 'arn:aws:iam::aws:policy/AWSCloudShellFullAccess'."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -276,9 +276,9 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
           success_msg = ""
           error_msg   = ""
         },
-        "detach_user_cloudshell_full_access_policy" = {
-          label        = "Detach cloudshell full access policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM user ${param.title}"
-          value        = "detach_user_cloudshell_full_access_policy"
+        "detach_policy" = {
+          label        = "Detach policy"
+          value        = "detach_policy"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_user_policy
           pipeline_args = {
@@ -286,8 +286,8 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
             policy_arn  = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
             conn        = param.conn
           }
-          success_msg = "Detached policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM user ${param.title}."
-          error_msg   = "Error detaching policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from IAM user ${param.title}."
+          success_msg = "Detached policy 'arn:aws:iam::aws:policy/AWSCloudShellFullAccess' from IAM user ${param.title}."
+          error_msg   = "Error detaching policy 'arn:aws:iam::aws:policy/AWSCloudShellFullAccess' from IAM user ${param.title}."
         }
       }
     }

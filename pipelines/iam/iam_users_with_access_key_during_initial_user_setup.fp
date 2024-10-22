@@ -51,7 +51,7 @@ variable "iam_users_with_access_key_during_initial_user_setup_default_action" {
 variable "iam_users_with_access_key_during_initial_user_setup_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
-  default     = ["skip", "delete_access_key_created_during_initial_user_setup"]
+  default     = ["skip", "delete_access_key"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -290,9 +290,9 @@ pipeline "correct_one_iam_users_with_access_key_during_initial_user_setup" {
           success_msg = ""
           error_msg   = ""
         },
-        "delete_access_key_created_during_initial_user_setup" = {
-          label        = "Delete IAM user ${param.user_name} access key ${param.access_key_id} created during initial user setup"
-          value        = "delete_access_key_created_during_initial_user_setup"
+        "delete_access_key" = {
+          label        = "Delete access key"
+          value        = "delete_access_key"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.delete_iam_access_key
           pipeline_args = {

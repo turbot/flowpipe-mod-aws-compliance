@@ -66,8 +66,8 @@ pipeline "test_detect_and_correct_iam_users_with_unrestricted_cloudshell_full_ac
       account_id      = each.value.account_id
       conn            = connection.aws[each.value.conn]
       approvers       = []
-      default_action  = "detach_user_cloudshell_full_access_policy"
-      enabled_actions = ["detach_user_cloudshell_full_access_policy"]
+      default_action  = "detach_policy"
+      enabled_actions = ["detach_policy"]
     }
   }
 
