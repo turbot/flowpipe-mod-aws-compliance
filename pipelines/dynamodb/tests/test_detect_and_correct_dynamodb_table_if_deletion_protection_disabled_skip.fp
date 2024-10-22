@@ -21,7 +21,7 @@ pipeline "test_detect_and_correct_dynamodb_table_if_deletion_protection_disabled
 
   param "table_name" {
     type        = string
-    description = "The name of the bucket."
+    description = "The name of the table."
     default     = "flowpipe-test-${uuid()}"
   }
 

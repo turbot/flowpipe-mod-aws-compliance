@@ -94,10 +94,9 @@ pipeline "correct_iam_root_users_with_mfa_disabled" {
 
   param "items" {
     type = list(object({
-      title       = string
-      bucket_name = string
-      region      = string
-      conn        = string
+      title      = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }

@@ -2,7 +2,6 @@ locals {
   efs_file_systems_with_encryption_at_rest_disabled_query = <<-EOQ
     select
       concat(name, ' [', account_id, '/', region, ']') as title,
-      name as file_system_name,
       region,
       sp_connection_name as conn
     from
@@ -97,10 +96,9 @@ pipeline "correct_efs_file_systems_with_encryption_at_rest_disabled" {
 
   param "items" {
     type = list(object({
-      title       = string
-      bucket_name = string
-      region      = string
-      conn        = string
+      title  = string
+      region = string
+      conn   = string
     }))
     description = local.description_items
   }

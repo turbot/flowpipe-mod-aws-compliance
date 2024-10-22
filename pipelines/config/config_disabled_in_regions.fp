@@ -112,10 +112,9 @@ pipeline "correct_config_disabled_in_regions" {
 
   param "items" {
     type = list(object({
-      title       = string
-      bucket_name = string
-      region      = string
-      conn        = string
+      title  = string
+      region = string
+      conn   = string
     }))
     description = local.description_items
   }
