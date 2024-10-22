@@ -296,7 +296,7 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
           error_msg   = "Error skipping S3 bucket ${param.bucket_name} without SSL enforcement."
         },
         "enforce_ssl" = {
-          label        = "Add bucket policy statement to enforce SSL to S3 bucket ${param.bucket_name}"
+          label        = "Add bucket policy statement to enforce SSL"
           value        = "enforce_ssl"
           style        = local.style_alert
           pipeline_ref = pipeline.put_s3_bucket_policy
