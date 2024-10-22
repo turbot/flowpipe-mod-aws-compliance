@@ -105,7 +105,6 @@ pipeline "correct_s3_buckets_with_macie_disabled" {
   param "items" {
     type = list(object({
       title       = string
-      bucket_name = string
       region      = string
       conn        = string
     }))
