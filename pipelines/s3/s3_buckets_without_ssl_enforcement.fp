@@ -306,8 +306,8 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
             send     = param.notification_level == local.level_verbose
             text     = "Skipped S3 bucket ${param.bucket_name} without SSL enforcement."
           }
-          success_msg = "Skipped S3 bucket ${param.bucket_name} without SSL enforcement."
-          error_msg   = "Error skipping S3 bucket ${param.bucket_name} without SSL enforcement."
+          success_msg = ""
+          error_msg   = ""
         },
         "enforce_ssl" = {
           label        = "Add bucket policy statement to enforce SSL"

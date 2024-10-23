@@ -284,8 +284,8 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
             send     = param.notification_level == local.level_info
             text     = "Skipped EC2 classic load balancer ${param.title}."
           }
-          success_msg = "Skipped EC2 classic load balancer ${param.title} with connection draining disabled."
-          error_msg   = "Error skipping EC2 classic load balancer ${param.title} with connection draining disabled."
+          success_msg = ""
+          error_msg   = ""
         },
         "enable_connection_draining" = {
           label        = "Enable Connection Draining"
