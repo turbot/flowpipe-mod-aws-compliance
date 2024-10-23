@@ -559,8 +559,8 @@ pipeline "create_vpc_flowlog" {
     }
   }
 
-  step "pipeline" "create_vpcs_flow_logs" {
-    pipeline = aws.pipeline.create_vpcs_flow_logs
+  step "pipeline" "create_vpc_flow_logs" {
+    pipeline = aws.pipeline.create_vpc_flow_logs
     args = {
       region         = param.region
       conn           = param.conn
