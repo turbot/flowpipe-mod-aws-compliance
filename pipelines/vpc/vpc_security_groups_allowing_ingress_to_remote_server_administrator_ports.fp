@@ -297,7 +297,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group ${param.group_id} with rule ${param.security_group_rule_id} allowing ingress on sensitive ports (e.g., SSH on port 22, RDP on port 3389) from either 0.0.0.0/0 (IPv4) or ::/0 (IPv6). These configurations are dangerous as they allow unrestricted remote access, increasing the risk of unauthorized access and potential security breaches over both IPv4 and IPv6."
+      detect_msg         = "Detected VPC security group ${param.group_id} with rule ${param.security_group_rule_id} allowing ingress on sensitive ports (e.g., SSH on port 22, RDP on port 3389) from either 0.0.0.0/0 (IPv4) or ::/0 (IPv6)."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {

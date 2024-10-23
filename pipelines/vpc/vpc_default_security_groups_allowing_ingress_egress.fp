@@ -292,7 +292,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected default VPC security group ${param.title} with security group rule ${param.security_group_rule_id} allowing ingress egress."
+      detect_msg         = "Detected default VPC security group ${param.title} with security group rule ${param.security_group_rule_id} allowing ingress and egress traffic."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {

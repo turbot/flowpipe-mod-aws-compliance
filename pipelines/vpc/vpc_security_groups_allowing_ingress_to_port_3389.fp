@@ -336,22 +336,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = <<-EOT
-      Detected VPC security group ingress rule ${param.security_group_rule_id} in ${param.title} allowing ingress on port 3389 from 0.0.0.0/0 or ::/0.
-
-      Rule info:
-        - Security Group ID: ${param.group_id}
-        - Rule ID: ${param.security_group_rule_id}
-        - Protocol: ${param.ip_protocol}
-        - Port Range: ${param.from_port}-${param.to_port}
-        - CIDR: ${coalesce(param.cidr_ipv4, param.cidr_ipv6)}
-      EOT
-      /*
-      AWS CLI command to describe the rule:
-      aws ec2 describe-security-group-rules --filter "Name=security-group-rule-id,Values=${param.security_group_rule_id}" --region ${param.region}
-      EOT
-      */
-      //detect_msg         = "Detected VPC security group ingress rule ${param.security_group_rule_id} in ${param.title} allowing ingress on port 3389 from 0.0.0.0/0."
+      detect_msg         = "Detected VPC security group rule ${param.security_group_rule_id} in ${param.title} allowing ingress on protocol ${param.ip_protocol} and ports ${param.from_port}-${param.to_port} from ${coalesce(param.cidr_ipv4, param.cidr_ipv6)}."
       default_action  = param.default_action
       enabled_actions = param.enabled_actions
       actions = {
