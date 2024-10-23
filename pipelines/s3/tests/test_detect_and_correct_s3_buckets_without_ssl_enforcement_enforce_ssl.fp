@@ -1,5 +1,5 @@
 pipeline "test_detect_and_correct_s3_buckets_without_ssl_enforcement_enforce_ssl" {
-  title       = "Test detect and correct S3 buckets without SSL enforcement - enforce SSL"
+  title       = "Test detect and correct S3 buckets without SSL enforcement"
   description = "Test the enforce SSL action for S3 buckets."
   tags = {
     folder = "Tests"

@@ -88,7 +88,7 @@ variable "kms_master_key_id" {
 }
 
 trigger "query" "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
-  title       = "Detect & correct S3 Buckets With Default Encryption Disabled"
+  title       = "Detect & correct S3 buckets with default encryption disabled"
   description = "Detect S3 buckets with default encryption disabled and then skip or enable default encryption."
   tags        = local.s3_common_tags
 
@@ -106,7 +106,7 @@ trigger "query" "detect_and_correct_s3_buckets_with_default_encryption_disabled"
 }
 
 pipeline "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
-  title       = "Detect & correct S3 Buckets With Default Encryption Disabled"
+  title       = "Detect & correct S3 buckets with default encryption disabled"
   description = "Detect S3 buckets with default encryption disabled and then skip or enable default encryption."
   tags        = merge(local.s3_common_tags, { recommended = "true" })
 
@@ -160,16 +160,13 @@ pipeline "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
       items              = step.query.detect.rows
       notifier           = param.notifier
       notification_level = param.notification_level
-      approvers          = param.approvers
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
     }
   }
 }
 
 pipeline "correct_s3_buckets_with_default_encryption_disabled" {
-  title       = "Correct S3 Buckets With Default Encryption Disabled"
-  description = "Executes corrective actions on S3 buckets with default encryption disabled."
+  title       = "Correct S3 buckets with default encryption disabled"
+  description = "Send notifications for S3 buckets with default encryption disabled."
   tags        = merge(local.s3_common_tags, { folder = "Internal" })
 
   param "items" {
@@ -180,24 +177,6 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
       conn        = string
     }))
     description = local.description_items
-  }
-
-  param "sse_algorithm" {
-    type        = string
-    description = "The server-side encryption algorithm to use for the bucket."
-    default     = var.sse_algorithm
-  }
-
-  param "bucket_key_enabled" {
-    type        = bool
-    description = "Specifies whether Amazon S3 should use an S3 Bucket Key with server-side encryption using AWS KMS (SSE-KMS)."
-    default     = var.bucket_key_enabled
-  }
-
-  param "kms_master_key_id" {
-    type        = string
-    description = "The KMS master key ID to use for the bucket."
-    default     = var.kms_master_key_id
   }
 
   param "notifier" {
@@ -239,24 +218,11 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
     text     = "Detected ${length(param.items)} S3 bucket(s) with default encryption disabled."
   }
 
-  step "pipeline" "correct_item" {
-    for_each        = { for item in param.items : item.bucket_name => item }
-    max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_s3_bucket_with_default_encryption_disabled
-    args = {
-      title              = each.value.title
-      bucket_name        = each.value.bucket_name
-      region             = each.value.region
-      kms_master_key_id  = param.kms_master_key_id
-      bucket_key_enabled = param.bucket_key_enabled
-      sse_algorithm      = param.sse_algorithm
-      conn               = connection.aws[each.value.conn]
-      notifier           = param.notifier
-      notification_level = param.notification_level
-      approvers          = param.approvers
-      default_action     = param.default_action
-      enabled_actions    = param.enabled_actions
-    }
+  step "message" "notify_items" {
+    if       = var.notification_level == local.level_info
+    for_each = param.items
+    notifier = param.notifier
+    text     = "Detected S3 bucket ${each.value.title} with default encryption disabled."
   }
 }
 
