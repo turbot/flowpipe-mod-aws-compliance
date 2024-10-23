@@ -287,7 +287,7 @@ pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
             send     = param.notification_level == local.level_verbose
             text     = "Skipped DynamoDB table ${param.title} with deletion protection disabled."
           }
-          success_msg = "Skipped DynamoDB table ${param.title} with deletion protection disabled."
+          success_msg = ""
           error_msg   = ""
         },
         "enable_deletion_protection" = {
