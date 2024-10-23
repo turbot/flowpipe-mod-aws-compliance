@@ -33,11 +33,11 @@ locals {
       f.resource_id is null;
   EOQ
 
-  vpc_without_flow_logs_default_action_enum  = ["notify", "skip", "create_flow_log"]
-  vpc_without_flow_logs_enabled_actions_enum = ["skip", "create_flow_log"]
+  vpcs_without_flow_logs_default_action_enum  = ["notify", "skip", "create_flow_log"]
+  vpcs_without_flow_logs_enabled_actions_enum = ["skip", "create_flow_log"]
 }
 
-variable "vpc_without_flow_logs_trigger_enabled" {
+variable "vpcs_without_flow_logs_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
@@ -47,7 +47,7 @@ variable "vpc_without_flow_logs_trigger_enabled" {
   }
 }
 
-variable "vpc_without_flow_logs_trigger_schedule" {
+variable "vpcs_without_flow_logs_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
@@ -57,7 +57,7 @@ variable "vpc_without_flow_logs_trigger_schedule" {
   }
 }
 
-variable "vpc_without_flow_logs_role_policy" {
+variable "vpcs_without_flow_logs_role_policy" {
   type        = string
   description = "The default IAM role policy to apply"
   default     = <<-EOF
@@ -81,7 +81,7 @@ variable "vpc_without_flow_logs_role_policy" {
   }
 }
 
-variable "vpc_without_flow_logs_iam_policy" {
+variable "vpcs_without_flow_logs_iam_policy" {
   type        = string
   description = "The default IAM policy to apply"
   default     = <<-EOF
@@ -110,7 +110,7 @@ variable "vpc_without_flow_logs_iam_policy" {
   }
 }
 
-variable "vpc_without_flow_logs_role_name" {
+variable "vpcs_without_flow_logs_role_name" {
   type        = string
   description = "IAM role for AWS VPC Flow Log"
   default     = "FlowpipeRemediateEnableVPCFlowLogIAMRole"
@@ -119,7 +119,7 @@ variable "vpc_without_flow_logs_role_name" {
   }
 }
 
-variable "vpc_without_flow_logs_iam_policy_name" {
+variable "vpcs_without_flow_logs_iam_policy_name" {
   type        = string
   description = "IAM policy for AWS VPC Flow Log"
   default     = "FlowpipeRemediateEnableVPCFlowLogIAMPolicy"
@@ -128,7 +128,7 @@ variable "vpc_without_flow_logs_iam_policy_name" {
   }
 }
 
-variable "vpc_without_flow_logs_cloudwatch_log_group_name" {
+variable "vpcs_without_flow_logs_cloudwatch_log_group_name" {
   type        = string
   description = "Cloud Watch Log name"
   default     = "FlowpipeRemediateEnableVPCFlowLogCloudWatchLogGroup"
@@ -137,7 +137,7 @@ variable "vpc_without_flow_logs_cloudwatch_log_group_name" {
   }
 }
 
-variable "vpc_without_flow_logs_default_action" {
+variable "vpcs_without_flow_logs_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
@@ -148,7 +148,7 @@ variable "vpc_without_flow_logs_default_action" {
   }
 }
 
-variable "vpc_without_flow_logs_enabled_actions" {
+variable "vpcs_without_flow_logs_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "create_flow_log"]
@@ -164,8 +164,8 @@ trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
   description = "Detect VPCs without flow logs and then skip or create flow logs."
   tags        = local.vpc_common_tags
 
-  enabled  = var.vpc_without_flow_logs_trigger_enabled
-  schedule = var.vpc_without_flow_logs_trigger_schedule
+  enabled  = var.vpcs_without_flow_logs_trigger_enabled
+  schedule = var.vpcs_without_flow_logs_trigger_schedule
   database = var.database
   sql      = local.vpcs_without_flow_logs_query
 
@@ -210,15 +210,15 @@ pipeline "detect_and_correct_vpcs_without_flow_logs" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.vpc_without_flow_logs_default_action
-    enum        = local.vpc_without_flow_logs_default_action_enum
+    default     = var.vpcs_without_flow_logs_default_action
+    enum        = local.vpcs_without_flow_logs_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.vpc_without_flow_logs_enabled_actions
-    enum        = local.vpc_without_flow_logs_enabled_actions_enum
+    default     = var.vpcs_without_flow_logs_enabled_actions
+    enum        = local.vpcs_without_flow_logs_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -276,15 +276,15 @@ pipeline "correct_vpcs_without_flow_logs" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.vpc_without_flow_logs_default_action
-    enum        = local.vpc_without_flow_logs_default_action_enum
+    default     = var.vpcs_without_flow_logs_default_action
+    enum        = local.vpcs_without_flow_logs_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.vpc_without_flow_logs_enabled_actions
-    enum        = local.vpc_without_flow_logs_enabled_actions_enum
+    default     = var.vpcs_without_flow_logs_enabled_actions
+    enum        = local.vpcs_without_flow_logs_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -363,15 +363,15 @@ pipeline "correct_one_vpc_without_flowlog" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.vpc_without_flow_logs_default_action
-    enum        = local.vpc_without_flow_logs_default_action_enum
+    default     = var.vpcs_without_flow_logs_default_action
+    enum        = local.vpcs_without_flow_logs_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.vpc_without_flow_logs_enabled_actions
-    enum        = local.vpc_without_flow_logs_enabled_actions_enum
+    default     = var.vpcs_without_flow_logs_enabled_actions
+    enum        = local.vpcs_without_flow_logs_enabled_actions_enum
   }
 
   step "pipeline" "respond" {
@@ -435,7 +435,7 @@ pipeline "create_iam_role_and_policy" {
       from
         aws_iam_role
       where
-        name = '${var.vpc_without_flow_logs_role_name}'
+        name = '${var.vpcs_without_flow_logs_role_name}'
     EOQ
   }
 
@@ -448,7 +448,7 @@ pipeline "create_iam_role_and_policy" {
       from
         aws_iam_policy
       where
-        name = '${var.vpc_without_flow_logs_iam_policy_name}'
+        name = '${var.vpcs_without_flow_logs_iam_policy_name}'
     EOQ
   }
 
@@ -456,8 +456,8 @@ pipeline "create_iam_role_and_policy" {
     if       = length(step.query.get_iam_role.rows) == 0
     pipeline = aws.pipeline.create_iam_role
     args = {
-      role_name                   = var.vpc_without_flow_logs_role_name
-      assume_role_policy_document = var.vpc_without_flow_logs_role_policy
+      role_name                   = var.vpcs_without_flow_logs_role_name
+      assume_role_policy_document = var.vpcs_without_flow_logs_role_policy
     }
   }
 
@@ -465,8 +465,8 @@ pipeline "create_iam_role_and_policy" {
     if       = length(step.query.get_iam_policy.rows) == 0
     pipeline = aws.pipeline.create_iam_policy
     args = {
-      policy_name     = var.vpc_without_flow_logs_iam_policy_name
-      policy_document = var.vpc_without_flow_logs_iam_policy
+      policy_name     = var.vpcs_without_flow_logs_iam_policy_name
+      policy_document = var.vpcs_without_flow_logs_iam_policy
     }
   }
 
@@ -474,7 +474,7 @@ pipeline "create_iam_role_and_policy" {
     if       = length(step.query.get_iam_policy.rows) == 0
     pipeline = aws.pipeline.attach_iam_role_policy
     args = {
-      role_name  = var.vpc_without_flow_logs_role_name
+      role_name  = var.vpcs_without_flow_logs_role_name
       policy_arn = step.pipeline.create_iam_policy.stdout.policy.Arn
     }
   }
@@ -510,7 +510,7 @@ pipeline "create_cloudwatch_log_group" {
       from
         aws_cloudwatch_log_group
       where
-        name = '${var.vpc_without_flow_logs_iam_policy_name}'
+        name = '${var.vpcs_without_flow_logs_iam_policy_name}'
     EOQ
   }
 
@@ -518,7 +518,7 @@ pipeline "create_cloudwatch_log_group" {
     if       = length(step.query.get_cloudwatch_log_group_name.rows) == 0
     pipeline = aws.pipeline.create_cloudwatch_log_group
     args = {
-      log_group_name = var.vpc_without_flow_logs_iam_policy_name
+      log_group_name = var.vpcs_without_flow_logs_iam_policy_name
       region         = param.region
     }
   }
@@ -559,13 +559,13 @@ pipeline "create_vpc_flowlog" {
     }
   }
 
-  step "pipeline" "create_vpc_flow_logs" {
-    pipeline = aws.pipeline.create_vpc_flow_logs
+  step "pipeline" "create_vpcs_flow_logs" {
+    pipeline = aws.pipeline.create_vpcs_flow_logs
     args = {
       region         = param.region
       conn           = param.conn
       vpc_id         = param.vpc_id
-      log_group_name = var.vpc_without_flow_logs_iam_policy_name
+      log_group_name = var.vpcs_without_flow_logs_iam_policy_name
       iam_role_arn   = step.pipeline.create_iam_role_and_policy.output.iam_role_arn
     }
   }
