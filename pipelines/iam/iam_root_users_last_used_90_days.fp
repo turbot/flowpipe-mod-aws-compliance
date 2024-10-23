@@ -40,7 +40,7 @@ variable "iam_root_users_last_used_90_days_trigger_schedule" {
 }
 
 trigger "query" "detect_and_correct_iam_root_users_last_used_90_days" {
-  title       = "Detect and correct IAM root users last used in 90 days or more"
+  title       = "Detect & correct IAM root users last used in 90 days or more"
   description = "Detect IAM root users last used in 90 days or more."
   tags          = local.iam_common_tags
 
@@ -58,7 +58,7 @@ trigger "query" "detect_and_correct_iam_root_users_last_used_90_days" {
 }
 
 pipeline "detect_and_correct_iam_root_users_last_used_90_days" {
-  title       = "Detect and correct IAM root users last used in 90 days or more"
+  title       = "Detect & correct IAM root users last used in 90 days or more"
   description = "Detect IAM root users last used in 90 days or more."
   tags          = local.iam_common_tags
 

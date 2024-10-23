@@ -69,7 +69,7 @@ variable "iam_access_analyzer_disabled_in_regions_analyzer_name" {
 }
 
 trigger "query" "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title       = "Detect and correct regions with IAM Access Analyzer disabled"
+  title       = "Detect & correct regions with IAM Access Analyzer disabled"
   description = "Detects regions with IAM Access Analyzer disabled and then enable them."
   tags        = local.iam_common_tags
 
@@ -87,7 +87,7 @@ trigger "query" "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
 }
 
 pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
-  title       = "Detect and correct regions with IAM Access Analyzer disabled"
+  title       = "Detect & correct regions with IAM Access Analyzer disabled"
   description = "Detects regions with IAM Access Analyzer disabled and then enable them."
   tags        = local.iam_common_tags
 
