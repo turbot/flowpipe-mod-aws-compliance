@@ -87,12 +87,20 @@ variable "accounts_without_alternate_security_contact_title" {
   type        = string
   description = "The title of the alternate contact."
   default     = ""
+
+  tags = {
+    folder = "Advanced/Account"
+  }
 }
 
 variable "accounts_without_alternate_security_contact_name" {
   type        = string
   description = "The name of the alternate contact."
   default     = ""
+
+  tags = {
+    folder = "Advanced/Account"
+  }
 }
 
 trigger "query" "detect_and_correct_accounts_without_alternate_security_contact" {

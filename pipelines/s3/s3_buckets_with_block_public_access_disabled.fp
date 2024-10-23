@@ -56,6 +56,10 @@ variable "s3_bucket_public_access_enabled_enabled_actions" {
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "block_public_access"]
   enum        = ["skip", "block_public_access"]
+
+  tags = {
+    folder = "Advanced/S3"
+  }
 }
 
 trigger "query" "detect_and_correct_s3_buckets_with_block_public_access_disabled" {

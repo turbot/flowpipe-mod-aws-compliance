@@ -32,30 +32,51 @@ locals {
     where
       f.resource_id is null;
   EOQ
+
+  vpcs_without_flow_logs_default_action_enum  = ["notify", "skip", "create_flow_log"]
+  vpcs_without_flow_logs_enabled_actions_enum = ["skip", "create_flow_log"]
 }
 
 variable "vpcs_without_flow_logs_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpcs_without_flow_logs_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpcs_without_flow_logs_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "create_flow_log"]
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 variable "vpcs_without_flow_logs_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "create_flow_log"]
+  enum        = ["skip", "create_flow_log"]
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
 }
 
 trigger "query" "detect_and_correct_vpcs_without_flow_logs" {
@@ -110,12 +131,14 @@ pipeline "detect_and_correct_vpcs_without_flow_logs" {
     type        = string
     description = local.description_default_action
     default     = var.vpcs_without_flow_logs_default_action
+    enum        = local.vpcs_without_flow_logs_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.vpcs_without_flow_logs_enabled_actions
+    enum        = local.vpcs_without_flow_logs_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -174,12 +197,14 @@ pipeline "correct_vpcs_without_flow_logs" {
     type        = string
     description = local.description_default_action
     default     = var.vpcs_without_flow_logs_default_action
+    enum        = local.vpcs_without_flow_logs_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.vpcs_without_flow_logs_enabled_actions
+    enum        = local.vpcs_without_flow_logs_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -259,12 +284,14 @@ pipeline "correct_one_vpc_without_flowlog" {
     type        = string
     description = local.description_default_action
     default     = var.vpcs_without_flow_logs_default_action
+    enum        = local.vpcs_without_flow_logs_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.vpcs_without_flow_logs_enabled_actions
+    enum        = local.vpcs_without_flow_logs_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

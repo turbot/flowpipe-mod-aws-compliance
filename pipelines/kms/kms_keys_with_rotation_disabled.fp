@@ -13,30 +13,51 @@ locals {
       and origin != 'EXTERNAL'
       and key_state not in ('PendingDeletion', 'Disabled');
   EOQ
+
+  kms_keys_with_rotation_disabled_default_action_enum  = ["notify", "skip", "enable_key_rotation"]
+  kms_keys_with_rotation_disabled_enabled_actions_enum = ["skip", "enable_key_rotation"]
 }
 
 variable "kms_keys_with_rotation_disabled_trigger_enabled" {
   type        = bool
   description = "If true, the trigger is enabled."
   default     = false
+
+  tags = {
+    folder = "Advanced/KMS"
+  }
 }
 
 variable "kms_keys_with_rotation_disabled_trigger_schedule" {
   type        = string
   description = "If the trigger is enabled, run it on this schedule."
   default     = "15m"
+
+  tags = {
+    folder = "Advanced/KMS"
+  }
 }
 
 variable "kms_keys_with_rotation_disabled_default_action" {
   type        = string
   description = "The default action to use for detected items."
-  default     = "skip"
+  default     = "notify"
+  enum        = ["notify", "skip", "enable_key_rotation"]
+
+  tags = {
+    folder = "Advanced/KMS"
+  }
 }
 
 variable "kms_keys_with_rotation_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_key_rotation"]
+  enum        = ["skip", "enable_key_rotation"]
+
+  tags = {
+    folder = "Advanced/KMS"
+  }
 }
 
 trigger "query" "detect_and_correct_kms_keys_with_rotation_disabled" {
@@ -91,12 +112,14 @@ pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.kms_keys_with_rotation_disabled_default_action
+    enum        = local.kms_keys_with_rotation_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.kms_keys_with_rotation_disabled_enabled_actions
+    enum        = local.kms_keys_with_rotation_disabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -154,12 +177,14 @@ pipeline "correct_kms_keys_with_rotation_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.kms_keys_with_rotation_disabled_default_action
+    enum        = local.kms_keys_with_rotation_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.kms_keys_with_rotation_disabled_enabled_actions
+    enum        = local.kms_keys_with_rotation_disabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -235,12 +260,14 @@ pipeline "correct_one_correct_kms_key_with_rotation_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.kms_keys_with_rotation_disabled_default_action
+    enum        = local.kms_keys_with_rotation_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.kms_keys_with_rotation_disabled_enabled_actions
+    enum        = local.kms_keys_with_rotation_disabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {
