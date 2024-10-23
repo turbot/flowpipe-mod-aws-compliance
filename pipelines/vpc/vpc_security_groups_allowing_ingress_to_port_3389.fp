@@ -112,7 +112,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_3389" {
   title       = "Detect & correct VPC security groups allowing ingress to port 3389"
-  description = "Detect security group rules that allow ingress from 0.0.0.0/0 to port 3389 and then skip or revoke security group rule."
+  description = "Detect security group rules that allow ingress from 0.0.0.0/0 or ::/0 to port 3389 and then skip or revoke security group rule."
   tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {

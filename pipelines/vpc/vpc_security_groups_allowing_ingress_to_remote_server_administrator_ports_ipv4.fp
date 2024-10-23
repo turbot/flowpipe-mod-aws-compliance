@@ -111,7 +111,7 @@ variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_p
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4" {
   title       = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv4"
-  description = "Detect VPC Security group rules that allow ingress from 0.0.0.0/0 to remote server administration ports IPv4 and then skip or revoke the security security group rules."
+  description = "Detect VPC Security group rules that allow ingress from 0.0.0.0/0  or ::/0 to remote server administration ports IPv4 and then skip or revoke the security security group rules."
   tags        = local.vpc_common_tags
 
   enabled  = var.vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4_trigger_enabled
@@ -129,7 +129,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remo
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4" {
   title       = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv4"
-  description = "Detect VPC Security group rules that allow ingress from 0.0.0.0/0 to remote server administration ports IPv4 and then skip or revoke the security security group rules."
+  description = "Detect VPC Security group rules that allow ingress from 0.0.0.0/0 or ::/0 to remote server administration ports IPv4 and then skip or revoke the security security group rules."
   tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
@@ -246,7 +246,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from 0.0.0.0/0."
+    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from 0.0.0.0/0 or ::/0."
   }
 
   step "pipeline" "correct_item" {
