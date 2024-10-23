@@ -1,0 +1,8 @@
+# Core options
+approvers          = [notifier.default]
+notifier           = notifier.default
+notification_level = "info"
+
+# Advanced options
+database        = connection.steampipe.default
+max_concurrency = 1
