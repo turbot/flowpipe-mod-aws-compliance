@@ -97,7 +97,7 @@ variable "accounts_without_metric_filter_for_organization_changes_trigger_schedu
 }
 
 trigger "query" "detect_and_correct_accounts_without_metric_filter_for_organization_changes" {
-  title       = "Detect & correct CloudWatch log groups without metric filter for organizationy changes"
+  title       = "Detect & correct CloudWatch log groups without metric filter for organization changes"
   description = "Detect CloudWatch log groups without metric filter for organization changes and then enable organization changes metric filter."
 
   tags = local.cloudwatch_common_tags
