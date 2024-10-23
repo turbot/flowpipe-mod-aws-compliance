@@ -60,36 +60,6 @@ Install the dependencies:
 flowpipe mod install
 ```
 
-### Configure Variables
-
-Several pipelines have [input variables](https://flowpipe.io/docs/build/mod-variables#input-variables) that can be configured to better match your environment and requirements.
-
-Each variable has a default defined in its source file, e.g, `s3/s3_buckets_with_default_encryption_disabled.fp` (or `variables.fp` for more generic variables), but these can be overwritten in several ways:
-
-The easiest approach is to setup your vars file, starting with the sample:
-
-```sh
-cp compliance.fpvars.example compliance.fpvars
-vi compliance.fpvars
-
-flowpipe pipeline run detect_and_correct_s3_buckets_with_default_encryption_disabled --var-file=compliance.fpvars
-```
-
-Alternatively, you can pass variables on the command line:
-
-```sh
-flowpipe pipeline run detect_and_correct_s3_buckets_with_default_encryption_disabled --var=kms_master_key_id="1234abcd-12ab-34cd-56ef-1234567890ab"
-```
-
-Or through environment variables:
-
-```sh
-export kms_master_key_id="1234abcd-12ab-34cd-56ef-1234567890ab"
-flowpipe pipeline run detect_and_correct_s3_buckets_with_default_encryption_disabled
-```
-
-For more information, please see [Passing Input Variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
-
 ### Running Detect and Correct Pipelines
 
 To run your first detection, you'll need to ensure your Steampipe server is up and running:
@@ -107,30 +77,109 @@ flowpipe pipeline list | grep "detect_and_correct"
 Then run your chosen pipeline:
 
 ```sh
-flowpipe pipeline run detect_and_correct_ebs_snapshots_exceeding_max_age
+flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled
 ```
 
-By default the above approach would find the relevant resources and then send a message to your configured [notifier](https://flowpipe.io/docs/reference/config-files/notifier).
+This will then run the pipeline and depending on your configured running mode; perform the relevant action(s), there are 3 running modes:
+- Wizard
+- Notify
+- Automatic
 
-However;  you can request via an [Input Step](https://flowpipe.io/docs/build/input) a corrective action to run against each detection result; this behavior is achieved by setting `approvers` either as a variable or for a one-off approach, by passing `approvers` as an argument.
+#### Wizard
 
-> Note: This approach requires running `flowpipe server` as it uses an `input` step.
+This is the `default` running mode, allowing for a hands-on approach to approving changes to resources by prompting for [input](https://flowpipe.io/docs/build/input) for each detected resource.
+
+Whilst the out of the box default is to run the workflow directly in the terminal. You can use Flowpipe [server](https://flowpipe.io/docs/run/server) and [external integrations](https://flowpipe.io/docs/build/input#create-an-integration) to prompt in `http`, `slack`, `teams`, etc.
+
+#### Notify
+
+This mode as the name implies is used purely to report detections via notifications either directly to your terminal when running in client mode or via another configured [notifier](https://flowpipe.io/docs/reference/config-files/notifier) when running in server mode for each detected resource.
+
+To run in `notify` mode, you will need to set the `approvers` variable to an empty list `[]` and ensure the resource-specific `default_action` variable is set to `notify`, either in your `flowpipe.fpvars` file:
+
+```hcl
+approvers = []
+s3_buckets_with_block_public_access_disabled_default_action = "notify"
+```
+
+or pass the `approvers` and `default_action` arguments on the command-line.
 
 ```sh
-flowpipe pipeline run detect_and_correct_ebs_snapshots_exceeding_max_age --host local --arg='approvers=["default"]'
+flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled --arg='default_action=notify' --arg='approvers=[]'
 ```
 
-If you're happy to just apply the same action against all detected items, you can apply them without the `input` step by overriding the `default_action` argument (or the detection specific variable).
+#### Automatic
+
+This behavior allows for a hands-off approach to remediating resources.
+
+To run in `automatic` mode, you will need to set the `approvers` variable to an empty list `[]` and the the resource-specific `default_action` variable to one of the available options in your `flowpipe.fpvars` file:
+
+```hcl
+approvers = []
+s3_buckets_with_block_public_access_disabled_default_action = "block_public_access"
+```
+
+or pass the `approvers` and `default_action` argument on the command-line.
 
 ```sh
-flowpipe pipeline run detect_and_correct_s3_buckets_with_default_encryption_disabled --arg='default_action="enable_default_encryption"'
+flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled --arg='approvers=[] --arg='default_action=block_public_access'
 ```
 
-However; if you have configured a non-empty list for your `approvers` variable, you will need to override it as below:
+To further enhance this approach, you can enable the pipelines corresponding [query trigger](#running-query-triggers) to run completely hands-off.
+
+### Running Query Triggers
+
+> Note: Query triggers require Flowpipe running in [server](https://flowpipe.io/docs/run/server) mode.
+
+Each `detect_and_correct` pipeline comes with a corresponding [Query Trigger](https://flowpipe.io/docs/flowpipe-hcl/trigger/query), these are _disabled_ by default allowing for you to _enable_ and _schedule_ them as desired.
+
+Let's begin by looking at how to set-up a Query Trigger to automatically resolve our S3 buckets that do not block public access.
+
+Firsty, we need to update our `flowpipe.fpvars` file to add or update the following variables - if we want to run our remediation `hourly` and automatically `apply` the corrections:
+
+```hcl
+s3_buckets_with_block_public_access_disabled_trigger_enabled  = true
+s3_buckets_with_block_public_access_disabled_trigger_schedule = "1h"
+s3_buckets_with_block_public_access_disabled_default_action   = "block_public_access"
+```
+
+Now we'll need to start up our Flowpipe server:
 
 ```sh
-flowpipe pipeline run flowpipe pipeline run detect_and_correct_s3_buckets_with_default_encryption_disabled --arg='default_action="enable_default_encryption"' --arg='approvers=[]'
+flowpipe server
 ```
+
+This will run every hour and detect S3 buckets that do not block public access and apply the corrections without further interaction!
+
+### Configure Variables
+
+Several pipelines have [input variables](https://flowpipe.io/docs/build/mod-variables#input-variables) that can be configured to better match your environment and requirements.
+
+Each variable has a default defined in its source file, e.g, `s3/s3_buckets_with_default_encryption_disabled.fp` (or `variables.fp` for more generic variables), but these can be overwritten in several ways:
+
+The easiest approach is to setup your `flowpipe.fpvars` file, starting with the sample:
+
+```sh
+cp flowpipe.fpvars.example flowpipe.fpvars
+vi flowpipe.fpvars
+
+flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled
+```
+
+Alternatively, you can pass variables on the command line:
+
+```sh
+flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled --var notifier=notifier.default
+```
+
+Or through environment variables:
+
+```sh
+export FP_VAR_notifier="notifier.default"
+flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled
+```
+
+For more information, please see [Passing Input Variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
 
 Finally, each detection pipeline has a corresponding [Query Trigger](https://flowpipe.io/docs/flowpipe-hcl/trigger/query), these are disabled by default allowing for you to configure only those which are required, see the [docs](https://hub.flowpipe.io/mods/turbot/aws_compliance/triggers) for more information.
 
