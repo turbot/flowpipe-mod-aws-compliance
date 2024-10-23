@@ -54,7 +54,8 @@ trigger "query" "detect_and_correct_iam_users_with_console_access_mfa_disabled" 
 pipeline "detect_and_correct_iam_users_with_console_access_mfa_disabled" {
   title       = "Detect & correct IAM users with console access MFA disabled"
   description = "Detect IAM users with console access MFA disabled."
-  tags        = local.iam_common_tags
+
+  tags = merge(local.iam_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe

@@ -81,6 +81,7 @@ pipeline "detect_and_correct_ec2_instances_with_imdsv1_enabled" {
   title       = "Detect & correct EC2 instances with IMDSv1 enabled"
   description = "Detect EC2 instances and disable IMDSv1."
 
+  tags = merge(local.ec2_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe

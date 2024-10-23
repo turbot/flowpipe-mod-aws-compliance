@@ -81,7 +81,8 @@ trigger "query" "detect_and_correct_kms_keys_with_rotation_disabled" {
 pipeline "detect_and_correct_kms_keys_with_rotation_disabled" {
   title       = "Detect & correct KMS keys with rotation disabled"
   description = "Detect KMS keys with rotation disabled and then enable rotation."
-  tags        = local.kms_common_tags
+
+  tags = merge(local.kms_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe

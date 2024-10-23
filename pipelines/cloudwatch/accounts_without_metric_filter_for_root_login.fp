@@ -119,7 +119,7 @@ pipeline "detect_and_correct_accounts_without_metric_filter_for_root_login" {
   title       = "Detect & correct accounts without metric filter for root login"
   description = "Detects accounts without a metric filter for root login."
 
-  tags = merge(local.cloudwatch_common_tags, { recommended = "true" })
+  tags = local.cloudwatch_common_tags
 
   param "database" {
     type        = connection.steampipe
