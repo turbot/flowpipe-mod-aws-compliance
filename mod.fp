@@ -3,6 +3,7 @@ mod "aws_compliance" {
   description   = "Run pipelines to detect and correct AWS resources that are non-compliant."
   color         = "#FF9900"
   documentation = file("./README.md")
+  database      = var.database
   icon          = "/images/mods/turbot/aws-compliance.svg"
   categories    = ["aws", "compliance", "public cloud", "standard"]
 
