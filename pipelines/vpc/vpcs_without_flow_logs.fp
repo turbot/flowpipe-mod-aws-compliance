@@ -57,6 +57,86 @@ variable "vpc_without_flow_logs_trigger_schedule" {
   }
 }
 
+variable "vpc_without_flow_logs_role_policy" {
+  type        = string
+  description = "The default IAM role policy to apply"
+  default     = <<-EOF
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "test",
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "ec2.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    }
+  EOF
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
+}
+
+variable "vpc_without_flow_logs_iam_policy" {
+  type        = string
+  description = "The default IAM policy to apply"
+  default     = <<-EOF
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:DescribeLogGroups",
+            "logs:DescribeLogStreams",
+            "logs:PutLogEvents",
+            "logs:GetLogEvents",
+            "logs:FilterLogEvents"
+          ],
+          "Resource": "*"
+        }
+      ]
+    }
+  EOF
+
+  tags = {
+    folder = "Advanced/VPC"
+  }
+}
+
+variable "vpc_without_flow_logs_role_name" {
+  type        = string
+  description = "IAM role for AWS VPC Flow Log"
+  default     = "FlowpipeRemediateEnableVPCFlowLogIAMRole"
+  tags = {
+    folder = "Advanced/VPC"
+  }
+}
+
+variable "vpc_without_flow_logs_iam_policy_name" {
+  type        = string
+  description = "IAM policy for AWS VPC Flow Log"
+  default     = "FlowpipeRemediateEnableVPCFlowLogIAMPolicy"
+  tags = {
+    folder = "Advanced/VPC"
+  }
+}
+
+variable "vpc_without_flow_logs_cloudwatch_log_group_name" {
+  type        = string
+  description = "Cloud Watch Log name"
+  default     = "FlowpipeRemediateEnableVPCFlowLogCloudWatchLogGroup"
+  tags = {
+    folder = "Advanced/VPC"
+  }
+}
+
 variable "vpc_without_flow_logs_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
@@ -335,86 +415,6 @@ pipeline "correct_one_vpc_without_flowlog" {
   }
 }
 
-variable "vpc_flow_log_role_policy" {
-  type        = string
-  description = "The default IAM role policy to apply"
-  default     = <<-EOF
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Sid": "test",
-          "Effect": "Allow",
-          "Principal": {
-            "Service": "ec2.amazonaws.com"
-          },
-          "Action": "sts:AssumeRole"
-        }
-      ]
-    }
-  EOF
-
-  tags = {
-    folder = "Advanced/VPC"
-  }
-}
-
-variable "vpc_flow_log_iam_policy" {
-  type        = string
-  description = "The default IAM policy to apply"
-  default     = <<-EOF
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Action": [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:DescribeLogGroups",
-            "logs:DescribeLogStreams",
-            "logs:PutLogEvents",
-            "logs:GetLogEvents",
-            "logs:FilterLogEvents"
-          ],
-          "Resource": "*"
-        }
-      ]
-    }
-  EOF
-
-  tags = {
-    folder = "Advanced/VPC"
-  }
-}
-
-variable "vpc_flow_log_role_name" {
-  type        = string
-  description = "IAM role for AWS VPC Flow Log"
-  default     = "FlowpipeRemediateEnableVPCFlowLogIAMRole"
-  tags = {
-    folder = "Advanced/VPC"
-  }
-}
-
-variable "vpc_flow_log_iam_policy_name" {
-  type        = string
-  description = "IAM policy for AWS VPC Flow Log"
-  default     = "FlowpipeRemediateEnableVPCFlowLogIAMPolicy"
-  tags = {
-    folder = "Advanced/VPC"
-  }
-}
-
-variable "vpc_cloudwatch_log_group_name" {
-  type        = string
-  description = "Cloud Watch Log name"
-  default     = "FlowpipeRemediateEnableVPCFlowLogCloudWatchLogGroup"
-  tags = {
-    folder = "Advanced/VPC"
-  }
-}
-
 pipeline "create_iam_role_and_policy" {
   title       = "Create IAM role and policy"
   description = "Create IAM role and policy."
@@ -435,7 +435,7 @@ pipeline "create_iam_role_and_policy" {
       from
         aws_iam_role
       where
-        name = '${var.vpc_flow_log_role_name}'
+        name = '${var.vpc_without_flow_logs_role_name}'
     EOQ
   }
 
@@ -448,7 +448,7 @@ pipeline "create_iam_role_and_policy" {
       from
         aws_iam_policy
       where
-        name = '${var.vpc_flow_log_iam_policy_name}'
+        name = '${var.vpc_without_flow_logs_iam_policy_name}'
     EOQ
   }
 
@@ -456,8 +456,8 @@ pipeline "create_iam_role_and_policy" {
     if       = length(step.query.get_iam_role.rows) == 0
     pipeline = aws.pipeline.create_iam_role
     args = {
-      role_name                   = var.vpc_flow_log_role_name
-      assume_role_policy_document = var.vpc_flow_log_role_policy
+      role_name                   = var.vpc_without_flow_logs_role_name
+      assume_role_policy_document = var.vpc_without_flow_logs_role_policy
     }
   }
 
@@ -465,8 +465,8 @@ pipeline "create_iam_role_and_policy" {
     if       = length(step.query.get_iam_policy.rows) == 0
     pipeline = aws.pipeline.create_iam_policy
     args = {
-      policy_name     = var.vpc_flow_log_iam_policy_name
-      policy_document = var.vpc_flow_log_iam_policy
+      policy_name     = var.vpc_without_flow_logs_iam_policy_name
+      policy_document = var.vpc_without_flow_logs_iam_policy
     }
   }
 
@@ -474,7 +474,7 @@ pipeline "create_iam_role_and_policy" {
     if       = length(step.query.get_iam_policy.rows) == 0
     pipeline = aws.pipeline.attach_iam_role_policy
     args = {
-      role_name  = var.vpc_flow_log_role_name
+      role_name  = var.vpc_without_flow_logs_role_name
       policy_arn = step.pipeline.create_iam_policy.stdout.policy.Arn
     }
   }
@@ -510,7 +510,7 @@ pipeline "create_cloudwatch_log_group" {
       from
         aws_cloudwatch_log_group
       where
-        name = '${var.vpc_flow_log_iam_policy_name}'
+        name = '${var.vpc_without_flow_logs_iam_policy_name}'
     EOQ
   }
 
@@ -518,7 +518,7 @@ pipeline "create_cloudwatch_log_group" {
     if       = length(step.query.get_cloudwatch_log_group_name.rows) == 0
     pipeline = aws.pipeline.create_cloudwatch_log_group
     args = {
-      log_group_name = var.vpc_flow_log_iam_policy_name
+      log_group_name = var.vpc_without_flow_logs_iam_policy_name
       region         = param.region
     }
   }
@@ -565,7 +565,7 @@ pipeline "create_vpc_flowlog" {
       region         = param.region
       conn           = param.conn
       vpc_id         = param.vpc_id
-      log_group_name = var.vpc_flow_log_iam_policy_name
+      log_group_name = var.vpc_without_flow_logs_iam_policy_name
       iam_role_arn   = step.pipeline.create_iam_role_and_policy.output.iam_role_arn
     }
   }
