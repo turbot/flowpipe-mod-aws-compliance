@@ -72,7 +72,7 @@ variable "vpc_default_security_groups_allowing_ingress_egress_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress" {
-  title       = "Detect & correct default VPC Security groups allowing ingress egress"
+  title       = "Detect & correct default VPC security groups allowing ingress egress"
   description = "Detect default Security group rules that allow both incoming and outgoing internet traffic and then skip or revoke the security group rule."
   tags        = local.vpc_common_tags
 
@@ -90,7 +90,7 @@ trigger "query" "detect_and_correct_vpc_default_security_groups_allowing_ingress
 }
 
 pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress" {
-  title       = "Detect & correct default VPC Security groups allowing ingress egress"
+  title       = "Detect & correct default VPC security groups allowing ingress egress"
   description = "Detect default Security groups that allow both incoming and outgoing internet traffic and then skip or revoke the security group rule."
   tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
@@ -149,7 +149,7 @@ pipeline "detect_and_correct_vpc_default_security_groups_allowing_ingress_egress
 }
 
 pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
-  title       = "Correct default VPC Security groups allowing ingress egress"
+  title       = "Correct default VPC security groups allowing ingress egress"
   description = "Revoke security group rule from the default security group to restrict incoming and outgoing internet traffic."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
@@ -198,7 +198,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} default VPC Security group(s) allowing both ingress and egress traffic."
+    text     = "Detected ${length(param.items)} default VPC security group(s) allowing both ingress and egress traffic."
   }
 
   step "pipeline" "correct_item" {
@@ -222,7 +222,7 @@ pipeline "correct_vpc_default_security_groups_allowing_ingress_egress" {
 }
 
 pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
-  title       = "Correct one default VPC Security group allowing ingress egress"
+  title       = "Correct one default VPC security group allowing ingress egress"
   description = "Revoke the security group rule from the default security group Security group entry to restrict ingress and egress."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
@@ -330,7 +330,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
 }
 
 pipeline "revoke_vpc_security_group_rule" {
-  title       = "Revoke VPC Security Group Rule"
+  title       = "Revoke VPC security group rule"
   description = "Removes the specified inbound (ingress) or outbound (egress) rules from a security group."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
