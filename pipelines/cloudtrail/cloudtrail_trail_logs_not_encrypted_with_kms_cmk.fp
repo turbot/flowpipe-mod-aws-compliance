@@ -329,8 +329,8 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
             send     = param.notification_level == local.level_info
             text     = "Skipped CloudTrail logs ${param.title} not encrypted with KMS CMK."
           }
-          success_msg = "Skipped CloudTrail logs ${param.title} not encrypted with KMS CMK."
-          error_msg   = "Error skipping CloudTrail logs ${param.title} not encrypted with KMS CMK."
+          success_msg = ""
+          error_msg   = ""
         },
         "encrypt_cloud_trail_logs" = {
           label        = "Encrypt CloudTrail logs"
