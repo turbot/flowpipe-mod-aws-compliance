@@ -62,7 +62,7 @@ trigger "query" "detect_and_correct_s3_buckets_with_macie_disabled" {
 pipeline "detect_and_correct_s3_buckets_with_macie_disabled" {
   title       = "Detect & correct S3 buckets with Macie disabled"
   description = "Detect S3 buckets with Macie disabled."
-  tags        = merge(local.s3_common_tags, { recommended = "true" })
+  tags        = local.s3_common_tags
 
   param "database" {
     type        = connection.steampipe

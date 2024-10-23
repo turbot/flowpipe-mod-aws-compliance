@@ -60,7 +60,8 @@ trigger "query" "detect_and_correct_iam_root_users_last_used_90_days" {
 pipeline "detect_and_correct_iam_root_users_last_used_90_days" {
   title       = "Detect & correct IAM root users last used in 90 days or more"
   description = "Detect IAM root users last used in 90 days or more."
-  tags          = local.iam_common_tags
+
+  tags = merge(local.iam_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe

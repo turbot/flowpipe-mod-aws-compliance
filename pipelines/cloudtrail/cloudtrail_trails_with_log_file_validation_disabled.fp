@@ -81,7 +81,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled
   title       = "Detect & correct CloudTrail trails with log file validation disabled"
   description = "Detect CloudTrail trails with log file validation disabled and then enable log file validation."
 
-  tags = local.cloudtrail_common_tags
+  tags = merge(local.cloudtrail_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
