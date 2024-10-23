@@ -185,13 +185,13 @@ pipeline "correct_accounts_without_metric_filter_for_console_authentication_fail
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} account(s) without metric filter  for console authentication failure."
+    text     = "Detected ${length(param.items)} account(s) without metric filter for console authentication failure."
   }
 
   step "message" "notify_items" {
     if       = var.notification_level == local.level_info
     for_each = param.items
     notifier = param.notifier
-    text     = "Detected account ${each.value.title} without metric filter for onsole authentication failure."
+    text     = "Detected account ${each.value.title} without metric filter for console authentication failure."
   }
 }
