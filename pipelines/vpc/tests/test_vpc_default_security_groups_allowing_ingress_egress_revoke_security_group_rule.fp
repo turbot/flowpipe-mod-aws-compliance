@@ -137,8 +137,6 @@ pipeline "test_detect_and_correct_vpc_default_security_groups_allowing_ingress_e
           sp_connection_name as conn
         from
           aws_vpc_security_group_rule
-        where
-          group_name = 'default-security-group'
         )
       select
         concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,

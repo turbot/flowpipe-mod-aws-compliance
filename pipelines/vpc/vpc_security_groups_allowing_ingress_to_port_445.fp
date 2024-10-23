@@ -239,7 +239,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_445" {
     args = {
       title                  = each.value.title,
       group_id               = each.value.group_id,
-      security_group_rule_id = each.value.security_group_rule_id
+      security_group_rule_id = each.value.security_group_rule_id,
       ip_protocol            = each.value.ip_protocol,
       to_port                = each.value.to_port,
       from_port              = each.value.from_port,
@@ -350,7 +350,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_445" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group ${param.title} with rule ${param.security_group_rule_id} allowing ingress on 445 port from 0.0.0.0/0 or ::/0."
+      detect_msg         = "Detected VPC security group rule ${param.security_group_rule_id} in ${param.title} allowing ingress on protocol ${param.ip_protocol} and ports ${param.from_port}-${param.to_port} from ${coalesce(param.cidr_ipv4, param.cidr_ipv6)}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -379,7 +379,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_445" {
             conn                   = param.conn
           }
           success_msg = "Revoked VPC security group ingress rule ${param.security_group_rule_id} from ${param.title}."
-          error_msg   = "Error revoking ingress rule ${param.security_group_rule_id} from security group ${param.title}."
+          error_msg   = "Error revoking VPC security group ingress rule ${param.security_group_rule_id} from security group ${param.title}."
         }
       }
     }

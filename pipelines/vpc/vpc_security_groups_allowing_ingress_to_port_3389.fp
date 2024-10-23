@@ -239,7 +239,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_3389" {
     args = {
       title                  = each.value.title,
       group_id               = each.value.group_id,
-      security_group_rule_id = each.value.security_group_rule_id
+      security_group_rule_id = each.value.security_group_rule_id,
       ip_protocol            = each.value.ip_protocol,
       to_port                = each.value.to_port,
       from_port              = each.value.from_port,
@@ -379,7 +379,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_3389" {
             conn                   = param.conn
           }
           success_msg = "Revoked VPC security group ingress rule ${param.security_group_rule_id} from ${param.title}."
-          error_msg   = "Error revoking ingress rule ${param.security_group_rule_id} from security group ${param.title}."
+          error_msg   = "Error revoking VPC security group ingress rule ${param.security_group_rule_id} from security group ${param.title}."
         }
       }
     }

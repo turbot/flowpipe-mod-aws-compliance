@@ -4,9 +4,14 @@ locals {
       select
         group_id,
         security_group_rule_id,
+        ip_protocol,
+        from_port,
+        to_port,
+        coalesce(cidr_ipv4::text, '') as cidr_ipv4,
+        coalesce(cidr_ipv6::text, '') as cidr_ipv6,
         region,
         account_id,
-        sp_connection_name as conn,
+        sp_connection_name as conn
       from
         aws_vpc_security_group_rule
       where
@@ -27,6 +32,11 @@ locals {
       concat(sg.group_id, ' [', sg.region, '/', sg.account_id, ']') as title,
       sg.group_id as group_id,
       ingress_rdp_rules.security_group_rule_id as security_group_rule_id,
+      ingress_rdp_rules.ip_protocol as ip_protocol,
+      ingress_rdp_rules.from_port as from_port,
+      ingress_rdp_rules.to_port as to_port,
+      ingress_rdp_rules.cidr_ipv4 as cidr_ipv4,
+      ingress_rdp_rules.cidr_ipv6 as cidr_ipv6,
       sg.region as region,
       sg.sp_connection_name as conn
     from
@@ -172,6 +182,11 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
       title                  = string,
       group_id               = string,
       security_group_rule_id = string,
+      ip_protocol            = string,
+      from_port              = number,
+      to_port                = number,
+      cidr_ipv4              = string,
+      cidr_ipv6              = string,
       region                 = string,
       conn                   = string
     }))
@@ -224,7 +239,12 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
     args = {
       title                  = each.value.title,
       group_id               = each.value.group_id,
-      security_group_rule_id = each.value.security_group_rule_id
+      security_group_rule_id = each.value.security_group_rule_id,
+      ip_protocol            = each.value.ip_protocol,
+      to_port                = each.value.to_port,
+      from_port              = each.value.from_port,
+      cidr_ipv4              = each.value.cidr_ipv4,
+      cidr_ipv6              = each.value.cidr_ipv6,
       region                 = each.value.region,
       conn                   = connection.aws[each.value.conn],
       notifier               = param.notifier,
@@ -254,6 +274,31 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
   param "security_group_rule_id" {
     type        = string
     description = "The ID of the Security group rule."
+  }
+
+  param "ip_protocol" {
+    type        = string
+    description = "IP protocol."
+  }
+
+  param "from_port" {
+    type        = number
+    description = "From port."
+  }
+
+  param "to_port" {
+    type        = number
+    description = "To port."
+  }
+
+  param "cidr_ipv4" {
+    type        = string
+    description = "The IPv4 CIDR range."
+  }
+
+  param "cidr_ipv6" {
+    type        = string
+    description = "The IPv6 CIDR range."
   }
 
   param "region" {
@@ -305,7 +350,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group ${param.title} with rule ${param.security_group_rule_id} allowing ingress on port 22 from 0.0.0.0/0."
+      detect_msg         = "Detected VPC security group rule ${param.security_group_rule_id} in ${param.title} allowing ingress on protocol ${param.ip_protocol} and ports ${param.from_port}-${param.to_port} from ${coalesce(param.cidr_ipv4, param.cidr_ipv6)}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -317,7 +362,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped VPC security group ${param.title} with rule ${param.security_group_rule_id}."
+            text     = "Skipped VPC security group ingress rule ${param.security_group_rule_id} in ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
@@ -333,8 +378,8 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
             region                 = param.region
             conn                   = param.conn
           }
-          success_msg = "Revoked ${param.security_group_rule_id} rule from security group ${param.title}."
-          error_msg   = "Error revoking ${param.security_group_rule_id} rule from security group ${param.title}."
+          success_msg = "Revoked VPC security group ingress rule ${param.security_group_rule_id} from ${param.title}."
+          error_msg   = "Error revoking VPC security group ingress rule ${param.security_group_rule_id} from security group ${param.title}."
         }
       }
     }

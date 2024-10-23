@@ -4,6 +4,11 @@ locals {
       select
         group_id,
         security_group_rule_id,
+        ip_protocol,
+        from_port,
+        to_port,
+        coalesce(cidr_ipv4::text, '') as cidr_ipv4,
+        coalesce(cidr_ipv6::text, '') as cidr_ipv6,
         region,
         account_id,
         sp_connection_name as conn
@@ -42,6 +47,11 @@ locals {
     concat(sg.group_id, ' [', sg.account_id, '/', sg.region, ']') as title,
     sg.group_id as group_id,
     bad_rules.security_group_rule_id as security_group_rule_id,
+    bad_rules.ip_protocol as ip_protocol,
+    bad_rules.from_port as from_port,
+    bad_rules.to_port as to_port,
+    bad_rules.cidr_ipv4 as cidr_ipv4,
+    bad_rules.cidr_ipv6 as cidr_ipv6,
     sg.region as region,
     sg.sp_connection_name as conn
   from
@@ -187,6 +197,11 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
       title                  = string,
       group_id               = string,
       security_group_rule_id = string,
+      ip_protocol            = string,
+      from_port              = number,
+      to_port                = number,
+      cidr_ipv4              = string,
+      cidr_ipv6              = string,
       region                 = string,
       conn                   = string
     }))
@@ -229,7 +244,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from ::/0 (all IPv6 addresses). This poses a significant security risk as it exposes your instances to potential unauthorized access from any IPv6 address on the internet."
+    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from ::/0 (all IPv6 addresses)."
   }
 
   step "pipeline" "correct_item" {
@@ -239,7 +254,12 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
     args = {
       title                  = each.value.title,
       group_id               = each.value.group_id,
-      security_group_rule_id = each.value.security_group_rule_id
+      security_group_rule_id = each.value.security_group_rule_id,
+      ip_protocol            = each.value.ip_protocol,
+      to_port                = each.value.to_port,
+      from_port              = each.value.from_port,
+      cidr_ipv4              = each.value.cidr_ipv4,
+      cidr_ipv6              = each.value.cidr_ipv6,
       region                 = each.value.region,
       conn                   = connection.aws[each.value.conn],
       notifier               = param.notifier,
@@ -269,6 +289,31 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
   param "security_group_rule_id" {
     type        = string
     description = "The ID of the Security group rule."
+  }
+
+  param "ip_protocol" {
+    type        = string
+    description = "IP protocol."
+  }
+
+  param "from_port" {
+    type        = number
+    description = "From port."
+  }
+
+  param "to_port" {
+    type        = number
+    description = "To port."
+  }
+
+  param "cidr_ipv4" {
+    type        = string
+    description = "The IPv4 CIDR range."
+  }
+
+  param "cidr_ipv6" {
+    type        = string
+    description = "The IPv6 CIDR range."
   }
 
   param "region" {
@@ -320,7 +365,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group ${param.group_id} with rule ${param.security_group_rule_id} allowing ingress on sensitive ports (e.g., SSH on port 22, RDP on port 3389) from ::/0 (all IPv6 addresses). This configuration is dangerous as it allows unrestricted remote access, increasing the risk of unauthorized access and potential security breaches over IPv6."
+      detect_msg         = "Detected VPC security group rule ${param.security_group_rule_id} in ${param.title} allowing ingress on protocol ${param.ip_protocol} and ports ${param.from_port}-${param.to_port} from ${coalesce(param.cidr_ipv4, param.cidr_ipv6)}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -332,7 +377,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped VPC security group ${param.title} with defective rules."
+            text     = "Skipped VPC security group ingress rule ${param.security_group_rule_id} in ${param.title}."
           }
           success_msg = ""
           error_msg   = ""
@@ -348,8 +393,8 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
             region                 = param.region
             conn                   = param.conn
           }
-          success_msg = "Revoked rule from security group ${param.title}."
-          error_msg   = "Error revoking rule from security group ${param.title}."
+          success_msg = "Revoked VPC security group ingress rule ${param.security_group_rule_id} from ${param.title}."
+          error_msg   = "Error revoking VPC security group ingress rule ${param.security_group_rule_id} from security group ${param.title}."
         }
       }
     }
