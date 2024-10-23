@@ -271,7 +271,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           error_msg   = ""
         },
         "enable_with_default_standards" = {
-          label        = "Enable with Default Standards"
+          label        = "Enable with default standards"
           value        = "enable_with_default_standards"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.enable_security_hub
@@ -284,7 +284,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
           error_msg   = "Error enabling Security Hub with default standards in region ${param.title}."
         },
         "enable_without_default_standards" = {
-          label        = "Enable without Default Standards"
+          label        = "Enable without default standards"
           value        = "enable_without_default_standards"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.enable_security_hub

@@ -162,7 +162,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_serv
 
 pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports" {
   title       = "Correct VPC Security groups allowing ingress to remote server administration ports"
-  description = "Revoke Security group rules that allow ingress from 0.0.0.0/0 to remote server administration ports."
+  description = "Revoke security group rules that allow ingress from 0.0.0.0/0 to remote server administration ports."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "items" {
@@ -315,7 +315,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
           error_msg   = ""
         },
         "revoke_security_group_rule" = {
-          label        = "Revoke Security Group Rule"
+          label        = "Revoke security group rule"
           value        = "revoke_security_group_rule"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.revoke_vpc_security_group_ingress

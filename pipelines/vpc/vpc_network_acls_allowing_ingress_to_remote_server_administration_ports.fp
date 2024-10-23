@@ -335,7 +335,7 @@ pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administ
           error_msg   = ""
         },
         "delete_network_acl_entry" = {
-          label        = "Delete Network ACL Entry"
+          label        = "Delete network ACL entry"
           value        = "delete_network_acl_entry"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.delete_network_acl_entry

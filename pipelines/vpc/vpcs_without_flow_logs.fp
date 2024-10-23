@@ -288,7 +288,7 @@ pipeline "correct_one_vpc_without_flowlog" {
           error_msg   = ""
         },
         "create_flow_log" = {
-          label        = "Create Flow Log"
+          label        = "Create flow log"
           value        = "create_flow_log"
           style        = local.style_alert
           pipeline_ref = pipeline.create_vpc_flowlog

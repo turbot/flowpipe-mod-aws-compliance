@@ -310,7 +310,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_egress" {
           error_msg   = ""
         },
         "revoke_security_group_rule" = {
-          label        = "Revoke Security Group Rule"
+          label        = "Revoke security group rule"
           value        = "revoke_security_group_rule"
           style        = local.style_alert
           pipeline_ref = pipeline.revoke_vpc_security_group_rule
