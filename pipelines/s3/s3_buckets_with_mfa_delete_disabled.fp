@@ -12,7 +12,7 @@ locals {
   EOQ
 }
 
-variable "s3_bucket_mfa_delete_disabled_trigger_enabled" {
+variable "s3_buckets_with_mfa_delete_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
@@ -22,7 +22,7 @@ variable "s3_bucket_mfa_delete_disabled_trigger_enabled" {
   }
 }
 
-variable "s3_bucket_mfa_delete_disabled_trigger_schedule" {
+variable "s3_buckets_with_mfa_delete_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
@@ -37,8 +37,8 @@ trigger "query" "detect_and_correct_s3_buckets_with_mfa_delete_disabled" {
   description = "Detect S3 buckets with MFA delete disabled."
   tags        = local.s3_common_tags
 
-  enabled  = var.s3_bucket_mfa_delete_disabled_trigger_enabled
-  schedule = var.s3_bucket_mfa_delete_disabled_trigger_schedule
+  enabled  = var.s3_buckets_with_mfa_delete_disabled_trigger_enabled
+  schedule = var.s3_buckets_with_mfa_delete_disabled_trigger_schedule
   database = var.database
   sql      = local.s3_buckets_with_mfa_delete_disabled_query
 

@@ -94,7 +94,7 @@ variable "vpc_security_groups_allowing_ingress_to_port_445_enabled_actions" {
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_445" {
   title       = "Detect & correct VPC security groups allowing ingress to port 445"
-  description = "Detect security group rules that allow ingress from 0.0.0.0/0 to port 445 and then revoke security group rule."
+  description = "Detect security group rules that allow ingress from 0.0.0.0/0 or ::/0 to port 445 and then revoke security group rule."
   tags        = local.vpc_common_tags
 
   enabled  = var.vpc_security_groups_allowing_ingress_to_port_445_trigger_enabled
@@ -112,7 +112,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_port
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_445" {
   title       = "Detect & correct VPC security groups allowing ingress to port 445"
-  description = "Detect security group rules that allow ingress from 0.0.0.0/0 to port 445 and then revoke security group rule."
+  description = "Detect security group rules that allow ingress from 0.0.0.0/0 or ::/0 to port 445 and then revoke security group rule."
   tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {

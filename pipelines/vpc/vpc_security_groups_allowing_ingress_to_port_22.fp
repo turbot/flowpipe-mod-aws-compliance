@@ -174,7 +174,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
 
 pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
   title       = "Correct VPC security groups allowing ingress to port 22"
-  description = "Revoke security group rules to restrict access to port 22 from 0.0.0.0/0."
+  description = "Revoke security group rules to restrict access to port 22 from 0.0.0.0/0 or ::/0."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "items" {
@@ -229,7 +229,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to port 22 from 0.0.0.0/0."
+    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to port 22 from 0.0.0.0/0 or ::/0."
   }
 
   step "pipeline" "correct_item" {
@@ -258,7 +258,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
 
 pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
   title       = "Correct one VPC Security group allowing ingress to port 22"
-  description = "Revoke a VPC security group rule allowing ingress to port 22 from 0.0.0.0/0."
+  description = "Revoke a VPC security group rule allowing ingress to port 22 from 0.0.0.0/0 or ::/0."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "title" {

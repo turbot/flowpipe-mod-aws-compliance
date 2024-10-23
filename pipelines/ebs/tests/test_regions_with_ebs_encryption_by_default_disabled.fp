@@ -1,6 +1,6 @@
-pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_disabled" {
-  title       = "Test detect and correct EBS volume regions with default encryption at rest disabled"
-  description = "Test the enable default encryption at rest for EBS volume regions for regions that have default encryption at rest disabled."
+pipeline "test_detect_and_correct_ebs_encryption_by_default_disabled_in_regions" {
+  title       = "Test detect and correct EBS encryption by default disabled in regions"
+  description = "Test enabling EBS encryption by default in the detect_and_correct_ebs_encryption_by_default_disabled_in_regions pipeline."
 
   tags = {
     folder = "Tests"
@@ -37,7 +37,7 @@ pipeline "test_detect_and_correct_ebs_volumes_with_default_encryption_at_rest_di
   step "pipeline" "correct_item" {
     for_each        = { for item in step.query.get_ebs_volume_region_encryption_at_rest_details.rows : item.title => item }
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_region_with_ebs_encryption_by_default_disabled
+    pipeline        = pipeline.correct_ebs_encryption_by_default_disabled_in_one_region
     args = {
       title           = each.value.title
       region          = each.value.region

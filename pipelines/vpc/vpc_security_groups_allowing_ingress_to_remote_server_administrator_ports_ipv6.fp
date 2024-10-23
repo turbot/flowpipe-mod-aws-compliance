@@ -109,7 +109,7 @@ variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_p
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6" {
   title       = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv6"
-  description = "Detect VPC security group rules allowing ingress from 0.0.0.0/0 to remote server administration ports IPv6 and then skip or revoke the security group rules."
+  description = "Detect VPC security group rules allowing ingress from 0.0.0.0/0 or ::/0 to remote server administration ports IPv6 and then skip or revoke the security group rules."
   tags        = local.vpc_common_tags
 
   enabled  = var.vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6_trigger_enabled
@@ -127,7 +127,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remo
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6" {
   title       = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv6"
-  description = "Detect VPC security group rules allowing ingress from 0.0.0.0/0 to remote server administration ports IPv6 and then skip or revoke the security group rules."
+  description = "Detect VPC security group rules allowing ingress from 0.0.0.0/0 or ::/0 to remote server administration ports IPv6 and then skip or revoke the security group rules."
   tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
