@@ -209,6 +209,7 @@ pipeline "detect_and_correct_accounts_without_metric_filter_for_network_gateway_
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "query" "detect" {
@@ -250,6 +251,7 @@ pipeline "correct_accounts_without_metric_filter_for_network_gateway_changes" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "message" "notify_detection_count" {

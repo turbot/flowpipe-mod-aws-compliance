@@ -12,6 +12,9 @@ locals {
       and r.opt_in_status != 'not-opted-in'
       and r.region != any(array['af-south-1', 'eu-south-1', 'cn-north-1', 'cn-northwest-1', 'ap-northeast-3']);
   EOQ
+
+  security_hub_disabled_in_regions_default_action_enum  = ["notify", "skip", "enable_with_default_standards", "enable_without_default_standards"]
+  security_hub_disabled_in_regions_enabled_actions_enum = ["skip", "enable_with_default_standards", "enable_without_default_standards"]
 }
 
 variable "security_hub_disabled_in_regions_trigger_enabled" {
@@ -38,6 +41,7 @@ variable "security_hub_disabled_in_regions_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_with_default_standards", "enable_without_default_standards"]
 
   tags = {
     folder = "Advanced/SecurityHub"
@@ -48,6 +52,7 @@ variable "security_hub_disabled_in_regions_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_with_default_standards", "enable_without_default_standards"]
+  enum        = ["skip", "enable_with_default_standards", "enable_without_default_standards"]
 
   tags = {
     folder = "Advanced/SecurityHub"
@@ -93,6 +98,7 @@ pipeline "detect_and_correct_security_hub_disabled_in_regions" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -105,12 +111,14 @@ pipeline "detect_and_correct_security_hub_disabled_in_regions" {
     type        = string
     description = local.description_default_action
     default     = var.security_hub_disabled_in_regions_default_action
+    enum        = local.security_hub_disabled_in_regions_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.security_hub_disabled_in_regions_enabled_actions
+    enum        = local.security_hub_disabled_in_regions_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -154,6 +162,7 @@ pipeline "correct_security_hub_disabled_in_regions" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -166,12 +175,14 @@ pipeline "correct_security_hub_disabled_in_regions" {
     type        = string
     description = local.description_default_action
     default     = var.security_hub_disabled_in_regions_default_action
+    enum        = local.security_hub_disabled_in_regions_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.security_hub_disabled_in_regions_enabled_actions
+    enum        = local.security_hub_disabled_in_regions_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -227,6 +238,7 @@ pipeline "correct_one_region_with_security_hub_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -239,12 +251,14 @@ pipeline "correct_one_region_with_security_hub_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.security_hub_disabled_in_regions_default_action
+    enum        = local.security_hub_disabled_in_regions_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.security_hub_disabled_in_regions_enabled_actions
+    enum        = local.security_hub_disabled_in_regions_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

@@ -17,6 +17,9 @@ locals {
     where
       c.security_contact_count <= 0;
   EOQ
+
+  accounts_without_alternate_security_contact_default_action_enum  = ["notify", "skip", "add_alternate_security_contact"]
+  accounts_without_alternate_security_contact_enabled_actions_enum = ["skip", "add_alternate_security_contact"]
 }
 
 variable "accounts_without_alternate_security_contact_trigger_enabled" {
@@ -43,6 +46,7 @@ variable "accounts_without_alternate_security_contact_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "add_alternate_security_contact"]
 
   tags = {
     folder = "Advanced/Account"
@@ -132,6 +136,7 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -144,12 +149,14 @@ pipeline "detect_and_correct_accounts_without_alternate_security_contact" {
     type        = string
     description = local.description_default_action
     default     = var.accounts_without_alternate_security_contact_default_action
+    enum        = local.accounts_without_alternate_security_contact_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.accounts_without_alternate_security_contact_enabled_actions
+    enum        = local.accounts_without_alternate_security_contact_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -193,6 +200,7 @@ pipeline "correct_accounts_without_alternate_security_contact" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -205,12 +213,14 @@ pipeline "correct_accounts_without_alternate_security_contact" {
     type        = string
     description = local.description_default_action
     default     = var.accounts_without_alternate_security_contact_default_action
+    enum        = local.accounts_without_alternate_security_contact_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.accounts_without_alternate_security_contact_enabled_actions
+    enum        = local.accounts_without_alternate_security_contact_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -285,6 +295,7 @@ pipeline "correct_one_account_without_alternate_security_contact" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -297,12 +308,14 @@ pipeline "correct_one_account_without_alternate_security_contact" {
     type        = string
     description = local.description_default_action
     default     = var.accounts_without_alternate_security_contact_default_action
+    enum        = local.accounts_without_alternate_security_contact_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.accounts_without_alternate_security_contact_enabled_actions
+    enum        = local.accounts_without_alternate_security_contact_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

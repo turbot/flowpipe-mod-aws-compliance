@@ -23,12 +23,20 @@ variable "rds_db_instances_with_encryption_at_rest_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+   tags = {
+    folder = "Advanced/RDS"
+  }
 }
 
 variable "rds_db_instances_with_encryption_at_rest_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+   tags = {
+    folder = "Advanced/RDS"
+  }
 }
 
 trigger "query" "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" {
@@ -70,6 +78,7 @@ pipeline "detect_and_correct_rds_db_instances_with_encryption_at_rest_disabled" 
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "query" "detect" {
@@ -114,6 +123,7 @@ pipeline "correct_rds_db_instances_with_encryption_at_rest_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "message" "notify_detection_count" {

@@ -70,6 +70,7 @@ pipeline "detect_and_correct_iam_root_users_with_mfa_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "query" "detect" {
@@ -111,6 +112,7 @@ pipeline "correct_iam_root_users_with_mfa_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "message" "notify_detection_count" {

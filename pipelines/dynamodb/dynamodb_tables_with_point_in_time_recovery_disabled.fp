@@ -10,30 +10,51 @@ locals {
   where
     lower(point_in_time_recovery_description ->> 'PointInTimeRecoveryStatus') = 'disabled';
   EOQ
+
+  dynamodb_tables_with_point_in_time_recovery_disabled_default_action_enum  = ["notify", "skip", "enable_point_in_time_recovery"]
+  dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions_enum = ["skip", "enable_point_in_time_recovery"]
 }
 
 variable "dynamodb_tables_with_point_in_time_recovery_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/DynamoDB"
+  }
 }
 
 variable "dynamodb_tables_with_point_in_time_recovery_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/DynamoDB"
+  }
 }
 
 variable "dynamodb_tables_with_point_in_time_recovery_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_point_in_time_recovery"]
+
+  tags = {
+    folder = "Advanced/DynamoDB"
+  }
 }
 
-variable "dynamodb_table_dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions" {
+variable "dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_point_in_time_recovery"]
+  enum        = ["skip", "enable_point_in_time_recovery"]
+
+  tags = {
+    folder = "Advanced/DynamoDB"
+  }
 }
 
 trigger "query" "detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disabled" {
@@ -77,6 +98,7 @@ pipeline "detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disable
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -89,12 +111,14 @@ pipeline "detect_and_correct_dynamodb_tables_with_point_in_time_recovery_disable
     type        = string
     description = local.description_default_action
     default     = var.dynamodb_tables_with_point_in_time_recovery_disabled_default_action
+    enum        = local.dynamodb_tables_with_point_in_time_recovery_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.dynamodb_table_dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions
+    default     = var.dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions
+    enum        = local.dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -141,6 +165,7 @@ pipeline "correct_dynamodb_tables_with_point_in_time_recovery_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -153,12 +178,14 @@ pipeline "correct_dynamodb_tables_with_point_in_time_recovery_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.dynamodb_tables_with_point_in_time_recovery_disabled_default_action
+    enum        = local.dynamodb_tables_with_point_in_time_recovery_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.dynamodb_table_dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions
+    default     = var.dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions
+    enum        = local.dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -221,6 +248,7 @@ pipeline "correct_one_dynamodb_tables_with_point_in_time_recovery_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -233,12 +261,14 @@ pipeline "correct_one_dynamodb_tables_with_point_in_time_recovery_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.dynamodb_tables_with_point_in_time_recovery_disabled_default_action
+    enum        = local.dynamodb_tables_with_point_in_time_recovery_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.dynamodb_table_dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions
+    default     = var.dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions
+    enum        = local.dynamodb_tables_with_point_in_time_recovery_disabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

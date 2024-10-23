@@ -21,7 +21,7 @@ locals {
             from_port <= 22
             and to_port >= 22
           )
-        ) 
+        )
     )
     select
       concat(sg.group_id, ' [', sg.region, '/', sg.account_id, ']') as title,
@@ -35,6 +35,9 @@ locals {
     where
       ingress_rdp_rules.group_id is not null;
   EOQ
+
+  vpc_security_groups_allowing_ingress_to_port_22_default_action_enum  = ["notify", "skip", "revoke_security_group_rule"]
+  vpc_security_groups_allowing_ingress_to_port_22_enabled_actions_enum = ["skip", "revoke_security_group_rule"]
 }
 
 variable "vpc_security_groups_allowing_ingress_to_port_22_trigger_enabled" {
@@ -59,8 +62,9 @@ variable "vpc_security_groups_allowing_ingress_to_port_22_trigger_schedule" {
 
 variable "vpc_security_groups_allowing_ingress_to_port_22_default_action" {
   type        = string
-  default     = "notify"
   description = "The default action to use when there are no approvers."
+  default     = "notify"
+  enum        = ["notify", "skip", "revoke_security_group_rule"]
 
   tags = {
     folder = "Advanced/VPC"
@@ -71,6 +75,7 @@ variable "vpc_security_groups_allowing_ingress_to_port_22_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "revoke_security_group_rule"]
+  enum        = ["skip", "revoke_security_group_rule"]
 
   tags = {
     folder = "Advanced/VPC"
@@ -116,6 +121,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -128,12 +134,14 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_port_22" {
     type        = string
     description = local.description_default_action
     default     = var.vpc_security_groups_allowing_ingress_to_port_22_default_action
+    enum        = local.vpc_security_groups_allowing_ingress_to_port_22_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.vpc_security_groups_allowing_ingress_to_port_22_enabled_actions
+    enum        = local.vpc_security_groups_allowing_ingress_to_port_22_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -180,6 +188,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -192,12 +201,14 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
     type        = string
     description = local.description_default_action
     default     = var.vpc_security_groups_allowing_ingress_to_port_22_default_action
+    enum        = local.vpc_security_groups_allowing_ingress_to_port_22_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.vpc_security_groups_allowing_ingress_to_port_22_enabled_actions
+    enum        = local.vpc_security_groups_allowing_ingress_to_port_22_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -265,6 +276,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -277,12 +289,14 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_port_22" {
     type        = string
     description = local.description_default_action
     default     = var.vpc_security_groups_allowing_ingress_to_port_22_default_action
+    enum        = local.vpc_security_groups_allowing_ingress_to_port_22_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.vpc_security_groups_allowing_ingress_to_port_22_enabled_actions
+    enum        = local.vpc_security_groups_allowing_ingress_to_port_22_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

@@ -27,6 +27,9 @@ locals {
     where
       count = 0;
   EOQ
+
+  iam_accounts_without_support_role_default_action_enum  = ["notify", "skip", "create_support_role"]
+  iam_accounts_without_support_role_enabled_actions_enum = ["skip", "create_support_role"]
 }
 
 variable "iam_accounts_without_support_role_trigger_enabled" {
@@ -52,7 +55,8 @@ variable "iam_accounts_without_support_role_trigger_schedule" {
 variable "iam_accounts_without_support_role_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
-  default     = "create_support_role"
+  default     = "notify"
+  enum        = ["notify", "skip", "create_support_role"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -63,6 +67,7 @@ variable "iam_accounts_without_support_role_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "create_support_role"]
+  enum        = ["skip", "create_support_role"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -140,6 +145,7 @@ pipeline "detect_and_correct_iam_accounts_without_support_role" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -152,12 +158,14 @@ pipeline "detect_and_correct_iam_accounts_without_support_role" {
     type        = string
     description = local.description_default_action
     default     = var.iam_accounts_without_support_role_default_action
+    enum        = local.iam_accounts_without_support_role_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_accounts_without_support_role_enabled_actions
+    enum        = local.iam_accounts_without_support_role_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -216,6 +224,7 @@ pipeline "correct_iam_accounts_without_support_role" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -228,12 +237,14 @@ pipeline "correct_iam_accounts_without_support_role" {
     type        = string
     description = local.description_default_action
     default     = var.iam_accounts_without_support_role_default_action
+    enum        = local.iam_accounts_without_support_role_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_accounts_without_support_role_enabled_actions
+    enum        = local.iam_accounts_without_support_role_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -303,6 +314,7 @@ pipeline "correct_one_iam_accounts_without_support_role" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -315,12 +327,14 @@ pipeline "correct_one_iam_accounts_without_support_role" {
     type        = string
     description = local.description_default_action
     default     = var.iam_accounts_without_support_role_default_action
+    enum        = local.iam_accounts_without_support_role_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_accounts_without_support_role_enabled_actions
+    enum        = local.iam_accounts_without_support_role_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

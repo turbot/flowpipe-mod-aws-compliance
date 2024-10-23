@@ -13,6 +13,9 @@ locals {
       join aws_iam_access_key as k on u.name = k.user_name and u.account_id = k.account_id
       and access_key_last_used_date < (current_date - interval '90' day);
   EOQ
+
+  iam_users_with_unused_access_key_90_days_default_action_enum  = ["notify", "skip", "deactivate_access_key"]
+  iam_users_with_unused_access_key_90_days_enabled_actions_enum = ["skip", "deactivate_access_key"]
 }
 
 variable "iam_users_with_unused_access_key_90_days_trigger_enabled" {
@@ -39,6 +42,7 @@ variable "iam_users_with_unused_access_key_90_days_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "deactivate_access_key"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -49,6 +53,7 @@ variable "iam_users_with_unused_access_key_90_days_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "deactivate_access_key"]
+  enum        = ["skip", "deactivate_access_key"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -56,9 +61,9 @@ variable "iam_users_with_unused_access_key_90_days_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_users_with_unused_access_key_90_days" {
-  title         = "Detect & correct IAM users with unused access key from 90 days or more"
-  description   = "Detects IAM users access key that have been unused for 90 days or more and deactivates them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unused access key from 90 days or more"
+  description = "Detects IAM users access key that have been unused for 90 days or more and deactivates them."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_users_with_unused_access_key_90_days_trigger_enabled
   schedule = var.iam_users_with_unused_access_key_90_days_trigger_schedule
@@ -74,9 +79,9 @@ trigger "query" "detect_and_correct_iam_users_with_unused_access_key_90_days" {
 }
 
 pipeline "detect_and_correct_iam_users_with_unused_access_key_90_days" {
-  title         = "Detect & correct IAM users with unused access key from 90 days or more"
-  description   = "Detects IAM users access key that have been unused for 90 days or more and deactivates them."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unused access key from 90 days or more"
+  description = "Detects IAM users access key that have been unused for 90 days or more and deactivates them."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -94,6 +99,7 @@ pipeline "detect_and_correct_iam_users_with_unused_access_key_90_days" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -106,12 +112,14 @@ pipeline "detect_and_correct_iam_users_with_unused_access_key_90_days" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_unused_access_key_90_days_default_action
+    enum        = local.iam_users_with_unused_access_key_90_days_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_unused_access_key_90_days_enabled_actions
+    enum        = local.iam_users_with_unused_access_key_90_days_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -133,19 +141,19 @@ pipeline "detect_and_correct_iam_users_with_unused_access_key_90_days" {
 }
 
 pipeline "correct_iam_users_with_unused_access_key_90_days" {
-  title         = "Correct IAM users with unused access key from 90 days or more"
-  description   = "Runs corrective action to deactivate IAM users access key that have been unused for 90 days or more."
-  tags          = merge(local.iam_common_tags, { folder = "Internal" })
+  title       = "Correct IAM users with unused access key from 90 days or more"
+  description = "Runs corrective action to deactivate IAM users access key that have been unused for 90 days or more."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title                      = string
-      user_name                  = string
-      account_id                 = string
-      access_key_last_used_date  = string
-      access_key_last_used_day   = string
-      access_key_id              = string
-      conn                       = string
+      title                     = string
+      user_name                 = string
+      account_id                = string
+      access_key_last_used_date = string
+      access_key_last_used_day  = string
+      access_key_id             = string
+      conn                      = string
     }))
     description = local.description_items
   }
@@ -160,6 +168,7 @@ pipeline "correct_iam_users_with_unused_access_key_90_days" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -172,13 +181,16 @@ pipeline "correct_iam_users_with_unused_access_key_90_days" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_unused_access_key_90_days_default_action
+    enum        = local.iam_users_with_unused_access_key_90_days_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_unused_access_key_90_days_enabled_actions
+    enum        = local.iam_users_with_unused_access_key_90_days_enabled_actions_enum
   }
+
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
@@ -207,9 +219,9 @@ pipeline "correct_iam_users_with_unused_access_key_90_days" {
 }
 
 pipeline "correct_one_iam_user_with_unused_access_key_90_days" {
-  title         = "Correct one IAM user with unused access key from 90 days or more"
-  description   = "Runs corrective action to deactivate a IAM user access key that have been unused for 90 days or more."
-  tags          = merge(local.iam_common_tags, { folder = "Internal" })
+  title       = "Correct one IAM user with unused access key from 90 days or more"
+  description = "Runs corrective action to deactivate a IAM user access key that have been unused for 90 days or more."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -226,7 +238,7 @@ pipeline "correct_one_iam_user_with_unused_access_key_90_days" {
     description = "The access key ID of the IAM user."
   }
 
-   param "access_key_last_used_date" {
+  param "access_key_last_used_date" {
     type        = string
     description = "The access key ID of the IAM user."
   }
@@ -251,6 +263,7 @@ pipeline "correct_one_iam_user_with_unused_access_key_90_days" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -263,12 +276,14 @@ pipeline "correct_one_iam_user_with_unused_access_key_90_days" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_unused_access_key_90_days_default_action
+    enum        = local.iam_users_with_unused_access_key_90_days_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_unused_access_key_90_days_enabled_actions
+    enum        = local.iam_users_with_unused_access_key_90_days_enabled_actions_enum
   }
 
   step "pipeline" "respond" {
@@ -300,9 +315,9 @@ pipeline "correct_one_iam_user_with_unused_access_key_90_days" {
           style        = local.style_alert
           pipeline_ref = pipeline.deactivate_user_access_key
           pipeline_args = {
-            user_name      = param.user_name
-            access_key_id  = param.access_key_id
-            conn           = param.conn
+            user_name     = param.user_name
+            access_key_id = param.access_key_id
+            conn          = param.conn
           }
           success_msg = "Deactivated IAM user ${param.title} access key ${param.access_key_id}."
           error_msg   = "Error deactivating IAM user ${param.title} access key ${param.access_key_id}."

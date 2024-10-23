@@ -11,6 +11,9 @@ locals {
       minimum_password_length < 14
       or minimum_password_length is null;
   EOQ
+
+  iam_account_password_policies_without_min_length_14_default_action_enum  = ["notify", "skip", "update_password_policy_min_length"]
+  iam_account_password_policies_without_min_length_14_enabled_actions_enum = ["skip", "update_password_policy_min_length"]
 }
 
 variable "iam_account_password_policies_without_min_length_14_trigger_enabled" {
@@ -37,6 +40,7 @@ variable "iam_account_password_policies_without_min_length_14_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "update_password_policy_min_length"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -47,6 +51,7 @@ variable "iam_account_password_policies_without_min_length_14_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "update_password_policy_min_length"]
+  enum        = ["skip", "update_password_policy_min_length"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -92,6 +97,7 @@ pipeline "detect_and_correct_iam_account_password_policies_without_min_length_14
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -104,12 +110,14 @@ pipeline "detect_and_correct_iam_account_password_policies_without_min_length_14
     type        = string
     description = local.description_default_action
     default     = var.iam_account_password_policies_without_min_length_14_default_action
+    enum        = local.iam_account_password_policies_without_min_length_14_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_account_password_policies_without_min_length_14_enabled_actions
+    enum        = local.iam_account_password_policies_without_min_length_14_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -154,6 +162,7 @@ pipeline "correct_iam_account_password_policies_without_min_length_14" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -166,12 +175,14 @@ pipeline "correct_iam_account_password_policies_without_min_length_14" {
     type        = string
     description = local.description_default_action
     default     = var.iam_account_password_policies_without_min_length_14_default_action
+    enum        = local.iam_account_password_policies_without_min_length_14_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_account_password_policies_without_min_length_14_enabled_actions
+    enum        = local.iam_account_password_policies_without_min_length_14_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -227,6 +238,7 @@ pipeline "correct_one_iam_account_password_policy_without_min_length_14" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {

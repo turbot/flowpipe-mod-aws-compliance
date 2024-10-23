@@ -71,6 +71,7 @@ pipeline "detect_and_correct_efs_file_systems_with_encryption_at_rest_disabled" 
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "query" "detect" {
@@ -113,6 +114,7 @@ pipeline "correct_efs_file_systems_with_encryption_at_rest_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "message" "notify_detection_count" {

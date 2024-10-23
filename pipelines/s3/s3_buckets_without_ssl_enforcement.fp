@@ -29,6 +29,9 @@ locals {
     where
       ok.name is null;
   EOQ
+
+  s3_bucket_enforce_ssl_default_action_enum  = ["notify", "skip", "enforce_ssl"]
+  s3_bucket_enforce_ssl_enabled_actions_enum = ["skip", "enforce_ssl"]
 }
 
 variable "s3_bucket_enforce_ssl_trigger_enabled" {
@@ -55,6 +58,7 @@ variable "s3_bucket_enforce_ssl_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enforce_ssl"]
 
   tags = {
     folder = "Advanced/S3"
@@ -65,6 +69,7 @@ variable "s3_bucket_enforce_ssl_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enforce_ssl"]
+  enum        = ["skip", "enforce_ssl"]
 
   tags = {
     folder = "Advanced/S3"
@@ -110,6 +115,7 @@ pipeline "detect_and_correct_s3_buckets_without_ssl_enforcement" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -122,12 +128,14 @@ pipeline "detect_and_correct_s3_buckets_without_ssl_enforcement" {
     type        = string
     description = local.description_default_action
     default     = var.s3_bucket_enforce_ssl_default_action
+    enum        = local.s3_bucket_enforce_ssl_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.s3_bucket_enforce_ssl_enabled_actions
+    enum        = local.s3_bucket_enforce_ssl_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -173,6 +181,7 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -185,12 +194,14 @@ pipeline "correct_s3_buckets_without_ssl_enforcement" {
     type        = string
     description = local.description_default_action
     default     = var.s3_bucket_enforce_ssl_default_action
+    enum        = local.s3_bucket_enforce_ssl_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.s3_bucket_enforce_ssl_enabled_actions
+    enum        = local.s3_bucket_enforce_ssl_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -252,6 +263,7 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -264,12 +276,14 @@ pipeline "correct_one_s3_bucket_without_ssl_enforcement" {
     type        = string
     description = local.description_default_action
     default     = var.s3_bucket_enforce_ssl_default_action
+    enum        = local.s3_bucket_enforce_ssl_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.s3_bucket_enforce_ssl_enabled_actions
+    enum        = local.s3_bucket_enforce_ssl_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

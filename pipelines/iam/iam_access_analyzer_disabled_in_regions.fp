@@ -11,6 +11,9 @@ locals {
       r.opt_in_status <> 'not-opted-in'
       and aa.arn is null;
   EOQ
+
+  iam_access_analyzer_disabled_in_regions_default_action_enum  = ["notify", "skip", "enable_access_analyzer"]
+  iam_access_analyzer_disabled_in_regions_enabled_actions_enum = ["skip", "enable_access_analyzer"]
 }
 
 variable "iam_access_analyzer_disabled_in_regions_trigger_enabled" {
@@ -37,6 +40,7 @@ variable "iam_access_analyzer_disabled_in_regions_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_access_analyzer"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -47,6 +51,7 @@ variable "iam_access_analyzer_disabled_in_regions_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_access_analyzer"]
+  enum        = ["skip", "enable_access_analyzer"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -102,6 +107,7 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -114,12 +120,14 @@ pipeline "detect_and_correct_iam_access_analyzer_disabled_in_regions" {
     type        = string
     description = local.description_default_action
     default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    enum        = local.iam_access_analyzer_disabled_in_regions_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    enum        = local.iam_access_analyzer_disabled_in_regions_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -170,6 +178,7 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -182,12 +191,14 @@ pipeline "correct_iam_access_analyzer_disabled_in_regions" {
     type        = string
     description = local.description_default_action
     default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    enum        = local.iam_access_analyzer_disabled_in_regions_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    enum        = local.iam_access_analyzer_disabled_in_regions_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -249,6 +260,7 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -261,12 +273,14 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
     type        = string
     description = local.description_default_action
     default     = var.iam_access_analyzer_disabled_in_regions_default_action
+    enum        = local.iam_access_analyzer_disabled_in_regions_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_access_analyzer_disabled_in_regions_enabled_actions
+    enum        = local.iam_access_analyzer_disabled_in_regions_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

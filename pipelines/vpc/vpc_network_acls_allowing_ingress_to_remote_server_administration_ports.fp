@@ -61,6 +61,9 @@ locals {
     where
       bad_rules.network_acl_id is not null;
   EOQ
+
+  vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_default_action_enum  = ["notify", "skip", "delete_network_acl_entry"]
+  vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_enabled_actions_enum = ["skip", "delete_network_acl_entry"]
 }
 
 variable "vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_trigger_enabled" {
@@ -85,8 +88,9 @@ variable "vpc_network_acls_allowing_ingress_to_remote_server_administration_port
 
 variable "vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_default_action" {
   type        = string
-  default     = "notify"
   description = "The default action to use when there are no approvers."
+  default     = "notify"
+  enum        = ["notify", "skip", "delete_network_acl_entry"]
 
   tags = {
     folder = "Advanced/VPC"
@@ -97,6 +101,7 @@ variable "vpc_network_acls_allowing_ingress_to_remote_server_administration_port
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_network_acl_entry"]
+  enum        = ["skip", "delete_network_acl_entry"]
 
   tags = {
     folder = "Advanced/VPC"
@@ -142,6 +147,7 @@ pipeline "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -154,12 +160,14 @@ pipeline "detect_and_correct_vpc_network_acls_allowing_ingress_to_remote_server_
     type        = string
     description = local.description_default_action
     default     = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_default_action
+    enum        = local.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_enabled_actions
+    enum        = local.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -206,6 +214,7 @@ pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administrat
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -218,12 +227,14 @@ pipeline "correct_vpc_network_acls_allowing_ingress_to_remote_server_administrat
     type        = string
     description = local.description_default_action
     default     = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_default_action
+    enum        = local.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_enabled_actions
+    enum        = local.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -291,6 +302,7 @@ pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administ
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -303,12 +315,14 @@ pipeline "correct_one_vpc_network_acl_allowing_ingress_to_remote_server_administ
     type        = string
     description = local.description_default_action
     default     = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_default_action
+    enum        = local.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_enabled_actions
+    enum        = local.vpc_network_acls_allowing_ingress_to_remote_server_administration_ports_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

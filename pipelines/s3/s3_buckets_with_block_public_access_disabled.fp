@@ -15,6 +15,9 @@ locals {
       and not (bucket.ignore_public_acls or s3account.ignore_public_acls)
       and not (bucket.restrict_public_buckets or s3account.restrict_public_buckets)
   EOQ
+
+  s3_bucket_public_access_enabled_default_action_enum  = ["notify", "skip", "block_public_access"]
+  s3_bucket_public_access_enabled_enabled_actions_enum = ["skip", "block_public_access"]
 }
 
 variable "s3_bucket_public_access_enabled_trigger_enabled" {
@@ -41,6 +44,7 @@ variable "s3_bucket_public_access_enabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "block_public_access"]
 
   tags = {
     folder = "Advanced/S3"
@@ -51,6 +55,7 @@ variable "s3_bucket_public_access_enabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "block_public_access"]
+  enum        = ["skip", "block_public_access"]
 }
 
 trigger "query" "detect_and_correct_s3_buckets_with_block_public_access_disabled" {
@@ -92,6 +97,7 @@ pipeline "detect_and_correct_s3_buckets_with_block_public_access_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -104,12 +110,14 @@ pipeline "detect_and_correct_s3_buckets_with_block_public_access_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.s3_bucket_public_access_enabled_default_action
+    enum        = local.s3_bucket_public_access_enabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.s3_bucket_public_access_enabled_enabled_actions
+    enum        = local.s3_bucket_public_access_enabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -154,6 +162,7 @@ pipeline "correct_s3_buckets_with_block_public_access_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -166,12 +175,14 @@ pipeline "correct_s3_buckets_with_block_public_access_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.s3_bucket_public_access_enabled_default_action
+    enum        = local.s3_bucket_public_access_enabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.s3_bucket_public_access_enabled_enabled_actions
+    enum        = local.s3_bucket_public_access_enabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -233,6 +244,7 @@ pipeline "correct_one_s3_bucket_with_block_public_access_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -245,12 +257,14 @@ pipeline "correct_one_s3_bucket_with_block_public_access_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.s3_bucket_public_access_enabled_default_action
+    enum        = local.s3_bucket_public_access_enabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.s3_bucket_public_access_enabled_enabled_actions
+    enum        = local.s3_bucket_public_access_enabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

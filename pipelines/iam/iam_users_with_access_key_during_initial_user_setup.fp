@@ -16,6 +16,9 @@ locals {
       access_key_last_used_date is null
       and password_enabled;
   EOQ
+
+  iam_users_with_access_key_during_initial_user_setup_default_action_enum  = ["notify", "skip", "delete_access_key"]
+  iam_users_with_access_key_during_initial_user_setup_enabled_actions_enum = ["skip", "delete_access_key"]
 }
 
 variable "iam_users_with_access_key_during_initial_user_setup_trigger_enabled" {
@@ -42,6 +45,7 @@ variable "iam_users_with_access_key_during_initial_user_setup_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "delete_access_key"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -52,6 +56,7 @@ variable "iam_users_with_access_key_during_initial_user_setup_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_access_key"]
+  enum        = ["skip", "delete_access_key"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -98,6 +103,7 @@ pipeline "detect_and_correct_iam_users_with_access_key_during_initial_user_setup
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -110,12 +116,14 @@ pipeline "detect_and_correct_iam_users_with_access_key_during_initial_user_setup
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_access_key_during_initial_user_setup_default_action
+    enum        = local.iam_users_with_access_key_during_initial_user_setup_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_access_key_during_initial_user_setup_enabled_actions
+    enum        = local.iam_users_with_access_key_during_initial_user_setup_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -162,6 +170,7 @@ pipeline "correct_iam_users_with_access_key_during_initial_user_setup" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -174,12 +183,14 @@ pipeline "correct_iam_users_with_access_key_during_initial_user_setup" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_access_key_during_initial_user_setup_default_action
+    enum        = local.iam_users_with_access_key_during_initial_user_setup_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_access_key_during_initial_user_setup_enabled_actions
+    enum        = local.iam_users_with_access_key_during_initial_user_setup_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -247,6 +258,7 @@ pipeline "correct_one_iam_users_with_access_key_during_initial_user_setup" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -259,12 +271,14 @@ pipeline "correct_one_iam_users_with_access_key_during_initial_user_setup" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_access_key_during_initial_user_setup_default_action
+    enum        = local.iam_users_with_access_key_during_initial_user_setup_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_access_key_during_initial_user_setup_enabled_actions
+    enum        = local.iam_users_with_access_key_during_initial_user_setup_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

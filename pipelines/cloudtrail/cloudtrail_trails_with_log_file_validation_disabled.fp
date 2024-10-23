@@ -11,6 +11,9 @@ locals {
     not log_file_validation_enabled
     and region = home_region;
   EOQ
+
+  cloudtrail_trails_with_log_file_validation_disabled_default_action_enum  = ["notify", "skip", "enable_log_file_validation"]
+  cloudtrail_trails_with_log_file_validation_disabled_enabled_actions_enum = ["skip", "enable_log_file_validation"]
 }
 
 variable "cloudtrail_trails_with_log_file_validation_disabled_trigger_enabled" {
@@ -37,6 +40,7 @@ variable "cloudtrail_trails_with_log_file_validation_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_log_file_validation"]
 
   tags = {
     folder = "Advanced/CloudTrail"
@@ -47,6 +51,7 @@ variable "cloudtrail_trails_with_log_file_validation_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_log_file_validation"]
+  enum        = ["skip", "enable_log_file_validation"]
 
   tags = {
     folder = "Advanced/CloudTrail"
@@ -94,6 +99,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -106,12 +112,14 @@ pipeline "detect_and_correct_cloudtrail_trails_with_log_file_validation_disabled
     type        = string
     description = local.description_default_action
     default     = var.cloudtrail_trails_with_log_file_validation_disabled_default_action
+    enum        = local.cloudtrail_trails_with_log_file_validation_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.cloudtrail_trails_with_log_file_validation_disabled_enabled_actions
+    enum        = local.cloudtrail_trails_with_log_file_validation_disabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -157,6 +165,7 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -169,12 +178,14 @@ pipeline "correct_cloudtrail_trails_with_log_file_validation_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.cloudtrail_trails_with_log_file_validation_disabled_default_action
+    enum        = local.cloudtrail_trails_with_log_file_validation_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.cloudtrail_trails_with_log_file_validation_disabled_enabled_actions
+    enum        = local.cloudtrail_trails_with_log_file_validation_disabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -236,6 +247,7 @@ pipeline "correct_one_cloudtrail_trail_log_file_validation_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -248,12 +260,14 @@ pipeline "correct_one_cloudtrail_trail_log_file_validation_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.cloudtrail_trails_with_log_file_validation_disabled_default_action
+    enum        = local.cloudtrail_trails_with_log_file_validation_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.cloudtrail_trails_with_log_file_validation_disabled_enabled_actions
+    enum        = local.cloudtrail_trails_with_log_file_validation_disabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

@@ -11,6 +11,9 @@ locals {
     where
       attached_policy_arns is not null;
   EOQ
+
+  iam_users_with_iam_policy_attached_default_action_enum  = ["notify", "skip", "detach_iam_policy"]
+  iam_users_with_iam_policy_attached_enabled_actions_enum = ["skip", "detach_iam_policy"]
 }
 
 variable "iam_users_with_iam_policy_attached_trigger_enabled" {
@@ -37,6 +40,7 @@ variable "iam_users_with_iam_policy_attached_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "detach_iam_policy"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -47,6 +51,7 @@ variable "iam_users_with_iam_policy_attached_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "detach_iam_policy"]
+  enum        = ["skip", "detach_iam_policy"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -92,6 +97,7 @@ pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -104,12 +110,14 @@ pipeline "detect_and_correct_iam_users_with_iam_policy_attached" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_iam_policy_attached_default_action
+    enum        = local.iam_users_with_iam_policy_attached_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_iam_policy_attached_enabled_actions
+    enum        = local.iam_users_with_iam_policy_attached_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -156,6 +164,7 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -168,12 +177,14 @@ pipeline "correct_iam_users_with_iam_policy_attached" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_iam_policy_attached_default_action
+    enum        = local.iam_users_with_iam_policy_attached_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_iam_policy_attached_enabled_actions
+    enum        = local.iam_users_with_iam_policy_attached_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -241,6 +252,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -253,12 +265,14 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_iam_policy_attached_default_action
+    enum        = local.iam_users_with_iam_policy_attached_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_iam_policy_attached_enabled_actions
+    enum        = local.iam_users_with_iam_policy_attached_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

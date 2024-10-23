@@ -10,6 +10,9 @@ locals {
     where
       attached_policy_arns @> '["arn:aws:iam::aws:policy/AWSCloudShellFullAccess"]'
   EOQ
+
+  iam_users_with_unrestricted_cloudshell_full_access_default_action_enum  = ["notify", "skip", "detach_policy"]
+  iam_users_with_unrestricted_cloudshell_full_access_enabled_actions_enum = ["skip", "detach_policy"]
 }
 
 variable "iam_users_with_unrestricted_cloudshell_full_access_trigger_enabled" {
@@ -36,6 +39,7 @@ variable "iam_users_with_unrestricted_cloudshell_full_access_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "detach_policy"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -46,6 +50,7 @@ variable "iam_users_with_unrestricted_cloudshell_full_access_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "detach_policy"]
+  enum        = ["skip", "detach_policy"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -53,9 +58,9 @@ variable "iam_users_with_unrestricted_cloudshell_full_access_enabled_actions" {
 }
 
 trigger "query" "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access" {
-  title         = "Detect & correct IAM users with unrestricted CloudShellFullAccess policy"
-  description   = "Detects IAM users with unrestricted CloudShellFullAccess policy attached and then detaches that policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unrestricted CloudShellFullAccess policy"
+  description = "Detects IAM users with unrestricted CloudShellFullAccess policy attached and then detaches that policy."
+  tags        = local.iam_common_tags
 
   enabled  = var.iam_users_with_unrestricted_cloudshell_full_access_trigger_enabled
   schedule = var.iam_users_with_unrestricted_cloudshell_full_access_trigger_schedule
@@ -71,9 +76,9 @@ trigger "query" "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_
 }
 
 pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access" {
-  title         = "Detect & correct IAM users with unrestricted CloudShellFullAccess policy"
-  description   = "Detects IAM users with unrestricted CloudShellFullAccess policy attached and detaches that policy."
-  tags          = local.iam_common_tags
+  title       = "Detect & correct IAM users with unrestricted CloudShellFullAccess policy"
+  description = "Detects IAM users with unrestricted CloudShellFullAccess policy attached and detaches that policy."
+  tags        = local.iam_common_tags
 
   param "database" {
     type        = connection.steampipe
@@ -91,6 +96,7 @@ pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access"
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -103,12 +109,14 @@ pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access"
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_unrestricted_cloudshell_full_access_default_action
+    enum        = local.iam_users_with_unrestricted_cloudshell_full_access_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_unrestricted_cloudshell_full_access_enabled_actions
+    enum        = local.iam_users_with_unrestricted_cloudshell_full_access_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -130,16 +138,16 @@ pipeline "detect_and_correct_iam_users_with_unrestricted_cloudshell_full_access"
 }
 
 pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
-  title         = "Correct IAM users with unrestricted CloudShellFullAccess policy"
-  description   = "Runs corrective action to detach the CloudShellFullAccess policy from IAM users."
-  tags          = merge(local.iam_common_tags, { folder = "Internal" })
+  title       = "Correct IAM users with unrestricted CloudShellFullAccess policy"
+  description = "Runs corrective action to detach the CloudShellFullAccess policy from IAM users."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "items" {
     type = list(object({
-      title          = string
-      user_name      = string
-      account_id     = string
-      conn           = string
+      title      = string
+      user_name  = string
+      account_id = string
+      conn       = string
     }))
     description = local.description_items
   }
@@ -154,6 +162,7 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -166,12 +175,14 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_unrestricted_cloudshell_full_access_default_action
+    enum        = local.iam_users_with_unrestricted_cloudshell_full_access_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_unrestricted_cloudshell_full_access_enabled_actions
+    enum        = local.iam_users_with_unrestricted_cloudshell_full_access_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -199,9 +210,9 @@ pipeline "correct_iam_users_with_unrestricted_cloudshell_full_access" {
 }
 
 pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
-  title         = "Correct one IAM user with unrestricted CloudShellFullAccess policy"
-  description   = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from a IAM user."
-  tags          = merge(local.iam_common_tags, { folder = "Internal" })
+  title       = "Correct one IAM user with unrestricted CloudShellFullAccess policy"
+  description = "Runs corrective action to detach the unrestricted CloudShellFullAccess policy from a IAM user."
+  tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
   param "title" {
     type        = string
@@ -233,6 +244,7 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -245,12 +257,14 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_unrestricted_cloudshell_full_access_default_action
+    enum        = local.iam_users_with_unrestricted_cloudshell_full_access_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_unrestricted_cloudshell_full_access_enabled_actions
+    enum        = local.iam_users_with_unrestricted_cloudshell_full_access_enabled_actions_enum
   }
 
   step "pipeline" "respond" {
@@ -282,9 +296,9 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_user_policy
           pipeline_args = {
-            user_name   = param.user_name
-            policy_arn  = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
-            conn        = param.conn
+            user_name  = param.user_name
+            policy_arn = "arn:aws:iam::aws:policy/AWSCloudShellFullAccess"
+            conn       = param.conn
           }
           success_msg = "Detached policy 'arn:aws:iam::aws:policy/AWSCloudShellFullAccess' from IAM user ${param.title}."
           error_msg   = "Error detaching policy 'arn:aws:iam::aws:policy/AWSCloudShellFullAccess' from IAM user ${param.title}."

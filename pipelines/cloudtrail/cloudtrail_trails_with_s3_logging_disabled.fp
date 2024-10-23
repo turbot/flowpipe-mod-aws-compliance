@@ -14,6 +14,9 @@ locals {
     t.region = t.home_region
     and b.logging is null;
   EOQ
+
+  cloudtrail_trails_with_s3_logging_disabled_default_action_enum  = ["notify", "skip", "enable_s3_logging"]
+  cloudtrail_trails_with_s3_logging_disabled_enabled_actions_enum = ["skip", "enable_s3_logging"]
 }
 
 variable "cloudtrail_trails_with_s3_logging_disabled_trigger_enabled" {
@@ -40,6 +43,18 @@ variable "cloudtrail_trails_with_s3_logging_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_s3_logging"]
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
+}
+
+variable "cloudtrail_trails_with_s3_logging_disabled_enabled_actions" {
+  type        = list(string)
+  description = " The list of enabled actions approvers can select."
+  default     = ["skip", "enable_s3_logging"]
+  enum        = ["skip", "enable_s3_logging"]
 
   tags = {
     folder = "Advanced/CloudTrail"
@@ -50,16 +65,6 @@ variable "cloudtrail_trails_with_s3_logging_disabled_default_bucket_name" {
   type        = string
   description = "The name of the bucket."
   default     = "test-fp-bucket-trail-logging"
-
-  tags = {
-    folder = "Advanced/CloudTrail"
-  }
-}
-
-variable "cloudtrail_trails_with_s3_logging_disabled_default_actions" {
-  type        = list(string)
-  description = " The list of enabled actions approvers can select."
-  default     = ["skip", "enable_s3_logging"]
 
   tags = {
     folder = "Advanced/CloudTrail"
@@ -107,6 +112,7 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "bucket_name" {
@@ -125,12 +131,14 @@ pipeline "detect_and_correct_cloudtrail_trails_with_s3_logging_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.cloudtrail_trails_with_s3_logging_disabled_default_action
+    enum        = local.cloudtrail_trails_with_s3_logging_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trails_with_s3_logging_disabled_default_actions
+    default     = var.cloudtrail_trails_with_s3_logging_disabled_enabled_actions
+    enum        = local.cloudtrail_trails_with_s3_logging_disabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -185,6 +193,7 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -197,12 +206,14 @@ pipeline "correct_cloudtrail_trails_with_s3_logging_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.cloudtrail_trails_with_s3_logging_disabled_default_action
+    enum        = local.cloudtrail_trails_with_s3_logging_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trails_with_s3_logging_disabled_default_actions
+    default     = var.cloudtrail_trails_with_s3_logging_disabled_enabled_actions
+    enum        = local.cloudtrail_trails_with_s3_logging_disabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -277,6 +288,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -289,12 +301,14 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.cloudtrail_trails_with_s3_logging_disabled_default_action
+    enum        = local.cloudtrail_trails_with_s3_logging_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.cloudtrail_trails_with_s3_logging_disabled_default_actions
+    default     = var.cloudtrail_trails_with_s3_logging_disabled_enabled_actions
+    enum        = local.cloudtrail_trails_with_s3_logging_disabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {
@@ -371,29 +385,10 @@ pipeline "enable_s3_logging_for_cloudtrail" {
     description = "The name of the S3 bucket to which CloudTrail logs will be delivered."
   }
 
-  step "pipeline" "create_s3_bucket" {
-    pipeline = aws.pipeline.create_s3_bucket
-    args = {
-      region = param.region
-      conn   = param.conn
-      bucket = param.s3_bucket_name
-    }
-  }
-
-  step "pipeline" "put_s3_bucket_policy" {
-    depends_on = [step.pipeline.create_s3_bucket]
-    pipeline   = aws.pipeline.put_s3_bucket_policy
-    args = {
-      region = param.region
-      conn   = param.conn
-      bucket = param.s3_bucket_name
-      policy = "{\"Version\": \"2012-10-17\",\n\"Statement\": [\n{\n\"Sid\":\"AWSCloudTrailAclCheck\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\":\"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:GetBucketAcl\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}\"\n},\n{\n\"Sid\": \"AWSCloudTrailWrite\",\n\"Effect\": \"Allow\",\n\"Principal\": {\n\"Service\": \"cloudtrail.amazonaws.com\"\n},\n\"Action\": \"s3:PutObject\",\n\"Resource\": \"arn:aws:s3:::${param.s3_bucket_name}/AWSLogs/${param.account_id}/*\",\n\"Condition\": {\n\"StringEquals\": {\n\"s3:x-amz-acl\":\n\"bucket-owner-full-control\"\n}\n}\n}\n]\n}"
-    }
-  }
-
+  // The pipeline should not create any bucket.
+  // User could create a S3 bucket, apply appropriate policy to it beforehand and then set that in the var.
   step "pipeline" "update_cloudtrail_trail" {
-    depends_on = [step.pipeline.create_s3_bucket, step.pipeline.put_s3_bucket_policy]
-    pipeline   = aws.pipeline.update_cloudtrail_trail
+    pipeline = aws.pipeline.update_cloudtrail_trail
     args = {
       region         = param.region
       trail_name     = param.trail_name
@@ -403,7 +398,7 @@ pipeline "enable_s3_logging_for_cloudtrail" {
   }
 
   step "pipeline" "put_s3_bucket_logging" {
-    depends_on = [step.pipeline.create_s3_bucket, step.pipeline.put_s3_bucket_policy, step.pipeline.update_cloudtrail_trail]
+    depends_on = [step.pipeline.update_cloudtrail_trail]
     pipeline   = aws.pipeline.put_s3_bucket_logging
     args = {
       conn                  = param.conn

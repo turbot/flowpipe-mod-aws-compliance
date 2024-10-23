@@ -16,6 +16,9 @@ locals {
       (r.password_enabled and r.password_last_used is null and r.password_last_changed < (current_date - interval '45' day)
       or r.password_enabled and r.password_last_used < (current_date - interval '45' day));
   EOQ
+
+  iam_users_with_unused_login_profile_45_days_default_action_enum  = ["notify", "skip", "delete_user_login_profile_unused_45_days"]
+  iam_users_with_unused_login_profile_45_days_enabled_actions_enum = ["skip", "delete_user_login_profile_unused_45_days"]
 }
 
 variable "iam_users_with_unused_login_profile_45_days_trigger_enabled" {
@@ -42,6 +45,7 @@ variable "iam_users_with_unused_login_profile_45_days_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "delete_user_login_profile_unused_45_days"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -52,6 +56,7 @@ variable "iam_users_with_unused_login_profile_45_days_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_user_login_profile_unused_45_days"]
+  enum        = ["skip", "delete_user_login_profile_unused_45_days"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -97,6 +102,7 @@ pipeline "detect_and_correct_iam_users_with_unused_login_profile_45_days" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -109,12 +115,14 @@ pipeline "detect_and_correct_iam_users_with_unused_login_profile_45_days" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_unused_login_profile_45_days_default_action
+    enum        = local.iam_users_with_unused_login_profile_45_days_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_unused_login_profile_45_days_enabled_actions
+    enum        = local.iam_users_with_unused_login_profile_45_days_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -164,6 +172,7 @@ pipeline "correct_iam_users_with_unused_login_profile_45_days" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -176,12 +185,14 @@ pipeline "correct_iam_users_with_unused_login_profile_45_days" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_unused_login_profile_45_days_default_action
+    enum        = local.iam_users_with_unused_login_profile_45_days_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_unused_login_profile_45_days_enabled_actions
+    enum        = local.iam_users_with_unused_login_profile_45_days_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -261,6 +272,7 @@ pipeline "correct_one_iam_user_with_unused_login_profile_45_days" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -273,12 +285,14 @@ pipeline "correct_one_iam_user_with_unused_login_profile_45_days" {
     type        = string
     description = local.description_default_action
     default     = var.iam_users_with_unused_login_profile_45_days_default_action
+    enum        = local.iam_users_with_unused_login_profile_45_days_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_users_with_unused_login_profile_45_days_enabled_actions
+    enum        = local.iam_users_with_unused_login_profile_45_days_enabled_actions_enum
   }
 
   step "transform" "detect_msg" {

@@ -12,30 +12,51 @@ locals {
     where
       (eni -> 'Attachment' -> 'DeviceIndex')::int <> 0;
   EOQ
+
+  ec2_instances_with_multiple_enis_default_action_enum  = ["notify", "skip", "detach_network_interface"]
+  ec2_instances_with_multiple_enis_enabled_actions_enum = ["skip", "detach_network_interface"]
 }
 
 variable "ec2_instances_with_multiple_enis_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 variable "ec2_instances_with_multiple_enis_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 variable "ec2_instances_with_multiple_enis_default_action" {
   type        = string
-  default     = "notify"
   description = "The default action to use when there are no approvers."
+  default     = "notify"
+  enum        = ["notify", "skip", "detach_network_interface"]
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 variable "ec2_instances_with_multiple_enis_enabled_actions" {
   type        = list(string)
-  default     = ["skip", "detach_network_interface"]
   description = "The list of enabled actions to provide for selection."
+  default     = ["skip", "detach_network_interface"]
+  enum        = ["skip", "detach_network_interface"]
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 
@@ -80,6 +101,7 @@ pipeline "detect_and_correct_ec2_instances_with_multiple_enis" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -92,12 +114,14 @@ pipeline "detect_and_correct_ec2_instances_with_multiple_enis" {
     type        = string
     description = local.description_default_action
     default     = var.ec2_instances_with_multiple_enis_default_action
+    enum        = local.ec2_instances_with_multiple_enis_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.ec2_instances_with_multiple_enis_enabled_actions
+    enum        = local.ec2_instances_with_multiple_enis_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -145,6 +169,7 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -157,12 +182,14 @@ pipeline "correct_ec2_instances_with_multiple_enis" {
     type        = string
     description = local.description_default_action
     default     = var.ec2_instances_with_multiple_enis_default_action
+    enum        = local.ec2_instances_with_multiple_enis_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.ec2_instances_with_multiple_enis_enabled_actions
+    enum        = local.ec2_instances_with_multiple_enis_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -235,6 +262,7 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -247,12 +275,14 @@ pipeline "correct_one_ec2_instance_with_multiple_enis" {
     type        = string
     description = local.description_default_action
     default     = var.ec2_instances_with_multiple_enis_default_action
+    enum        = local.ec2_instances_with_multiple_enis_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.ec2_instances_with_multiple_enis_enabled_actions
+    enum        = local.ec2_instances_with_multiple_enis_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

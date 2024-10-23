@@ -80,6 +80,7 @@ pipeline "detect_and_correct_s3_buckets_with_macie_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "query" "detect" {
@@ -121,6 +122,7 @@ pipeline "correct_s3_buckets_with_macie_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "message" "notify_detection_count" {

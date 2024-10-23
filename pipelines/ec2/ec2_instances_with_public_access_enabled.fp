@@ -11,30 +11,51 @@ locals {
     where
       public_ip_address is not null;
   EOQ
+
+  ec2_instances_with_public_access_enabled_default_action_enum  = ["notify", "skip", "stop_instance", "terminate_instance"]
+  ec2_instances_with_public_access_enabled_enabled_actions_enum = ["skip", "stop_instance", "terminate_instance"]
 }
 
 variable "ec2_instances_with_public_access_enabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 variable "ec2_instances_with_public_access_enabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 variable "ec2_instances_with_public_access_enabled_default_action" {
   type        = string
-  default     = "notify"
   description = "The default action to use when there are no approvers."
+  default     = "notify"
+  enum        = ["notify", "skip", "stop_instance", "terminate_instance"]
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 variable "ec2_instances_with_public_access_enabled_enabled_actions" {
   type        = list(string)
-  default     = ["skip", "stop_instance", "terminate_instance"]
   description = "The list of enabled actions to provide for selection."
+  default     = ["skip", "stop_instance", "terminate_instance"]
+  enum        = ["skip", "stop_instance", "terminate_instance"]
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 
@@ -79,6 +100,7 @@ pipeline "detect_and_correct_ec2_instances_with_public_access_enabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -91,12 +113,14 @@ pipeline "detect_and_correct_ec2_instances_with_public_access_enabled" {
     type        = string
     description = local.description_default_action
     default     = var.ec2_instances_with_public_access_enabled_default_action
+    enum        = local.ec2_instances_with_public_access_enabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.ec2_instances_with_public_access_enabled_enabled_actions
+    enum        = local.ec2_instances_with_public_access_enabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -144,6 +168,7 @@ pipeline "correct_ec2_instances_with_public_access_enabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -156,12 +181,14 @@ pipeline "correct_ec2_instances_with_public_access_enabled" {
     type        = string
     description = local.description_default_action
     default     = var.ec2_instances_with_public_access_enabled_default_action
+    enum        = local.ec2_instances_with_public_access_enabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.ec2_instances_with_public_access_enabled_enabled_actions
+    enum        = local.ec2_instances_with_public_access_enabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -230,6 +257,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -242,12 +270,14 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
     type        = string
     description = local.description_default_action
     default     = var.ec2_instances_with_public_access_enabled_default_action
+    enum        = local.ec2_instances_with_public_access_enabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.ec2_instances_with_public_access_enabled_enabled_actions
+    enum        = local.ec2_instances_with_public_access_enabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

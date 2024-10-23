@@ -11,30 +11,51 @@ locals {
   where
     not tracing_enabled;
   EOQ
+
+  apigateway_rest_api_stages_with_xray_tracing_disabled_default_action_enum  = ["notify", "skip", "enable_xray_tracing"]
+  apigateway_rest_api_stages_with_xray_tracing_disabled_enabled_actions_enum = ["skip", "enable_xray_tracing"]
 }
 
 variable "apigateway_rest_api_stages_with_xray_tracing_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/APIGateway"
+  }
 }
 
 variable "apigateway_rest_api_stages_with_xray_tracing_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/APIGateway"
+  }
 }
 
 variable "apigateway_rest_api_stages_with_xray_tracing_disabled_default_action" {
   type        = string
   description = "The default action to use for detected items."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_xray_tracing"]
+
+  tags = {
+    folder = "Advanced/APIGateway"
+  }
 }
 
 variable "apigateway_rest_api_stages_with_xray_tracing_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_xray_tracing"]
+  enum        = ["skip", "enable_xray_tracing"]
+
+  tags = {
+    folder = "Advanced/APIGateway"
+  }
 }
 
 trigger "query" "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
@@ -78,6 +99,7 @@ pipeline "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabl
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -90,12 +112,14 @@ pipeline "detect_and_correct_apigateway_rest_api_stages_with_xray_tracing_disabl
     type        = string
     description = local.description_default_action
     default     = var.apigateway_rest_api_stages_with_xray_tracing_disabled_default_action
+    enum        = local.apigateway_rest_api_stages_with_xray_tracing_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.apigateway_rest_api_stages_with_xray_tracing_disabled_enabled_actions
+    enum        = local.apigateway_rest_api_stages_with_xray_tracing_disabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -142,6 +166,7 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -154,12 +179,14 @@ pipeline "correct_apigateway_rest_api_stages_with_xray_tracing_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.apigateway_rest_api_stages_with_xray_tracing_disabled_default_action
+    enum        = local.apigateway_rest_api_stages_with_xray_tracing_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.apigateway_rest_api_stages_with_xray_tracing_disabled_enabled_actions
+    enum        = local.apigateway_rest_api_stages_with_xray_tracing_disabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -228,6 +255,7 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -240,12 +268,14 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.apigateway_rest_api_stages_with_xray_tracing_disabled_default_action
+    enum        = local.apigateway_rest_api_stages_with_xray_tracing_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.apigateway_rest_api_stages_with_xray_tracing_disabled_enabled_actions
+    enum        = local.apigateway_rest_api_stages_with_xray_tracing_disabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

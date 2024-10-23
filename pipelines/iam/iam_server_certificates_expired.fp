@@ -11,6 +11,9 @@ locals {
     where
       expiration < (current_date - interval '1' second);
   EOQ
+
+  iam_server_certificates_expired_default_action_enum  = ["notify", "skip", "delete_expired_server_certificate"]
+  iam_server_certificates_expired_enabled_actions_enum = ["skip", "delete_expired_server_certificate"]
 }
 
 variable "iam_server_certificates_expired_trigger_enabled" {
@@ -36,7 +39,8 @@ variable "iam_server_certificates_expired_trigger_schedule" {
 variable "iam_server_certificates_expired_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
-  default     = "delete_expired_server_certificate"
+  default     = "notify"
+  enum        = ["notify", "skip", "delete_expired_server_certificate"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -47,6 +51,7 @@ variable "iam_server_certificates_expired_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "delete_expired_server_certificate"]
+  enum        = ["skip", "delete_expired_server_certificate"]
 
   tags = {
     folder = "Advanced/IAM"
@@ -92,6 +97,7 @@ pipeline "detect_and_correct_iam_server_certificates_expired" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -104,12 +110,14 @@ pipeline "detect_and_correct_iam_server_certificates_expired" {
     type        = string
     description = local.description_default_action
     default     = var.iam_server_certificates_expired_default_action
+    enum        = local.iam_server_certificates_expired_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_server_certificates_expired_enabled_actions
+    enum        = local.iam_server_certificates_expired_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -156,6 +164,7 @@ pipeline "correct_iam_server_certificates_expired" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -168,12 +177,14 @@ pipeline "correct_iam_server_certificates_expired" {
     type        = string
     description = local.description_default_action
     default     = var.iam_server_certificates_expired_default_action
+    enum        = local.iam_server_certificates_expired_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_server_certificates_expired_enabled_actions
+    enum        = local.iam_server_certificates_expired_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -241,6 +252,7 @@ pipeline "correct_one_iam_server_certificate_expired" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -253,12 +265,14 @@ pipeline "correct_one_iam_server_certificate_expired" {
     type        = string
     description = local.description_default_action
     default     = var.iam_server_certificates_expired_default_action
+    enum        = local.iam_server_certificates_expired_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.iam_server_certificates_expired_enabled_actions
+    enum        = local.iam_server_certificates_expired_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

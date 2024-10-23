@@ -154,7 +154,6 @@ pipeline "test_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     args = {
       title               = step.query.cloudtrail_logs_unencrypted.rows[0].title
       kms_key_id          = jsondecode(step.container.create_kms_key.stdout).KeyMetadata.KeyId
-      kms_key_policy_name = "default"
       account_id          = step.query.get_account_id.rows[0].account_id
       region              = param.region
       name                = param.trail_name

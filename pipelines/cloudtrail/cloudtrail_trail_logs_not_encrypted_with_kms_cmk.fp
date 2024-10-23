@@ -12,42 +12,61 @@ locals {
       region = home_region
       and kms_key_id is null;
   EOQ
+
+  cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action_enum  = ["notify", "skip", "encrypt_cloud_trail_logs"]
+  cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions_enum = ["skip", "encrypt_cloud_trail_logs"]
 }
 
 variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger_enabled" {
   type        = bool
   description = "If true, the trigger is enabled."
   default     = false
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "encrypt_cloud_trail_logs"]
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "encrypt_cloud_trail_logs"]
-}
+  enum        = ["skip", "encrypt_cloud_trail_logs"]
 
-variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_cloudtrail_kms_key_policy_name" {
-  type        = string
-  description = "The name of the policy to use for encryption."
-  default     = "default"
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_key_id" {
   type        = string
   description = "Specifies the KMS key ID to use to encrypt the logs delivered by CloudTrail."
   default     = "" // Add your key ID here.
+
+  tags = {
+    folder = "Advanced/CloudTrail"
+  }
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
@@ -87,12 +106,6 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_key_id
   }
 
-  param "kms_key_policy_name" {
-    type        = string
-    description = "The name of the policy to use for encryption."
-    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_cloudtrail_kms_key_policy_name
-  }
-
   param "notifier" {
     type        = notifier
     description = local.description_notifier
@@ -103,6 +116,7 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -115,12 +129,14 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     type        = string
     description = local.description_default_action
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action
+    enum        = local.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions
+    enum        = local.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -131,14 +147,13 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
   step "pipeline" "respond" {
     pipeline = pipeline.correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk
     args = {
-      items               = step.query.detect.rows
-      kms_key_policy_name = param.kms_key_policy_name
-      kms_key_id          = param.kms_key_id
-      notifier            = param.notifier
-      notification_level  = param.notification_level
-      approvers           = param.approvers
-      default_action      = param.default_action
-      enabled_actions     = param.enabled_actions
+      items              = step.query.detect.rows
+      kms_key_id         = param.kms_key_id
+      notifier           = param.notifier
+      notification_level = param.notification_level
+      approvers          = param.approvers
+      default_action     = param.default_action
+      enabled_actions    = param.enabled_actions
     }
   }
 }
@@ -165,12 +180,6 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_key_id
   }
 
-  param "kms_key_policy_name" {
-    type        = string
-    description = "The name of the policy to use for encryption."
-    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_cloudtrail_kms_key_policy_name
-  }
-
   param "notifier" {
     type        = notifier
     description = local.description_notifier
@@ -181,6 +190,7 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -193,12 +203,14 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     type        = string
     description = local.description_default_action
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action
+    enum        = local.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions
+    enum        = local.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -212,18 +224,17 @@ pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk
     args = {
-      title               = each.value.title
-      name                = each.value.name
-      region              = each.value.region
-      account_id          = each.value.account_id
-      conn                = connection.aws[each.value.conn]
-      kms_key_id          = param.kms_key_id
-      kms_key_policy_name = param.kms_key_policy_name
-      notifier            = param.notifier
-      notification_level  = param.notification_level
-      approvers           = param.approvers
-      default_action      = param.default_action
-      enabled_actions     = param.enabled_actions
+      title              = each.value.title
+      name               = each.value.name
+      region             = each.value.region
+      account_id         = each.value.account_id
+      conn               = connection.aws[each.value.conn]
+      kms_key_id         = param.kms_key_id
+      notifier           = param.notifier
+      notification_level = param.notification_level
+      approvers          = param.approvers
+      default_action     = param.default_action
+      enabled_actions    = param.enabled_actions
     }
   }
 }
@@ -269,6 +280,7 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -281,24 +293,20 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
     type        = string
     description = local.description_default_action
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action
+    enum        = local.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions
+    enum        = local.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_enabled_actions_enum
   }
 
   param "kms_key_id" {
     type        = string
     description = "Specifies the KMS key ID to use to encrypt the logs delivered by CloudTrail."
     default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_key_id
-  }
-
-  param "kms_key_policy_name" {
-    type        = string
-    description = "The name of the policy to use for encryption."
-    default     = var.cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_cloudtrail_kms_key_policy_name
   }
 
   step "pipeline" "respond" {
@@ -330,12 +338,10 @@ pipeline "correct_one_cloudtrail_trail_log_not_encrypted_with_kms_cmk" {
           style        = local.style_alert
           pipeline_ref = pipeline.encrypt_cloud_trail_logs
           pipeline_args = {
-            key_id      = param.kms_key_id
-            region      = param.region
-            trail_name  = param.name
-            policy_name = param.kms_key_policy_name
-            policy      = "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Sid\": \"Allow CloudTrail to use the key\", \"Effect\": \"Allow\", \"Principal\": {\"Service\": \"cloudtrail.amazonaws.com\"}, \"Action\": [\"kms:Decrypt\", \"kms:GenerateDataKey*\"], \"Resource\": \"*\"}, {\"Sid\": \"Allow root user full access\", \"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::${param.account_id}:root\"}, \"Action\": \"kms:*\", \"Resource\": \"*\"}]}"
-            conn        = param.conn
+            key_id     = param.kms_key_id
+            region     = param.region
+            trail_name = param.name
+            conn       = param.conn
           }
           success_msg = "Encrypted CloudTrail logs ${param.title}."
           error_msg   = "Error encrypting CloudTrail logs ${param.title}."
@@ -370,30 +376,8 @@ pipeline "encrypt_cloud_trail_logs" {
     description = local.description_connection
   }
 
-  param "policy_name" {
-    type        = string
-    description = "The name of the policy to use for encryption."
-  }
-
-  param "policy" {
-    type        = string
-    description = "The policy to use for encryption."
-  }
-
-  step "pipeline" "put_kms_key_policy" {
-    pipeline = aws.pipeline.put_kms_key_policy
-    args = {
-      key_id      = param.key_id
-      policy_name = param.policy_name
-      policy      = param.policy
-      region      = param.region
-      conn        = param.conn
-    }
-  }
-
   step "pipeline" "update_cloud_trail" {
-    depends_on = [step.pipeline.put_kms_key_policy]
-    pipeline   = aws.pipeline.update_cloudtrail_trail
+    pipeline = aws.pipeline.update_cloudtrail_trail
     args = {
       trail_name = param.trail_name
       kms_key_id = param.key_id

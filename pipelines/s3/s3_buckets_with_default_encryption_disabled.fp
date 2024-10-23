@@ -10,6 +10,9 @@ locals {
     where
       server_side_encryption_configuration is null;
   EOQ
+
+  s3_bucket_default_encryption_disabled_default_action_enum  = ["notify", "skip", "enable_default_encryption"]
+  s3_bucket_default_encryption_disabled_enabled_actions_enum = ["skip", "enable_default_encryption"]
 }
 
 variable "s3_bucket_default_encryption_disabled_trigger_enabled" {
@@ -36,6 +39,7 @@ variable "s3_bucket_default_encryption_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_default_encryption"]
 
   tags = {
     folder = "Advanced/S3"
@@ -46,6 +50,7 @@ variable "s3_bucket_default_encryption_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_default_encryption"]
+  enum        = ["skip", "enable_default_encryption"]
 
   tags = {
     folder = "Advanced/S3"
@@ -121,6 +126,7 @@ pipeline "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -133,12 +139,14 @@ pipeline "detect_and_correct_s3_buckets_with_default_encryption_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.s3_bucket_default_encryption_disabled_default_action
+    enum        = local.s3_bucket_default_encryption_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.s3_bucket_default_encryption_disabled_enabled_actions
+    enum        = local.s3_bucket_default_encryption_disabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -202,6 +210,7 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -214,12 +223,14 @@ pipeline "correct_s3_buckets_with_default_encryption_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.s3_bucket_default_encryption_disabled_default_action
+    enum        = local.s3_bucket_default_encryption_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.s3_bucket_default_encryption_disabled_enabled_actions
+    enum        = local.s3_bucket_default_encryption_disabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -302,6 +313,7 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -314,12 +326,14 @@ pipeline "correct_one_s3_bucket_with_default_encryption_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.s3_bucket_default_encryption_disabled_default_action
+    enum        = local.s3_bucket_default_encryption_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.s3_bucket_default_encryption_disabled_enabled_actions
+    enum        = local.s3_bucket_default_encryption_disabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

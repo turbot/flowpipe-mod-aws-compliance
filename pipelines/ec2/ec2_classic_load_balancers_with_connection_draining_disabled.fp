@@ -10,30 +10,51 @@ locals {
     where
       not connection_draining_enabled;
   EOQ
+
+  ec2_classic_load_balancers_with_connection_draining_disabled_default_action_enum  = ["notify", "skip", "enable_connection_draining"]
+  ec2_classic_load_balancers_with_connection_draining_disabled_enabled_actions_enum = ["skip", "enable_connection_draining"]
 }
 
 variable "ec2_classic_load_balancers_with_connection_draining_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 variable "ec2_classic_load_balancers_with_connection_draining_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 variable "ec2_classic_load_balancers_with_connection_draining_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_connection_draining"]
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 variable "ec2_classic_load_balancers_with_connection_draining_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_connection_draining"]
+  enum        = ["skip", "enable_connection_draining"]
+
+  tags = {
+    folder = "Advanced/EC2"
+  }
 }
 
 trigger "query" "detect_and_correct_ec2_classic_load_balancers_with_connection_draining_disabled" {
@@ -77,6 +98,7 @@ pipeline "detect_and_correct_ec2_classic_load_balancers_with_connection_draining
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -140,6 +162,7 @@ pipeline "correct_ec2_classic_load_balancers_with_connection_draining_disabled" 
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -220,6 +243,7 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {

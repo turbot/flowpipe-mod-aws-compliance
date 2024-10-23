@@ -10,6 +10,9 @@ locals {
     where
       not auto_minor_version_upgrade;
   EOQ
+
+  rds_db_instances_with_auto_minor_version_upgrade_disabled_default_action_enum  = ["notify", "skip", "enable_auto_minor_version_upgrade"]
+  rds_db_instances_with_auto_minor_version_upgrade_disabled_enabled_actions_enum = ["skip", "enable_auto_minor_version_upgrade"]
 }
 
 variable "rds_db_instances_with_auto_minor_version_upgrade_disabled_trigger_enabled" {
@@ -36,6 +39,7 @@ variable "rds_db_instances_with_auto_minor_version_upgrade_disabled_default_acti
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_auto_minor_version_upgrade"]
 
   tags = {
     folder = "Advanced/RDS"
@@ -46,6 +50,7 @@ variable "rds_db_instances_with_auto_minor_version_upgrade_disabled_enabled_acti
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_auto_minor_version_upgrade"]
+  enum        = ["skip", "enable_auto_minor_version_upgrade"]
 
   tags = {
     folder = "Advanced/RDS"
@@ -92,6 +97,7 @@ pipeline "detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_di
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -104,12 +110,14 @@ pipeline "detect_and_correct_rds_db_instances_with_auto_minor_version_upgrade_di
     type        = string
     description = local.description_default_action
     default     = var.rds_db_instances_with_auto_minor_version_upgrade_disabled_default_action
+    enum        = local.rds_db_instances_with_auto_minor_version_upgrade_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.rds_db_instances_with_auto_minor_version_upgrade_disabled_enabled_actions
+    enum        = local.rds_db_instances_with_auto_minor_version_upgrade_disabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -156,6 +164,7 @@ pipeline "correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -168,12 +177,14 @@ pipeline "correct_rds_db_instances_with_auto_minor_version_upgrade_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.rds_db_instances_with_auto_minor_version_upgrade_disabled_default_action
+    enum        = local.rds_db_instances_with_auto_minor_version_upgrade_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.rds_db_instances_with_auto_minor_version_upgrade_disabled_enabled_actions
+    enum        = local.rds_db_instances_with_auto_minor_version_upgrade_disabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -236,6 +247,7 @@ pipeline "correct_one_rds_db_instance_with_auto_minor_version_upgrade_disabled" 
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -248,12 +260,14 @@ pipeline "correct_one_rds_db_instance_with_auto_minor_version_upgrade_disabled" 
     type        = string
     description = local.description_default_action
     default     = var.rds_db_instances_with_auto_minor_version_upgrade_disabled_default_action
+    enum        = local.rds_db_instances_with_auto_minor_version_upgrade_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.rds_db_instances_with_auto_minor_version_upgrade_disabled_enabled_actions
+    enum        = local.rds_db_instances_with_auto_minor_version_upgrade_disabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

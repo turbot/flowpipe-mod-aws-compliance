@@ -10,6 +10,9 @@ locals {
   where
     create_volume_permissions @> '[{"Group": "all", "UserId": null}]';
   EOQ
+
+  ebs_snapshots_when_publicly_restorable_default_action_enum  = ["notify", "skip", "update_snapshot_permision_to_private", "delete_snapshot"]
+  ebs_snapshots_when_publicly_restorable_enabled_actions_enum = ["skip", "update_snapshot_permision_to_private", "delete_snapshot"]
 }
 
 variable "ebs_snapshots_when_publicly_restorable_trigger_enabled" {
@@ -36,6 +39,7 @@ variable "ebs_snapshots_when_publicly_restorable_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "update_snapshot_permision_to_private", "delete_snapshot"]
 
   tags = {
     folder = "Advanced/EBS"
@@ -46,6 +50,7 @@ variable "ebs_snapshots_when_publicly_restorable_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "update_snapshot_permision_to_private", "delete_snapshot"]
+  enum        = ["skip", "update_snapshot_permision_to_private", "delete_snapshot"]
 
   tags = {
     folder = "Advanced/EBS"
@@ -93,6 +98,7 @@ pipeline "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -105,12 +111,14 @@ pipeline "detect_and_correct_ebs_snapshots_when_publicly_restorable" {
     type        = string
     description = local.description_default_action
     default     = var.ebs_snapshots_when_publicly_restorable_default_action
+    enum        = local.ebs_snapshots_when_publicly_restorable_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.ebs_snapshots_when_publicly_restorable_enabled_actions
+    enum        = local.ebs_snapshots_when_publicly_restorable_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -157,6 +165,7 @@ pipeline "correct_ebs_snapshots_when_publicly_restorable" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -169,12 +178,14 @@ pipeline "correct_ebs_snapshots_when_publicly_restorable" {
     type        = string
     description = local.description_default_action
     default     = var.ebs_snapshots_when_publicly_restorable_default_action
+    enum        = local.ebs_snapshots_when_publicly_restorable_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.ebs_snapshots_when_publicly_restorable_enabled_actions
+    enum        = local.ebs_snapshots_when_publicly_restorable_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -237,6 +248,7 @@ pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -249,12 +261,14 @@ pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
     type        = string
     description = local.description_default_action
     default     = var.ebs_snapshots_when_publicly_restorable_default_action
+    enum        = local.ebs_snapshots_when_publicly_restorable_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.ebs_snapshots_when_publicly_restorable_enabled_actions
+    enum        = local.ebs_snapshots_when_publicly_restorable_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

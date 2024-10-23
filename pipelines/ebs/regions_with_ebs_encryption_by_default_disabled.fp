@@ -10,6 +10,9 @@ locals {
     where
       not e.default_ebs_encryption_enabled;
   EOQ
+
+  regions_with_ebs_encryption_by_default_disabled_default_action_enum  = ["notify", "skip", "enable_encryption_by_default"]
+  regions_with_ebs_encryption_by_default_disabled_enabled_actions_enum = ["skip", "enable_encryption_by_default"]
 }
 
 variable "regions_with_ebs_encryption_by_default_disabled_trigger_enabled" {
@@ -36,6 +39,7 @@ variable "regions_with_ebs_encryption_by_default_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_encryption_by_default"]
 
   tags = {
     folder = "Advanced/EBS"
@@ -46,6 +50,7 @@ variable "regions_with_ebs_encryption_by_default_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_encryption_by_default"]
+  enum        = ["skip", "enable_encryption_by_default"]
 
   tags = {
     folder = "Advanced/EBS"
@@ -93,6 +98,7 @@ pipeline "detect_and_correct_regions_with_ebs_encryption_by_default_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -105,12 +111,14 @@ pipeline "detect_and_correct_regions_with_ebs_encryption_by_default_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.regions_with_ebs_encryption_by_default_disabled_default_action
+    enum        = local.regions_with_ebs_encryption_by_default_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.regions_with_ebs_encryption_by_default_disabled_enabled_actions
+    enum        = local.regions_with_ebs_encryption_by_default_disabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -156,6 +164,7 @@ pipeline "correct_regions_with_ebs_encryption_by_default_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -168,12 +177,14 @@ pipeline "correct_regions_with_ebs_encryption_by_default_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.regions_with_ebs_encryption_by_default_disabled_default_action
+    enum        = local.regions_with_ebs_encryption_by_default_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.regions_with_ebs_encryption_by_default_disabled_enabled_actions
+    enum        = local.regions_with_ebs_encryption_by_default_disabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -230,6 +241,7 @@ pipeline "correct_one_region_with_ebs_encryption_by_default_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -242,12 +254,14 @@ pipeline "correct_one_region_with_ebs_encryption_by_default_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.regions_with_ebs_encryption_by_default_disabled_default_action
+    enum        = local.regions_with_ebs_encryption_by_default_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.regions_with_ebs_encryption_by_default_disabled_enabled_actions
+    enum        = local.regions_with_ebs_encryption_by_default_disabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

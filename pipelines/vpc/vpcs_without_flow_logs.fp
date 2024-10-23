@@ -97,6 +97,7 @@ pipeline "detect_and_correct_vpcs_without_flow_logs" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -160,6 +161,7 @@ pipeline "correct_vpcs_without_flow_logs" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -244,6 +246,7 @@ pipeline "correct_one_vpc_without_flowlog" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {

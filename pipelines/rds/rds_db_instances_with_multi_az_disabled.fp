@@ -12,6 +12,9 @@ locals {
       and engine not ilike '%aurora-postgresql%'
       and not multi_az;
   EOQ
+
+  rds_db_instances_with_multi_az_disabled_default_action_enum  = ["notify", "skip", "enable_multi_az"]
+  rds_db_instances_with_multi_az_disabled_enabled_actions_enum = ["skip", "enable_multi_az"]
 }
 
 variable "rds_db_instances_with_multi_az_disabled_trigger_enabled" {
@@ -38,6 +41,7 @@ variable "rds_db_instances_with_multi_az_disabled_default_action" {
   type        = string
   description = "The default action to use when there are no approvers."
   default     = "notify"
+  enum        = ["notify", "skip", "enable_multi_az"]
 
   tags = {
     folder = "Advanced/RDS"
@@ -48,6 +52,7 @@ variable "rds_db_instances_with_multi_az_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions approvers can select."
   default     = ["skip", "enable_multi_az"]
+  enum        = ["skip", "enable_multi_az"]
 
   tags = {
     folder = "Advanced/RDS"
@@ -93,6 +98,7 @@ pipeline "detect_and_correct_rds_db_instances_with_multi_az_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -105,12 +111,14 @@ pipeline "detect_and_correct_rds_db_instances_with_multi_az_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.rds_db_instances_with_multi_az_disabled_default_action
+    enum        = local.rds_db_instances_with_multi_az_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.rds_db_instances_with_multi_az_disabled_enabled_actions
+    enum        = local.rds_db_instances_with_multi_az_disabled_enabled_actions_enum
   }
 
   step "query" "detect" {
@@ -156,6 +164,7 @@ pipeline "correct_rds_db_instances_with_multi_az_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -168,12 +177,14 @@ pipeline "correct_rds_db_instances_with_multi_az_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.rds_db_instances_with_multi_az_disabled_default_action
+    enum        = local.rds_db_instances_with_multi_az_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.rds_db_instances_with_multi_az_disabled_enabled_actions
+    enum        = local.rds_db_instances_with_multi_az_disabled_enabled_actions_enum
   }
 
   step "message" "notify_detection_count" {
@@ -235,6 +246,7 @@ pipeline "correct_one_rds_db_instance_with_multi_az_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -247,12 +259,14 @@ pipeline "correct_one_rds_db_instance_with_multi_az_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.rds_db_instances_with_multi_az_disabled_default_action
+    enum        = local.rds_db_instances_with_multi_az_disabled_default_action_enum
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.rds_db_instances_with_multi_az_disabled_enabled_actions
+    enum        = local.rds_db_instances_with_multi_az_disabled_enabled_actions_enum
   }
 
   step "pipeline" "respond" {

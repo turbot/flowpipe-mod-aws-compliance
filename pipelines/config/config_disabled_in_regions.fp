@@ -87,6 +87,7 @@ pipeline "detect_and_correct_config_disabled_in_regions" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "query" "detect" {
@@ -129,6 +130,7 @@ pipeline "correct_config_disabled_in_regions" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   step "message" "notify_detection_count" {
