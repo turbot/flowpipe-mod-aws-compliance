@@ -233,7 +233,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_port_22" {
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for item in param.items : item.group_id => item }
+    for_each        = { for item in param.items : item.security_group_rule_id => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_vpc_security_group_allowing_ingress_to_port_22
     args = {

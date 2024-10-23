@@ -250,7 +250,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for item in param.items : item.group_id => item }
+    for_each        = { for item in param.items : item.security_group_rule_id => item }
     max_concurrency = var.max_concurrency
     pipeline        = pipeline.correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports_ipv4
     args = {
@@ -367,7 +367,7 @@ pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_admin
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected VPC security group rule ${param.security_group_rule_id} in ${param.title} allowing ingress on protocol ${param.ip_protocol} and ports ${param.from_port}-${param.to_port} from ${coalesce(param.cidr_ipv4, param.cidr_ipv6)}."
+      detect_msg         = "Detected VPC security group rule ${param.security_group_rule_id} in ${param.title} allowing ingress on protocol ${param.ip_protocol} and ports ${param.from_port}-${param.to_port} from ${param.cidr_ipv4}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
