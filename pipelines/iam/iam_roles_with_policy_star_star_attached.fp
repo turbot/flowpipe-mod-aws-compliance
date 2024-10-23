@@ -102,7 +102,8 @@ trigger "query" "detect_and_correct_iam_roles_with_policy_star_star_attached" {
 pipeline "detect_and_correct_iam_roles_with_policy_star_star_attached" {
   title       = "Detect & correct IAM roles attached with *:* policy"
   description = "Detects IAM roles attached with the *:* policy and then detaches the policy."
-  tags        = local.iam_common_tags
+
+  tags = merge(local.iam_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe

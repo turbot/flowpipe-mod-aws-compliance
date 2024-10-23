@@ -191,7 +191,7 @@ pipeline "detect_and_correct_accounts_without_metric_filter_for_network_gateway_
   title       = "Detect & correct accounts without metric filter for network gateway changes"
   description = "Detect accounts without a metric filter for network gateway changes."
 
-  tags = merge(local.cloudwatch_common_tags, { recommended = "true" })
+  tags = local.cloudwatch_common_tags
 
   param "database" {
     type        = connection.steampipe

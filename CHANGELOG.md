@@ -1,3 +1,9 @@
+## v1.0.1 [2024-10-23]
+
+_Enhancements_
+
+- Adjusted recommended pipelines to show more commonly used pipelines.
+
 ## v1.0.0 [2024-10-23]
 
 _What's new?_

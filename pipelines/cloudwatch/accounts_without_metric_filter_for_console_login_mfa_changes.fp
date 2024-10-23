@@ -120,7 +120,7 @@ pipeline "detect_and_correct_accounts_without_metric_filter_for_console_login_mf
   title       = "Detect & correct accounts without metric filter for console login MFA changes"
   description = "Detects accounts without a metric filter for console login MFA changes."
 
-  tags = merge(local.cloudwatch_common_tags, { recommended = "true" })
+  tags = local.cloudwatch_common_tags
 
   param "database" {
     type        = connection.steampipe

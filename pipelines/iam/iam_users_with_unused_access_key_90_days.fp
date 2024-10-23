@@ -81,7 +81,8 @@ trigger "query" "detect_and_correct_iam_users_with_unused_access_key_90_days" {
 pipeline "detect_and_correct_iam_users_with_unused_access_key_90_days" {
   title       = "Detect & correct IAM users with unused access key from 90 days or more"
   description = "Detects IAM users access key that have been unused for 90 days or more and deactivates them."
-  tags        = local.iam_common_tags
+
+  tags = merge(local.iam_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe

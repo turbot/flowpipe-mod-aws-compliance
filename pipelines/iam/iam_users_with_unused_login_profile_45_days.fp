@@ -84,7 +84,8 @@ trigger "query" "detect_and_correct_iam_users_with_unused_login_profile_45_days"
 pipeline "detect_and_correct_iam_users_with_unused_login_profile_45_days" {
   title       = "Detect & correct IAM users with unused login profile from 45 days or more"
   description = "Detects IAM users login profile that have been unused for 45 days or more and delete them."
-  tags        = local.iam_common_tags
+
+  tags = merge(local.iam_common_tags, { recommended = "true" })
 
   param "database" {
     type        = connection.steampipe
