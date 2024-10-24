@@ -291,7 +291,7 @@ pipeline "correct_one_iam_user_with_unrestricted_cloudshell_full_access" {
           error_msg   = ""
         },
         "detach_policy" = {
-          label        = "Detach policy"
+          label        = "Detach policy from IAM user"
           value        = "detach_policy"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_user_policy

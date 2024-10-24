@@ -288,7 +288,7 @@ pipeline "correct_one_ec2_classic_load_balancer_without_connection_draining_disa
           error_msg   = ""
         },
         "enable_connection_draining" = {
-          label        = "Enable Connection Draining"
+          label        = "Enable connection draining for EC2 classic load balancer"
           value        = "enable_connection_draining"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_elb_attributes

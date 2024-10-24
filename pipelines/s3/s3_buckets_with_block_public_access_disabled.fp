@@ -295,7 +295,7 @@ pipeline "correct_one_s3_bucket_with_block_public_access_disabled" {
           error_msg   = ""
         },
         "block_public_access" = {
-          label        = "Block public access"
+          label        = "Block S3 bucket public access"
           value        = "block_public_access"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.put_s3_bucket_public_access_block

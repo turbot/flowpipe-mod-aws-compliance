@@ -293,7 +293,7 @@ pipeline "correct_one_rds_db_instance_with_multi_az_disabled" {
           error_msg   = ""
         },
         "enable_multi_az" = {
-          label        = "Enable Multi-AZ"
+          label        = "Enable Multi-AZ for RDS DB instance"
           value        = "enable_multi_az"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_rds_db_instance

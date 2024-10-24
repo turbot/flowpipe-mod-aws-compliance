@@ -295,7 +295,7 @@ pipeline "correct_one_dynamodb_tables_with_point_in_time_recovery_disabled" {
           error_msg   = ""
         },
         "enable_point_in_time_recovery" = {
-          label        = "Enable Point In Time Recovery"
+          label        = "Enable point in time recovery for DynamoDB table"
           value        = "enable_point_in_time_recovery"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.update_dynamodb_continuous_backup

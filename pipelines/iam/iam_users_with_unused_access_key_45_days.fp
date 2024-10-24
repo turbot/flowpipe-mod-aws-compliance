@@ -309,7 +309,7 @@ pipeline "correct_one_iam_user_with_unused_access_key_45_days" {
           error_msg   = ""
         },
         "deactivate_access_key" = {
-          label        = "Deactivate access key"
+          label        = "Deactivate IAM user access key"
           value        = "deactivate_access_key"
           style        = local.style_alert
           pipeline_ref = pipeline.deactivate_user_access_key

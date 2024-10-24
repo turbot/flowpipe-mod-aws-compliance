@@ -332,7 +332,7 @@ pipeline "correct_one_ec2_instance_with_public_access_enabled" {
           error_msg   = "Error stopping EC2 instance ${param.title}."
         }
         "terminate_instance" = {
-          label        = "Terminate instance"
+          label        = "Terminate EC2 instance"
           value        = "terminate_instance"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.terminate_ec2_instances

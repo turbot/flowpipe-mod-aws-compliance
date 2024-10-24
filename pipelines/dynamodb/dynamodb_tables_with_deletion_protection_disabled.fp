@@ -291,7 +291,7 @@ pipeline "correct_one_dynamodb_table_with_deletion_protection_disabled" {
           error_msg   = ""
         },
         "enable_deletion_protection" = {
-          label        = "Enable Deletion Protection"
+          label        = "Enable deletion protection for DynamoDB table"
           value        = "enable_deletion_protection"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.update_dynamodb_table
