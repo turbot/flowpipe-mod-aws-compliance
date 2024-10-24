@@ -305,7 +305,7 @@ pipeline "correct_one_iam_users_with_access_key_during_initial_user_setup" {
           error_msg   = ""
         },
         "delete_access_key" = {
-          label        = "Delete access key"
+          label        = "Delete IAM user access key"
           value        = "delete_access_key"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.delete_iam_access_key

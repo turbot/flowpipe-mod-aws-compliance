@@ -302,7 +302,7 @@ pipeline "correct_one_apigateway_rest_api_stage_with_xray_tracing_disabled" {
           error_msg   = ""
         },
         "enable_xray_tracing" = {
-          label        = "Enable xray tracing"
+          label        = "Enable xray tracing for API Gateway"
           value        = "enable_xray_tracing"
           style        = local.style_ok
           pipeline_ref = aws.pipeline.modify_apigateway_rest_api_stage

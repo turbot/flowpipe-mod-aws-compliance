@@ -296,7 +296,7 @@ pipeline "correct_one_ec2_instance_with_imdsv1_enabled" {
           error_msg   = ""
         },
         "disable_imdsv1" = {
-          label        = "Disable IMDSv1"
+          label        = "Disable IMDSv1 for EC2 instance"
           value        = "disable_imdsv1"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_ec2_instance_metadata_options

@@ -291,7 +291,7 @@ pipeline "correct_one_iam_users_with_inline_policy_attached" {
           error_msg   = ""
         },
         "delete_inline_policy" = {
-          label        = "Delete inline policy"
+          label        = "Delete IAM user inline policy"
           value        = "delete_inline_policy"
           style        = local.style_alert
           pipeline_ref = pipeline.delete_user_inline_policy
