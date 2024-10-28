@@ -321,7 +321,7 @@ pipeline "correct_one_iam_user_with_policy_star_star_attached" {
           error_msg   = ""
         },
         "detach_user_star_star_policy" = {
-          label        = "Detach *:* policy from IAM user ${param.user_name} [${param.account_id}]"
+          label        = "Detach *:* policy from user ${param.user_name} [${param.account_id}]"
           value        = "detach_user_star_star_policy"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_user_policy

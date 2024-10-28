@@ -299,7 +299,7 @@ pipeline "correct_one_iam_user_with_iam_policy_attached" {
           error_msg   = ""
         },
         "detach_iam_policy" = {
-          label        = "Detach IAM policy ${param.policy_arn}"
+          label        = "Detach policy ${param.policy_arn}"
           value        = "detach_iam_policy"
           style        = local.style_alert
           pipeline_ref = pipeline.detach_iam_users_with_iam_policy_attached

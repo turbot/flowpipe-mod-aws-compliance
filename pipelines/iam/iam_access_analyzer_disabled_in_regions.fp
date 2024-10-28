@@ -307,7 +307,7 @@ pipeline "correct_one_iam_access_analyzer_disabled_in_region" {
           error_msg   = ""
         },
         "enable_access_analyzer" = {
-          label        = "Enable IAM access analyzer"
+          label        = "Enable access analyzer"
           value        = "enable_access_analyzer"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.create_iam_access_analyzer
