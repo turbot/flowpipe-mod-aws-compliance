@@ -291,7 +291,7 @@ pipeline "correct_one_iam_group_with_unrestricted_cloudshell_full_access" {
           error_msg   = ""
         },
         "detach_group_cloudshell_full_access_policy" = {
-          label        = "Detach cloudshell full access policy `arn:aws:iam::aws:policy/AWSCloudShellFullAccess` from group ${param.title}"
+          label        = "Detach CloudShell policy"
           value        = "detach_group_cloudshell_full_access_policy"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_group_policy

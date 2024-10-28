@@ -293,7 +293,7 @@ pipeline "correct_one_iam_role_with_unrestricted_cloudshell_full_access" {
           error_msg   = ""
         },
         "detach_role_cloudshell_full_access_policy" = {
-          label        = "Detach policy"
+          label        = "Detach CloudShell policy"
           value        = "detach_role_cloudshell_full_access_policy"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_role_policy

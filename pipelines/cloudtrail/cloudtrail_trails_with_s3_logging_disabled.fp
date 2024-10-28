@@ -335,7 +335,7 @@ pipeline "correct_one_cloudtrail_trail_with_s3_logging_disabled" {
           error_msg   = ""
         },
         "enable_s3_logging" = {
-          label        = "Enable logging"
+          label        = "Enable S3 logging"
           value        = "enable_s3_logging"
           style        = local.style_alert
           pipeline_ref = pipeline.enable_s3_logging_for_cloudtrail
