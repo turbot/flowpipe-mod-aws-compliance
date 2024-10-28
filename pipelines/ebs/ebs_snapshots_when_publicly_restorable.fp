@@ -296,7 +296,7 @@ pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
         },
         // TODO: Is the pipeline correct?
         "update_snapshot_permision_to_private" = {
-          label        = "Update Snapshot Permission to Private"
+          label        = "Update snapshot permission to private"
           value        = "update_snapshot_permision_to_private"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_ebs_snapshot
@@ -309,7 +309,7 @@ pipeline "correct_one_ebs_snapshot_when_publicly_restorable" {
           error_msg   = "Error updating EBS snapshot ${param.title} access permission to private."
         }
         "delete_snapshot" = {
-          label        = "Delete Snapshot"
+          label        = "Delete snapshot"
           value        = "delete_snapshot"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.delete_ebs_snapshot
