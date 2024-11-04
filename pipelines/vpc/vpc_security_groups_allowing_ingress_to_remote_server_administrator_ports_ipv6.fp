@@ -108,7 +108,7 @@ variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_p
 }
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6" {
-  title       = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv6"
+  title       = "Detect & correct VPC security groups allowing ingress to remote server administration ports IPv6"
   description = "Detect VPC security group rules allowing ingress from 0.0.0.0/0 or ::/0 to remote server administration ports IPv6 and then skip or revoke the security group rules."
   tags        = local.vpc_common_tags
 
@@ -126,7 +126,7 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remo
 }
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6" {
-  title       = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv6"
+  title       = "Detect & correct VPC security groups allowing ingress to remote server administration ports IPv6"
   description = "Detect VPC security group rules allowing ingress from 0.0.0.0/0 or ::/0 to remote server administration ports IPv6 and then skip or revoke the security group rules."
   tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
@@ -188,7 +188,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_serv
 }
 
 pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv6" {
-  title       = "Correct VPC Security groups allowing ingress to remote server administration ports IPv6"
+  title       = "Correct VPC security groups allowing ingress to remote server administration ports IPv6"
   description = "Revoke security group rules allowing ingress to remote server administration ports IPv6."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
@@ -244,7 +244,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_info
     notifier = param.notifier
-    text     = "Detected ${length(param.items)} VPC Security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from ::/0 (all IPv6 addresses)."
+    text     = "Detected ${length(param.items)} VPC security group rule(s) allowing ingress to remote server administration ports (e.g., SSH on port 22, RDP on port 3389) from ::/0 (all IPv6 addresses)."
   }
 
   step "pipeline" "correct_item" {
@@ -272,8 +272,8 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
 }
 
 pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports_ipv6" {
-  title       = "Correct one VPC Security group allowing ingress to remote server administration ports IPv6"
-  description = "Revoke VPC Security group rule allowing ingress to remote server administration ports IPv6."
+  title       = "Correct one VPC security group allowing ingress to remote server administration ports IPv6"
+  description = "Revoke VPC security group rule allowing ingress to remote server administration ports IPv6."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
   param "title" {
