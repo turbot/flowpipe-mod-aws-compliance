@@ -298,7 +298,7 @@ pipeline "correct_one_rds_db_instance_with_public_access_enabled" {
           error_msg   = ""
         },
         "disable_public_access" = {
-          label        = "Disable public access for instance"
+          label        = "Disable public access"
           value        = "disable_public_access"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_rds_db_instance
