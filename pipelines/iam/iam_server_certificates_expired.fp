@@ -299,7 +299,7 @@ pipeline "correct_one_iam_server_certificate_expired" {
           error_msg   = ""
         },
         "delete_expired_server_certificate" = {
-          label        = "Delete expired IAM server certificate"
+          label        = "Delete expired server certificate"
           value        = "delete_expired_server_certificate"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.delete_iam_server_certificate

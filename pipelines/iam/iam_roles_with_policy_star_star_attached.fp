@@ -321,7 +321,7 @@ pipeline "correct_one_iam_role_with_policy_star_star_attached" {
           error_msg   = ""
         },
         "detach_role_star_star_policy" = {
-          label        = "Detach *:* policy from IAM role ${param.role_name} [${param.account_id}]"
+          label        = "Detach *:* policy"
           value        = "detach_role_star_star_policy"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_role_policy
