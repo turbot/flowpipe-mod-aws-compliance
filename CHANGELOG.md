@@ -1,3 +1,10 @@
+## v1.1.0 (2024-11-28)
+
+_Enhancements_
+
+- Updated the titles, names, descriptions, and labels of pipelines to have consistent styling. ([#29](https://github.com/turbot/flowpipe-mod-aws-compliance/pull/29))
+- Updated the README to include the latest mod installation instructions. ([#30](https://github.com/turbot/flowpipe-mod-aws-compliance/pull/30))
+
 ## v1.0.1 [2024-10-23]
 
 _Enhancements_

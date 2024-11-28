@@ -322,7 +322,7 @@ pipeline "correct_one_iam_group_with_policy_star_star_attached" {
           error_msg   = ""
         },
         "detach_group_star_star_policy" = {
-          label        = "Detach *:* policy from IAM group ${param.group_name}[${param.account_id}]"
+          label        = "Detach *:* policy"
           value        = "detach_group_star_star_policy"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.detach_iam_group_policy

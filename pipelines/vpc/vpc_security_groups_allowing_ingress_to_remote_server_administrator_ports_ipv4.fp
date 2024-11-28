@@ -110,8 +110,8 @@ variable "vpc_security_groups_allowing_ingress_to_remote_server_administration_p
 }
 
 trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4" {
-  title       = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv4"
-  description = "Detect VPC Security group rules that allow ingress from 0.0.0.0/0  or ::/0 to remote server administration ports IPv4 and then skip or revoke the security security group rules."
+  title       = "Detect & correct VPC security groups allowing ingress to remote server administration ports IPv4"
+  description = "Detect VPC security group rules that allow ingress from 0.0.0.0/0  or ::/0 to remote server administration ports IPv4 and then skip or revoke the security security group rules."
   tags        = local.vpc_common_tags
 
   enabled  = var.vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4_trigger_enabled
@@ -128,8 +128,8 @@ trigger "query" "detect_and_correct_vpc_security_groups_allowing_ingress_to_remo
 }
 
 pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4" {
-  title       = "Detect & correct VPC Security groups allowing ingress to remote server administration ports IPv4"
-  description = "Detect VPC Security group rules that allow ingress from 0.0.0.0/0 or ::/0 to remote server administration ports IPv4 and then skip or revoke the security security group rules."
+  title       = "Detect & correct VPC security groups allowing ingress to remote server administration ports IPv4"
+  description = "Detect VPC security group rules that allow ingress from 0.0.0.0/0 or ::/0 to remote server administration ports IPv4 and then skip or revoke the security security group rules."
   tags        = merge(local.vpc_common_tags, { recommended = "true" })
 
   param "database" {
@@ -190,7 +190,7 @@ pipeline "detect_and_correct_vpc_security_groups_allowing_ingress_to_remote_serv
 }
 
 pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administration_ports_ipv4" {
-  title       = "Correct VPC Security groups allowing ingress to remote server administration ports IPv4"
+  title       = "Correct VPC security groups allowing ingress to remote server administration ports IPv4"
   description = "Revoke VPC security group rules allowing ingress to remote server administration ports IPv4."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 
@@ -274,7 +274,7 @@ pipeline "correct_vpc_security_groups_allowing_ingress_to_remote_server_administ
 }
 
 pipeline "correct_one_vpc_security_group_allowing_ingress_to_remote_server_administration_ports_ipv4" {
-  title       = "Correct one VPC Security group allowing ingress to remote server administration ports IPv4"
+  title       = "Correct one VPC security group allowing ingress to remote server administration ports IPv4"
   description = "Revoke a VPC security group rule allowing ingress to remote server administration ports IPv4."
   tags        = merge(local.vpc_common_tags, { folder = "Internal" })
 

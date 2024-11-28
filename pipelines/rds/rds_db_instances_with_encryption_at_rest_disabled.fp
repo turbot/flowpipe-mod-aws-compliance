@@ -24,7 +24,7 @@ variable "rds_db_instances_with_encryption_at_rest_disabled_trigger_enabled" {
   default     = false
   description = "If true, the trigger is enabled."
 
-   tags = {
+  tags = {
     folder = "Advanced/RDS"
   }
 }
@@ -34,7 +34,7 @@ variable "rds_db_instances_with_encryption_at_rest_disabled_trigger_schedule" {
   default     = "15m"
   description = "If the trigger is enabled, run it on this schedule."
 
-   tags = {
+  tags = {
     folder = "Advanced/RDS"
   }
 }

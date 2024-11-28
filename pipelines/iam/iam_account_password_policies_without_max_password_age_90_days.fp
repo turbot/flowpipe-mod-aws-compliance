@@ -335,7 +335,7 @@ pipeline "update_iam_account_password_policy_max_password_age" {
         aws_account as a
         left join aws_iam_account_password_policy as pol on a.account_id = pol.account_id
       where
-       a.sp_connection_name = '${param.conn.short_name}';
+        a.sp_connection_name = '${param.conn.short_name}';
     EOQ
   }
 

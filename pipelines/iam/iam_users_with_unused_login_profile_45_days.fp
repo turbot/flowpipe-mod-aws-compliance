@@ -328,7 +328,7 @@ step "pipeline" "respond" {
         error_msg   = ""
       },
       "delete_user_login_profile_unused_45_days" = {
-        label        = "Delete IAM login user profile unsued from 45 days or more"
+        label        = "Delete user login profile"
         value        = "delete_user_login_profile_unused_45_days"
         style        = local.style_alert
         pipeline_ref = pipeline.delete_user_login_profile

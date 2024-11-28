@@ -70,7 +70,7 @@ variable "cloudtrail_trail_logs_not_encrypted_with_kms_cmk_kms_key_id" {
 }
 
 trigger "query" "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
-  title       = "Detect & correct CloudTrail Trail logs not encrypted with KMS CMK"
+  title       = "Detect & correct CloudTrail trail logs not encrypted with KMS CMK"
   description = "Detect CloudTrail trail logs not encrypted with KMS CMK and then skip or encrypt with KMS CMK."
 
   tags = local.cloudtrail_common_tags
@@ -89,7 +89,7 @@ trigger "query" "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms
 }
 
 pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
-  title       = "Detect & correct CloudTrail Trail logs not encrypted with KMS CMK"
+  title       = "Detect & correct CloudTrail trail logs not encrypted with KMS CMK"
   description = "Detect CloudTrail trail logs not encrypted with KMS CMK and then skip or encrypt with KMS CMK."
 
   tags = local.cloudtrail_common_tags
@@ -159,7 +159,7 @@ pipeline "detect_and_correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
 }
 
 pipeline "correct_cloudtrail_trail_logs_not_encrypted_with_kms_cmk" {
-  title       = "Correct CloudTrail Trail logs not encrypted with KMS CMK"
+  title       = "Correct CloudTrail trail logs not encrypted with KMS CMK"
   description = "Executes corrective actions on CloudTrail trail logs not encrypted with KMS CMK."
 
   tags = merge(local.cloudtrail_common_tags, { folder = "Internal" })

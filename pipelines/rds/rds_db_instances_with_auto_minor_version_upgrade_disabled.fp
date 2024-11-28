@@ -294,7 +294,7 @@ pipeline "correct_one_rds_db_instance_with_auto_minor_version_upgrade_disabled" 
           error_msg   = ""
         },
         "enable_auto_minor_version_upgrade" = {
-          label        = "Enable Auto Minor Version Upgrade"
+          label        = "Enable auto minor version upgrade"
           value        = "enable_auto_minor_version_upgrade"
           style        = local.style_alert
           pipeline_ref = aws.pipeline.modify_rds_db_instance

@@ -309,7 +309,7 @@ pipeline "correct_one_iam_users_with_inline_policy_attached" {
 }
 
 pipeline "delete_user_inline_policy" {
-  title       = "Delete User Inline Policy"
+  title       = "Delete user inline policy"
   description = "Deletes the specified inline policy from the specified IAM user."
   tags        = merge(local.iam_common_tags, { folder = "Internal" })
 
