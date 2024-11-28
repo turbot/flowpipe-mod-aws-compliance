@@ -46,18 +46,12 @@ For more information on importing connections, please see [Connection Import](ht
 
 For more information on connections in Flowpipe, please see [Managing Connections](https://flowpipe.io/docs/run/connections).
 
-Clone the mod:
+Install the mod:
 
 ```sh
 mkdir aws-compliance
 cd aws-compliance
-git clone git@github.com:turbot/flowpipe-mod-aws-compliance.git
-```
-
-Install the dependencies:
-
-```sh
-flowpipe mod install
+flowpipe mod install github.com/turbot/flowpipe-mod-aws-compliance
 ```
 
 ### Running Detect and Correct Pipelines
@@ -77,7 +71,7 @@ flowpipe pipeline list | grep "detect_and_correct"
 Then run your chosen pipeline:
 
 ```sh
-flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled
+flowpipe pipeline run aws_compliance.pipeline.detect_and_correct_s3_buckets_with_block_public_access_disabled
 ```
 
 This will then run the pipeline and depending on your configured running mode; perform the relevant action(s), there are 3 running modes:
@@ -105,7 +99,7 @@ s3_buckets_with_block_public_access_disabled_default_action = "notify"
 or pass the `approvers` and `default_action` arguments on the command-line.
 
 ```sh
-flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled --arg='default_action=notify' --arg='approvers=[]'
+flowpipe pipeline run aws_compliance.pipeline.detect_and_correct_s3_buckets_with_block_public_access_disabled --arg='default_action=notify' --arg='approvers=[]'
 ```
 
 #### Automatic
@@ -122,7 +116,7 @@ s3_buckets_with_block_public_access_disabled_default_action = "block_public_acce
 or pass the `approvers` and `default_action` argument on the command-line.
 
 ```sh
-flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled --arg='approvers=[] --arg='default_action=block_public_access'
+flowpipe pipeline run aws_compliance.pipeline.detect_and_correct_s3_buckets_with_block_public_access_disabled --arg='approvers=[] --arg='default_action=block_public_access'
 ```
 
 To further enhance this approach, you can enable the pipelines corresponding [query trigger](#running-query-triggers) to run completely hands-off.
@@ -163,20 +157,20 @@ The easiest approach is to setup your `flowpipe.fpvars` file, starting with the 
 cp flowpipe.fpvars.example flowpipe.fpvars
 vi flowpipe.fpvars
 
-flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled
+flowpipe pipeline run aws_compliance.pipeline.detect_and_correct_s3_buckets_with_block_public_access_disabled
 ```
 
 Alternatively, you can pass variables on the command line:
 
 ```sh
-flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled --var notifier=notifier.default
+flowpipe pipeline run aws_compliance.pipeline.detect_and_correct_s3_buckets_with_block_public_access_disabled --var notifier=notifier.default
 ```
 
 Or through environment variables:
 
 ```sh
 export FP_VAR_notifier="notifier.default"
-flowpipe pipeline run detect_and_correct_s3_buckets_with_block_public_access_disabled
+flowpipe pipeline run aws_compliance.pipeline.detect_and_correct_s3_buckets_with_block_public_access_disabled
 ```
 
 For more information, please see [Passing Input Variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
